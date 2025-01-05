@@ -1,31 +1,31 @@
-require('dotenv').config();
+const express = require("express");
+const http = require("http");
+const connectDB = require("./config/db");
+const userRoutes = require("./routes/User.routes");
+const artistRoutes = require("./routes/Artist.routes");
+const artistTypeRoutes = require("./routes/AtristType.routes");
 
-const { MongoClient } = require('mongodb');
+const app = express();
+const cors = require('cors');
+app.use(cors({
+  origin: true,
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true
+}));
 
-// Use the environment variable
-const uri = process.env.MONGO_URI;
 
+app.use(express.json());
+app.get('/', (req, res) => {
+  res.send('Working');
+});
 
-async function verifyConnection() {
-  const client = new MongoClient(uri, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  });
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
 
-  try {
-    console.log("Connecting to MongoDB...");
-    await client.connect();
-    console.log("Connected to MongoDB successfully!");
+app.use("/api/users", userRoutes);
+// app.use("/api/artists", artistRoutes);
+// app.use("/api/artist-types", artistTypeRoutes);
 
-    // Optional: List databases
-    const databasesList = await client.db().admin().listDatabases();
-    console.log("Databases:");
-    databasesList.databases.forEach((db) => console.log(` - ${db.name}`));
-  } catch (error) {
-    console.error("Error connecting to MongoDB:", error);
-  } finally {
-    await client.close();
-  }
-}
-
-verifyConnection();
+connectDB();

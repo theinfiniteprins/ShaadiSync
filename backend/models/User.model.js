@@ -30,13 +30,17 @@ const userSchema = new Schema(
     },
     SyncCoin: {
       type: Number,
-      default: 0,  // Set default to 0 or any initial value
+      default: 0, // Set default to 0 or any initial value
     },
     isBlocked: {
       type: Boolean,
-      default: false, // Blocked status will not be stored in the DB, it will be added dynamically
-      select: false,  // This will prevent it from being included in the response unless specifically queried
-    }
+      default: false, // Default to not blocked
+      select: false, // Prevent it from being included in the response unless specifically queried
+    },
+    isAdmin: {
+      type: Boolean,
+      default: false, // Default to a normal user (not admin)
+    },
   },
   {
     timestamps: true, // Automatically add createdAt and updatedAt
@@ -44,7 +48,7 @@ const userSchema = new Schema(
 );
 
 // Create a virtual field for isBlocked that won't be saved in DB
-userSchema.virtual('isBlocked').get(function() {
+userSchema.virtual('isBlocked').get(function () {
   return this.__isBlocked;
 });
 
