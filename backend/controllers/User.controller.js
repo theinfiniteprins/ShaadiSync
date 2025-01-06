@@ -1,26 +1,26 @@
 const User = require('../models/User.model'); // Replace with the actual path to your User model
 
 // 1. Create a new user
-// const createUser = async (req, res) => {
-//   try {
-//     const { email, password, mobileNumber, name, address, SyncCoin, isAdmin } = req.body;
+const createUser = async (req, res) => {
+  try {
+    const { email, password, mobileNumber, name, address, SyncCoin, isAdmin } = req.body;
 
-//     const user = new User({
-//       email,
-//       password,
-//       mobileNumber,
-//       name,
-//       address,
-//       SyncCoin,
-//       isAdmin,
-//     });
+    const user = new User({
+      email,
+      password,
+      mobileNumber,
+      name,
+      address,
+      SyncCoin,
+      isAdmin,
+    });
 
-//     const savedUser = await user.save();
-//     res.status(201).json(savedUser);
-//   } catch (error) {
-//     res.status(400).json({ error: error.message });
-//   }
-// };
+    const savedUser = await user.save();
+    res.status(201).json(savedUser);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
 
 // 2. Get all users (exclude password field)
 const getAllUsers = async (req, res) => {

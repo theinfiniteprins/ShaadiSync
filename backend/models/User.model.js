@@ -48,9 +48,9 @@ const userSchema = new Schema(
 );
 
 // Create a virtual field for isBlocked that won't be saved in DB
-userSchema.virtual('isBlocked').get(function () {
-  return this.__isBlocked;
-});
+// userSchema.virtual('isBlocked').get(function () {
+//   return this.__isBlocked;
+// });
 
 const User = mongoose.model('User', userSchema);
 

@@ -3,7 +3,7 @@ const User = require('../models/userModel'); // Replace with the actual path to 
 const isAdminMiddleware = async (req, res, next) => {
   try {
     // Assuming the user ID is stored in the request (e.g., from a JWT or session)
-    const userId = req.userId; // Ensure `req.userId` is populated via authentication middleware
+    const userId = req.params.id; // Ensure `req.userId` is populated via authentication middleware
     const user = await User.findById(userId);
 
     if (!user) {
@@ -14,7 +14,7 @@ const isAdminMiddleware = async (req, res, next) => {
       return res.status(403).json({ message: 'Access denied. Admin privileges required.' });
     }
 
-    next(); // Proceed to the next middleware or controller
+    next();
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

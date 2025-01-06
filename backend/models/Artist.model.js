@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
-const ArtistType = require('./ArtistType');  // Import the ArtistType model
+const ArtistType = require('./ArtistType.model');  // Import the ArtistType model
 
 // Define the Artist Schema
 const artistSchema = new Schema(
@@ -66,9 +66,9 @@ const artistSchema = new Schema(
 );
 
 // Create a virtual field for isBlocked that won't be saved in DB
-artistSchema.virtual('isBlocked').get(function () {
-  return this.__isBlocked;
-});
+// artistSchema.virtual('isBlocked').get(function () {
+//   return this.__isBlocked;
+// });
 
 const Artist = mongoose.model('Artist', artistSchema);
 
