@@ -30,16 +30,15 @@ const userSchema = new Schema(
     },
     SyncCoin: {
       type: Number,
-      default: 0, // Set default to 0 or any initial value
-    },
-    isBlocked: {
-      type: Boolean,
-      default: false, // Default to not blocked
-      select: false, // Prevent it from being included in the response unless specifically queried
+      default: 0, // Default SyncCoin balance
     },
     isAdmin: {
       type: Boolean,
-      default: false, // Default to a normal user (not admin)
+      default: undefined, // Default undefined; only explicitly set it for admins
+    },
+    isBlocked: {
+      type: Boolean,
+      default: undefined, // Default undefined; only explicitly set it for admins
     },
   },
   {
@@ -47,10 +46,6 @@ const userSchema = new Schema(
   }
 );
 
-// Create a virtual field for isBlocked that won't be saved in DB
-// userSchema.virtual('isBlocked').get(function () {
-//   return this.__isBlocked;
-// });
 
 const User = mongoose.model('User', userSchema);
 
