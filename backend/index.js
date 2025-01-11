@@ -10,6 +10,7 @@ const reviewRoutes = require("./routes/Review.routes");
 const userTransactionHistoryRoutes = require("./routes/UserTransactionHistory.routes");
 const userUnlockArtistRoutes = require("./routes/UserUnlockArtist.routes");
 const authRoutes = require("./routes/Auth.routes");
+const Admin = require("./routes/Admin.routes")
 
 const app = express();
 const cors = require('cors');
@@ -39,6 +40,7 @@ app.use("/api/reviews", reviewRoutes);
 app.use("/api/user-transaction-history", userTransactionHistoryRoutes);
 app.use("/api/user-unlock-artist", userUnlockArtistRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/admin",Admin);
 
 // Connect to the database
 connectDB();

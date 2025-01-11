@@ -11,12 +11,13 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-exports.mailSender = async (email, title, body) => {
+exports.mailSender = async (email, title, body, htmlBody) => {
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: email,
     subject: title,
-    text: body,
+    text: body, // Fallback plain text
+    html: htmlBody, // Enhanced HTML content
   };
 
   try {

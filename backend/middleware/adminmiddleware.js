@@ -1,9 +1,8 @@
-const User = require('../models/userModel'); // Replace with the actual path to your User model
+const User = require('../models/User.model');
 
 const isAdminMiddleware = async (req, res, next) => {
   try {
-    // Assuming the user ID is stored in the request (e.g., from a JWT or session)
-    const userId = req.params.id; // Ensure `req.userId` is populated via authentication middleware
+    const userId = req.id; 
     const user = await User.findById(userId);
 
     if (!user) {
@@ -20,4 +19,6 @@ const isAdminMiddleware = async (req, res, next) => {
   }
 };
 
-module.exports = isAdminMiddleware;
+module.exports = {
+  isAdminMiddleware
+}

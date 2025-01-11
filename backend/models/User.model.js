@@ -17,32 +17,30 @@ const userSchema = new Schema(
     },
     mobileNumber: {
       type: String,
-      required: true,
-      unique: true,
     },
     name: {
       type: String,
-      required: true,
+
     },
     address: {
       type: String,
-      required: true,
+
     },
     SyncCoin: {
       type: Number,
-      default: 0, // Default SyncCoin balance
+      default: 0,
     },
     isAdmin: {
       type: Boolean,
-      default: undefined, // Default undefined; only explicitly set it for admins
+      default: undefined,
     },
     isBlocked: {
       type: Boolean,
-      default: undefined, // Default undefined; only explicitly set it for admins
+      default: undefined,
     },
   },
   {
-    timestamps: true, // Automatically add createdAt and updatedAt
+    timestamps: true,
   }
 );
 
