@@ -15,7 +15,6 @@ const addAdmin = async (req,res) => {
     }
 
 
-    console.log(email);
     const existingUser = await User.findOne({
         email
     })

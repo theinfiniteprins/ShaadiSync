@@ -3,8 +3,8 @@ const router = express.Router();
 const {
   sendOTP,
   signup,
-  signin,
-} = require('../auth/Usersignup');
+} = require('../auth/signup');
+const { signin} = require('../auth/signin');
 const {isAdminMiddleware} = require("../middleware/adminmiddleware")
 const {authMiddleware } = require("../middleware/authmiddleware")
 

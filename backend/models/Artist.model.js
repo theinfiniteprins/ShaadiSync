@@ -18,11 +18,9 @@ const artistSchema = new Schema(
     },
     name: {
       type: String,
-      required: true,
     },
     mobileNumber: {
       type: String,
-      required: true,
       unique: true,
     },
     artistType: {
@@ -32,11 +30,9 @@ const artistSchema = new Schema(
     },
     address: {
       type: String,
-      required: true,
     },
     profilePic: {
       type: String, // This can store the URL or file path for the profile picture
-      required: true,
     },
     description: {
       type: String,
