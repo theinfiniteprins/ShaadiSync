@@ -6,82 +6,102 @@ const User = require("../models/User.model");
 const Artist = require("../models/Artist.model");
 require("dotenv").config();
 
-
 const signinBody = zod.object({
     email: zod.string().email(),
     password: zod.string(),
-    role: zod.enum(["user", "artist"])
-})
-
+    role: zod.enum(["user", "artist"]),
+});
 
 const signin = async (req, res) => {
-    const { success } = signinBody.safeParse(req.body)
-    if (!success) {
-        return res.status(411).json({
-            message: "Email already taken / Incorrect inputs"
-        })
-    }
-    const { role } = req.body;
+    try {
+        const parsed = signinBody.safeParse(req.body);
 
-    if (role === "user") {
-        const user = await User.findOne({ email: req.body.email });
-
-        if (user) {
-            if (user.password === req.body.password) {
-                const token = jwt.sign(
-                    {
-                        userId: user._id,
-                    },
-                    process.env.JWT_SECRET
-                );
-
-                res.json({
-                    token: token,
-                });
-                return;
-            } else {
-                res.status(401).json({
-                    message: "Incorrect password",
-                });
-                return;
-            }
+        if (!parsed.success) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid inputs. Check email, password, or role.",
+            });
         }
 
-        res.status(404).json({
-            message: "User not found",
-        });
+        const { email, password, role } = req.body;
 
-    }
-    else {
-        const artist = await Artist.findOne({ email: req.body.email });
+        if (role === "user") {
+            try {
+                const user = await User.findOne({ email });
 
-        if (artist) {
-            if (artist.password === req.body.password) {
-                const token = jwt.sign(
-                    {
-                        artistId: artist._id,
-                    },
-                    process.env.JWT_SECRET
-                );
+                if (!user) {
+                    return res.status(404).json({
+                        success: false,
+                        message: "User not found",
+                    });
+                }
 
-                res.json({
-                    token: token,
+                if (user.password !== password) {
+                    return res.status(401).json({
+                        success: false,
+                        message: "Incorrect password",
+                    });
+                }
+
+                const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET);
+                return res.status(200).json({
+                    success: true,
+                    token,
+                    message: "User signed in successfully",
                 });
-                return;
-            } else {
-                res.status(401).json({
-                    message: "Incorrect password",
+            } catch (error) {
+                console.error("Error finding user:", error);
+                return res.status(500).json({
+                    success: false,
+                    message: "Internal server error while processing user",
                 });
-                return;
             }
+        } else if (role === "artist") {
+            try {
+                const artist = await Artist.findOne({ email });
+
+                if (!artist) {
+                    return res.status(404).json({
+                        success: false,
+                        message: "Artist not found",
+                    });
+                }
+
+                if (artist.password !== password) {
+                    return res.status(401).json({
+                        success: false,
+                        message: "Incorrect password",
+                    });
+                }
+
+                const token = jwt.sign({ artistId: artist._id }, process.env.JWT_SECRET);
+                return res.status(200).json({
+                    success: true,
+                    token,
+                    message: "Artist signed in successfully",
+                });
+            } catch (error) {
+                console.error("Error finding artist:", error);
+                return res.status(500).json({
+                    success: false,
+                    message: "Internal server error while processing artist",
+                });
+            }
+        } else {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid role specified",
+            });
         }
-
-        res.status(404).json({
-            message: "Artist not found",
+    } catch (error) {
+        console.error("Error in signin function:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Unexpected server error",
         });
-
     }
 };
+
 module.exports = {
     signin,
 };

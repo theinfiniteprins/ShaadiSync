@@ -1,67 +1,97 @@
 const zod = require("zod");
 const User = require("../models/User.model");
-const otpGenerator = require("otp-generator")
+const otpGenerator = require("otp-generator");
 const OTP = require("../models/Otp.model");
 require("dotenv").config();
-
 const Artist = require("../models/Artist.model");
-
-
+const bcrypt = require('bcrypt');
 
 const sendOTPBody = zod.object({
     email: zod.string().email(),
     role: zod.enum(["user", "artist"]),
-})
+});
 
 const sendOTP = async (req, res) => {
-    const { success } = sendOTPBody.safeParse(req.body);
-    if (!success) {
-        return res.status(411).json({
-            message: "Incorrect inputs"
-        })
-    }
-    var otp = otpGenerator.generate(6, {
-        upperCaseAlphabets: false,
-        lowerCaseAlphabets: false,
-        specialChars: false,
-    });
-    var otpPayload = {};
-    var message = "";
-    const { email, role } = req.body;
-    if (role === "user") {
-        const existingUser = await User.findOne({
-            email
-        })
+    try {
+        const parsed = sendOTPBody.safeParse(req.body);
 
-        if (existingUser) {
-            return res.status(411).json({
-                message: "Email not found"
-            })
+        if (!parsed.success) {
+            return res.status(400).json({
+                success: false,
+                message: "Incorrect inputs",
+            });
         }
-        otpPayload = { email, otp, type: "user-signup" };
-         message = "OTP sent successfully for user signup";
-    }
-    else {
-        const existingUser = await Artist.findOne({
-            email
-        })
 
-        if (existingUser) {
-            return res.status(411).json({
-                message: "Email not found"
-            })
+        const { email, role } = req.body;
+
+        const otp = otpGenerator.generate(6, {
+            upperCaseAlphabets: false,
+            lowerCaseAlphabets: false,
+            specialChars: false,
+        });
+
+        let otpPayload = {};
+        let message = "";
+
+        if (role === "user") {
+            try {
+                const existingUser = await User.findOne({ email });
+                if (existingUser) {
+                    return res.status(404).json({
+                        success: false,
+                        message: "Email already registered",
+                    });
+                }
+                otpPayload = { email, otp, type: "user-signup" };
+                message = "OTP sent successfully for user signup";
+            } catch (error) {
+                console.error("Error finding user:", error);
+                return res.status(500).json({
+                    success: false,
+                    message: "Internal server error while processing user",
+                });
+            }
+        } else if (role === "artist") {
+            try {
+                const existingArtist = await Artist.findOne({ email });
+                if (existingArtist) {
+                    return res.status(404).json({
+                        success: false,
+                        message: "Email already registered",
+                    });
+                }
+                otpPayload = { email, otp, type: "artist-signup" };
+                message = "OTP sent successfully for artist signup";
+            } catch (error) {
+                console.error("Error finding artist:", error);
+                return res.status(500).json({
+                    success: false,
+                    message: "Internal server error while processing artist",
+                });
+            }
         }
-        otpPayload = { email, otp, type: "artist-signup" };
-         message = "OTP sent successfully for artist signup";
+
+        try {
+            await OTP.create(otpPayload);
+            return res.status(200).json({
+                success: true,
+                message,
+                otp,
+            });
+        } catch (error) {
+            console.error("Error saving OTP:", error);
+            return res.status(500).json({
+                success: false,
+                message: "Failed to save OTP",
+            });
+        }
+    } catch (error) {
+        console.error("Error in sendOTP function:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Unexpected server error",
+        });
     }
-    const otpBody = await OTP.create(otpPayload);
-
-    res.status(200).json({
-        success: true,
-        message,
-        otp,
-    });
-
 };
 
 const signupBody = zod.object({
@@ -70,115 +100,132 @@ const signupBody = zod.object({
     confirmPassword: zod.string(),
     otp: zod.string().length(6),
     role: zod.enum(["user", "artist"]),
-
-})
-
+});
 
 const signup = async (req, res) => {
-    const { success } = signupBody.safeParse(req.body)
-    if (!success) {
-        return res.status(411).json({
-            message: "Incorrect inputs"
-        })
-    }
-    const { email, password, confirmPassword, otp, role } = req.body;
+    try {
+        const parsed = signupBody.safeParse(req.body);
 
-    if (password !== confirmPassword) {
-        return res.status(411).json({
-            message: "Both password should be same"
-        })
-    }
-    var message = "";
-    if (role === "user") {
-        const existingUser = await User.findOne({
-            email
-        })
-        if (existingUser) {
-            return res.status(411).json({
-                message: "Email already taken/Incorrect inputs"
-            })
-        }
-        const recentOtp = await OTP.findOne({ email })
-            .sort({ createdAt: -1 })
-            .limit(1);
-        if (recentOtp.length === 0) {
+        if (!parsed.success) {
             return res.status(400).json({
                 success: false,
-                message: "OTP not found",
-            });
-        } else if (otp !== recentOtp.otp) {
-            return res.status(400).json({
-                success: false,
-                message: "Invaild OTP",
+                message: "Incorrect inputs",
             });
         }
-        const newUser = await User.create({
-            email,
-            password,
-            mobileNumber: 99999995259,
+
+        const { email, password, confirmPassword, otp, role } = req.body;
+
+        if (password !== confirmPassword) {
+            return res.status(400).json({
+                success: false,
+                message: "Passwords do not match",
+            });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        let message = "";
+
+        if (role === "user") {
+            try {
+                const existingUser = await User.findOne({ email });
+                if (existingUser) {
+                    return res.status(400).json({
+                        success: false,
+                        message: "Email already registered",
+                    });
+                }
+
+                const recentOtp = await OTP.findOne({ email })
+                    .sort({ createdAt: -1 })
+                    .limit(1);
+
+                if (!recentOtp) {
+                    return res.status(404).json({
+                        success: false,
+                        message: "OTP not found",
+                    });
+                } else if (otp !== recentOtp.otp) {
+                    return res.status(400).json({
+                        success: false,
+                        message: "Invalid OTP",
+                    });
+                }
+
+                await User.create({
+                    email,
+                    password : hashedPassword,
+                    mobileNumber: 99999995259,
+                });
+
+                message = "User created successfully";
+                recentOtp.used = true;
+                await recentOtp.save();
+            } catch (error) {
+                console.error("Error in user signup:", error);
+                return res.status(500).json({
+                    success: false,
+                    message: "Internal server error while signing up user",
+                });
+            }
+        } else if (role === "artist") {
+            try {
+                const existingArtist = await Artist.findOne({ email });
+                if (existingArtist) {
+                    return res.status(400).json({
+                        success: false,
+                        message: "Email already registered",
+                    });
+                }
+
+                const recentOtp = await OTP.findOne({ email })
+                    .sort({ createdAt: -1 })
+                    .limit(1);
+
+                if (!recentOtp) {
+                    return res.status(404).json({
+                        success: false,
+                        message: "OTP not found",
+                    });
+                } else if (otp !== recentOtp.otp) {
+                    return res.status(400).json({
+                        success: false,
+                        message: "Invalid OTP",
+                    });
+                }
+
+                await Artist.create({
+                    email,
+                    password: hashedPassword,
+                    mobileNumber: 99999255259,
+                });
+
+                message = "Artist created successfully";
+                recentOtp.used = true;
+                await recentOtp.save();
+            } catch (error) {
+                console.error("Error in artist signup:", error);
+                return res.status(500).json({
+                    success: false,
+                    message: "Internal server error while signing up artist",
+                });
+            }
+        }
+
+        return res.status(200).json({
+            success: true,
+            message,
         });
-        message = "User created successfully";
-        recentOtp.used = true;
-    await recentOtp.save();
-    }
-    else {
-        const existingUser = await Artist.findOne({
-            email
-        })
-        if (existingUser) {
-            return res.status(411).json({
-                message: "Email already taken/Incorrect inputs"
-            })
-        }
-        const recentOtp = await OTP.findOne({ email })
-            .sort({ createdAt: -1 })
-            .limit(1);
-        if (recentOtp.length === 0) {
-            return res.status(400).json({
-                success: false,
-                message: "OTP not found",
-            });
-        } else if (otp !== recentOtp.otp) {
-            return res.status(400).json({
-                success: false,
-                message: "Invaild OTP",
-            });
-        }
-        const newArtist = await Artist.create({
-            email,
-            password,
-            name: "John Doe",
-            mobileNumber: "1234567891",
-            artistType: "64b2fa1aef1c2a45bcd9876e", // Replace with an actual ObjectId
-            address: "123 Wedding Lane, Dream City",
-            profilePic: "https://example.com/images/profilePic.jpg",
-            description: "Experienced wedding photographer specializing in outdoor events.",
-            certificates: [
-                "https://example.com/certificates/certificate1.pdf",
-                "https://example.com/certificates/certificate2.pdf"
-            ],
-            isBlocked: false,
-            isVerified: true,
-            balance: 2500
+    } catch (error) {
+        console.error("Error in signup function:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Unexpected server error",
         });
-        message = "Artist created successfully";
-        recentOtp.used = true;
-    await recentOtp.save();
     }
-    
-
-    res.status(200).json({
-        success: true,
-        message,
-    });
-
-
 };
-
-
 
 module.exports = {
     sendOTP,
     signup,
 };
-

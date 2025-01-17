@@ -21,13 +21,11 @@ const artistSchema = new Schema(
     },
     mobileNumber: {
       type: String,
-      unique: true,
     },
     artistType: {
-      type: Schema.Types.ObjectId,  // Reference to ArtistType model
-      ref: 'ArtistType',            // Reference to the ArtistType model
-      required: true,
-    },
+      type: Schema.Types.ObjectId,
+      ref: 'ArtistType',
+    },        
     address: {
       type: String,
     },
