@@ -8,10 +8,16 @@ const {
   updateReview,
 } = require('../controllers/Review.controller');
 
-router.post('/', createReview);
+const {authMiddleware} = require("../middleware/authmiddleware");
+const {isAdminMiddleware} = require("../middleware/adminmiddleware")
+
 router.get('/artist/:artistId', getReviewsByArtist);
-router.get('/user/:userId', getReviewsByUser);
-router.delete('/:id', deleteReview);
-router.put('/:id', updateReview);
+
+router.post('/', authMiddleware, createReview);
+router.get('/user/:userId', authMiddleware, getReviewsByUser);
+router.put('/:id', authMiddleware, updateReview);
+
+router.delete('/:id', authMiddleware, isAdminMiddleware, deleteReview);
 
 module.exports = router;
+

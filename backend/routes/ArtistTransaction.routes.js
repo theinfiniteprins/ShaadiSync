@@ -9,10 +9,15 @@ const {
   getTransactionsByArtist,
 } = require('../controllers/ArtistTransaction.controller');
 
-router.post('/', createTransaction); // Create new transaction
-router.get('/', getAllTransactions); // Get all transactions
-router.get('/:id', getTransactionById); // Get transaction by ID
-router.delete('/:id', deleteTransaction); // Delete transaction
-router.get('/artist/:artistId', getTransactionsByArtist); // Get transactions by artist
+const {authMiddleware} = require("../middleware/authmiddleware");
+const {isAdminMiddleware} = require("../middleware/adminmiddleware")
+
+router.post('/', authMiddleware, createTransaction); // Create new transaction
+router.get('/artist/:artistId', authMiddleware, getTransactionsByArtist); // Get transactions by artist
+router.get('/:id', authMiddleware, getTransactionById); // Get transaction by ID
+
+router.get('/', authMiddleware, isAdminMiddleware, getAllTransactions); // Get all transactions
+
+// router.delete('/:id', authMiddleware, deleteTransaction); // Delete transaction (No one should be able to delete transactions)
 
 module.exports = router;

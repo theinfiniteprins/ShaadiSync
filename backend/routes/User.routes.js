@@ -10,12 +10,17 @@ const {
   unblockUser,
 } = require('../controllers/User.controller');
 
+const {authMiddleware} = require("../middleware/authmiddleware");
+const {isAdminMiddleware} = require("../middleware/adminmiddleware")
+
 router.post('/', createUser); // Create new user
-router.get('/', getAllUsers); // Get all users
 router.get('/:id', getUserById); // Get user by ID
-router.put('/:id', updateUser); // Update user
-router.delete('/:id', deleteUser); // Delete user
-router.put('/:id/block', blockUser); // Block user
-router.put('/:id/unblock', unblockUser); // Unblock user
+
+router.put('/:id', authMiddleware, updateUser); // Update user
+
+router.get('/', authMiddleware, isAdminMiddleware, getAllUsers); // Get all users
+router.delete('/:id', authMiddleware, isAdminMiddleware, deleteUser); // Delete user
+router.put('/:id/block', authMiddleware, isAdminMiddleware, blockUser); // Block user
+router.put('/:id/unblock', authMiddleware, isAdminMiddleware, unblockUser); // Unblock user
 
 module.exports = router;

@@ -8,10 +8,13 @@ const {
   deleteArtistType,
 } = require('../controllers/ArtistType.controller');
 
-router.post('/', createArtistType); // Create artist type
+const {authMiddleware} = require("../middleware/authmiddleware");
+const {isAdminMiddleware} = require("../middleware/adminmiddleware")
+
+router.post('/', authMiddleware, isAdminMiddleware, createArtistType); // Create artist type
 router.get('/', getAllArtistTypes); // Get all artist types
 router.get('/:id', getArtistTypeById); // Get artist type by ID
-router.put('/:id', updateArtistType); // Update artist type
-router.delete('/:id', deleteArtistType); // Delete artist type
+router.put('/:id', authMiddleware, isAdminMiddleware, updateArtistType); // Update artist type
+router.delete('/:id', authMiddleware, isAdminMiddleware, deleteArtistType); // Delete artist type
 
 module.exports = router;

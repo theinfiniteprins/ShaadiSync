@@ -6,8 +6,10 @@ const {
   getUnlockedArtists,
 } = require('../controllers/UserUnlockArtist.controller');
 
-router.post('/unlock', unlockArtist);
-router.get('/is-unlocked/:userId/:artistId', isArtistUnlocked);
-router.get('/unlocked-artists/:userId', getUnlockedArtists);
+const {authMiddleware} = require("../middleware/authmiddleware");
+
+router.post('/unlock', authMiddleware, unlockArtist);
+router.get('/is-unlocked/:userId/:artistId', authMiddleware, isArtistUnlocked);
+router.get('/unlocked-artists/:userId', authMiddleware, getUnlockedArtists);
 
 module.exports = router;
