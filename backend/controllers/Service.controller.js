@@ -111,20 +111,56 @@ const getServicesByArtist = async (req, res) => {
 // 7. Toggle Service Live Status
 const toggleServiceLiveStatus = async (req, res) => {
   try {
-    const service = await Service.findById(req.params.id);
+    const service = await Service.findById(req.params.id).populate('artistId'); // Populate artist details
+
+    if(req.id!=service.artistId._id)
+    {
+      return res.status(403).json({message: 'you can not toggle other artist services'});
+    }
 
     if (!service) {
       return res.status(404).json({ message: 'Service not found' });
     }
 
-    service.isLive = !service.isLive;
+    const artist = service.artistId; // Get the artist associated with the service
+
+    if (!artist) {
+      return res.status(404).json({ message: 'Artist not found for this service' });
+    }
+
+    if (service.isLive) {
+      // If the service is live, the artist can turn it off directly
+      service.isLive = false;
+    } else {
+      // If the service is offline, check the conditions to turn it on
+      const tenPercentOfPrice = service.price * 0.1;
+
+      if (!artist.isVerified) {
+        return res
+          .status(403)
+          .json({ message: 'Service cannot be made live. Artist is not verified.' });
+      }
+
+      if (artist.balance < tenPercentOfPrice) {
+        return res.status(403).json({
+          message: `Service cannot be made live. Artist's balance is less than 10% of the service price.`,
+        });
+      }
+
+      service.isLive = true;
+    }
+
     const updatedService = await service.save();
 
-    res.status(200).json({ message: `Service is now ${service.isLive ? 'live' : 'offline'}`, updatedService });
+    res.status(200).json({
+      message: `Service is now ${service.isLive ? 'live' : 'offline'}`,
+      updatedService,
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
+
 
 module.exports = {
   createService,

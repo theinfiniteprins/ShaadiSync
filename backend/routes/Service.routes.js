@@ -7,6 +7,7 @@ const {
   updateService,
   deleteService,
   getServicesByArtist,
+  toggleServiceLiveStatus,
 } = require('../controllers/Service.controller');
 
 const {authMiddleware} = require("../middleware/authmiddleware");
@@ -19,5 +20,6 @@ router.put('/:id', authMiddleware, updateService); // Update service
 router.get('/artist/:artistId', authMiddleware, getServicesByArtist); // Get services by artist
 router.delete('/:id', authMiddleware, deleteService); // Delete service
 router.get('/', authMiddleware, isAdminMiddleware, getAllServices); // Get all services
+router.put('/toggle/:id', authMiddleware, toggleServiceLiveStatus); // Update service
 
 module.exports = router;
