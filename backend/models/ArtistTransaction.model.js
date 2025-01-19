@@ -2,32 +2,36 @@ const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
 const artistTransactionSchema = new Schema(
-    {
-      artistId: {
-        type: Schema.Types.ObjectId, // Reference to the Artist model
-        ref: 'Artist',
-        required: true,
-      },
-      amount: {
-        type: Number,
-        required: true, // Amount involved in the transaction
-      },
-      type: {
-        type: String,
-        enum: ['credit', 'debit'], // Type of transaction: credit or debit
-        required: true,
-      },
-      description: {
-        type: String,
-        default: '', // Optional description for the transaction
-      },
+  {
+    artistId: {
+      type: Schema.Types.ObjectId, // Reference to the Artist model
+      ref: 'Artist',
+      required: true,
     },
-    {
-      timestamps: true, // Automatically include createdAt and updatedAt
-    }
-  );
-  
-  const ArtistTransaction = mongoose.model('ArtistTransaction', artistTransactionSchema);
-  
-  module.exports = ArtistTransaction;
-  
+    amount: {
+      type: Number,
+      required: true, // Amount involved in the transaction
+    },
+    type: {
+      type: String,
+      enum: ['credit', 'debit'], // Type of transaction: credit or debit
+      required: true,
+    },
+    description: {
+      type: String,
+      default: '', // Optional description for the transaction
+    },
+    unlockId: {
+      type: Schema.Types.ObjectId, // Reference to the UserUnlockArtist model
+      ref: 'UserUnlockArtist',
+      required: false,
+    },
+  },
+  {
+    timestamps: true, // Automatically include createdAt and updatedAt
+  }
+);
+
+const ArtistTransaction = mongoose.model('ArtistTransaction', artistTransactionSchema);
+
+module.exports = ArtistTransaction;

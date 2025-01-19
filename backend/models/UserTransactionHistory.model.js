@@ -24,6 +24,11 @@ const userTransactionHistorySchema = new Schema(
         type: String,
         required: true, // Description of the transaction
       },
+      unlockId: {
+        type: Schema.Types.ObjectId, // Reference to the UserUnlockArtist model
+        ref: 'UserUnlockArtist',
+        required: false,
+      },
     },
     {
       timestamps: true, // Automatically include createdAt and updatedAt

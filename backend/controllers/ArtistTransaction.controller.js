@@ -1,31 +1,55 @@
 const ArtistTransaction = require('../models/ArtistTransaction.model');
 const Artist = require('../models/Artist.model');
+const UserUnlockArtist = require('../models/UserUnlockArtist.model');
 
 const createTransaction = async (req, res) => {
   try {
-    const { artistId, amount, type, description } = req.body;
+    const { artistId, amount, type, description, unlockId } = req.body;
 
+    // Validate the transaction type
+    if (!['credit', 'debit'].includes(type)) {
+      return res.status(400).json({ message: 'Invalid transaction type' });
+    }
+
+    // Find the artist
     const artist = await Artist.findById(artistId);
     if (!artist) {
       return res.status(404).json({ message: 'Artist not found' });
     }
 
-    if (!['credit', 'debit'].includes(type)) {
-      return res.status(400).json({ message: 'Invalid transaction type' });
+    // Handle debit transactions
+    if (type === 'debit') {
+      if (artist.balance < amount) {
+        return res.status(400).json({ message: 'Insufficient balance for debit transaction' });
+      }
+
+      // Deduct the amount from the artist's balance
+      artist.balance -= amount;
+
+      // Validate unlockId if provided
+      if (unlockId) {
+        const unlock = await UserUnlockArtist.findById(unlockId);
+        if (!unlock) {
+          return res.status(404).json({ message: 'Invalid unlockId' });
+        }
+      }
     }
 
-    if (type === 'debit' && artist.balance < amount) {
-      return res.status(400).json({ message: 'Insufficient balance for debit transaction' });
+    // Handle credit transactions
+    if (type === 'credit') {
+      artist.balance += amount;
     }
 
-    artist.balance = type === 'credit' ? artist.balance + amount : artist.balance - amount;
+    // Save the updated artist balance
     await artist.save();
 
+    // Create the transaction
     const newTransaction = new ArtistTransaction({
       artistId,
       amount,
       type,
       description,
+      unlockId,
     });
 
     const savedTransaction = await newTransaction.save();
@@ -35,10 +59,12 @@ const createTransaction = async (req, res) => {
   }
 };
 
+
 const getAllTransactions = async (req, res) => {
   try {
     const transactions = await ArtistTransaction.find()
       .populate('artistId', 'name email')
+      .populate('unlockId') // Include unlock details
       .exec();
     res.status(200).json(transactions);
   } catch (error) {
@@ -55,7 +81,9 @@ const getTransactionsByArtist = async (req, res) => {
       return res.status(404).json({ message: 'Artist not found' });
     }
 
-    const transactions = await ArtistTransaction.find({ artistId }).exec();
+    const transactions = await ArtistTransaction.find({ artistId })
+      .populate('unlockId') // Include unlock details
+      .exec();
     res.status(200).json(transactions);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -66,6 +94,7 @@ const getTransactionById = async (req, res) => {
   try {
     const transaction = await ArtistTransaction.findById(req.params.id)
       .populate('artistId', 'name email')
+      .populate('unlockId') // Include unlock details
       .exec();
 
     if (!transaction) {
@@ -85,9 +114,14 @@ const deleteTransaction = async (req, res) => {
     }
 
     const artist = await Artist.findById(transaction.artistId);
+    if (!artist) {
+      return res.status(404).json({ message: 'Artist not found' });
+    }
+
+    // Revert balance adjustment
     if (transaction.type === 'credit') {
       artist.balance -= transaction.amount;
-    } else {
+    } else if (transaction.type === 'debit') {
       artist.balance += transaction.amount;
     }
     await artist.save();

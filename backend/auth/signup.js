@@ -157,7 +157,7 @@ const signup = async (req, res) => {
                 const newUser = await User.create({
                     email,
                     password : hashedPassword,
-                    mobileNumber: 99999255251,
+                    mobileNumber: 9999925525,
                     SyncCoin: SyncCoin,
                 });
                 
@@ -167,6 +167,7 @@ const signup = async (req, res) => {
                     syncCoin: SyncCoin,
                     transactionType: "credit",  
                     description: "Initial SyncCoins added on signup", 
+                    unlockId: null,
                 });
 
                 message = "User created successfully and 10 SyncCoins added to your account";
