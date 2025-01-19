@@ -1,5 +1,6 @@
 const Artist = require('../models/Artist.model'); // Replace with the actual path to your Artist model
 const ArtistType = require('../models/ArtistType.model'); // Replace with the actual path to your ArtistType model
+const zod = require("zod");
 
 
 // 1. Create a new Artist
@@ -154,7 +155,7 @@ const viewBalance = async (req, res) => {
 
   const updateIsVerified = async (req, res) => {
     try {
-      const { isVerified } = req.body;
+      isVerified = true;
   
       if (typeof isVerified !== 'boolean') {
         return res.status(400).json({ message: 'isVerified must be a boolean value' });
@@ -170,6 +171,82 @@ const viewBalance = async (req, res) => {
     }
   };
 
+  const verificationbody = zod.object({
+    aadharCardNumber: zod.string().regex(/^\d{12}$/, 'Aadhar card number must be a 12-digit number'),
+    accountNumber: zod.string().regex(/^\d{9,18}$/, 'Account number must be between 9 and 18 digits'),
+    confirmAccountNumber: zod.string().regex(/^\d{9,18}$/, 'Confirmation account number must be between 9 and 18 digits'),
+    ifscCode: zod.string().regex(/^[A-Z]{4}0[A-Z0-9]{6}$/, 'IFSC code must be valid'),
+    bankDocument: zod.string().url('Bank document must be a valid URL'),
+    aadharCardFile: zod.string().url('Aadhar card file must be a valid URL'),
+  }).refine(data => data.accountNumber === data.confirmAccountNumber, {
+    message: 'Account number and confirmation account number must match',
+    path: ['confirmAccountNumber'],
+  });
+
+const submitVerification = async (req, res) => {
+  try {
+
+    const validatedData = verificationbody.parse(req.body);
+
+    const { 
+      aadharCardNumber, 
+      accountNumber, 
+      ifscCode, 
+      bankDocument, 
+      aadharCardFile 
+    } = validatedData;
+
+    const { artistId } = req.params;
+
+    // Find and update the artist
+    const updatedArtist = await Artist.findByIdAndUpdate(
+      artistId,
+      {
+        verificationDocuments: {
+          bankDocument,
+          aadharCardFile,
+        },
+        bankDetails: {
+          accountNumber,
+          ifscCode,
+        },
+        aadharCardNumber,
+        isVerified: false, // Initially marked as pending verification
+      },
+      { new: true }
+    );
+
+    // Check if artist was found
+    if (!updatedArtist) {
+      return res.status(404).json({ error: 'Artist not found.' });
+    }
+
+    res.status(200).json({
+      message: 'Verification details submitted successfully. Awaiting approval.',
+      artist: updatedArtist,
+    });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({
+        error: 'Validation error',
+        details: error.errors.map((err) => ({
+          path: err.path,
+          message: err.message,
+        })),
+      });
+    }
+
+    console.error(error);
+    res.status(500).json({ error: 'An error occurred while submitting verification details.' });
+  }
+
+}
+
+
+
+
+
+
 module.exports = {
   createArtist,
   getAllArtists,
@@ -180,4 +257,5 @@ module.exports = {
   unblockArtist,
   viewBalance,
   updateIsVerified,
+  submitVerification,
 };

@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
-const ArtistType = require('./ArtistType.model');  // Import the ArtistType model
+const ArtistType = require('./ArtistType.model'); // Import the ArtistType model
 
 // Define the Artist Schema
 const artistSchema = new Schema(
@@ -25,7 +25,7 @@ const artistSchema = new Schema(
     artistType: {
       type: Schema.Types.ObjectId,
       ref: 'ArtistType',
-    },        
+    },
     address: {
       type: String,
     },
@@ -53,16 +53,34 @@ const artistSchema = new Schema(
       type: Number,
       default: 0, // Artist's wallet balance
     },
+    verificationDocuments: {
+      bankDocument: {
+        type: String, // Store URL or file path for bank document
+      },
+      aadharCardFile: {
+        type: String, // Store URL or file path for Aadhar card document
+      },
+    },
+    bankDetails: {
+      accountNumber: {
+        type: String, // Bank account number
+        trim: true,
+      },
+      ifscCode: {
+        type: String, // IFSC code
+        trim: true,
+      },
+    },
+    aadharCardNumber: {
+      type: String, // Aadhar card number
+      unique: true,
+      trim: true,
+    },
   },
   {
     timestamps: true, // Automatically add createdAt and updatedAt
   }
 );
-
-// Create a virtual field for isBlocked that won't be saved in DB
-// artistSchema.virtual('isBlocked').get(function () {
-//   return this.__isBlocked;
-// });
 
 const Artist = mongoose.model('Artist', artistSchema);
 

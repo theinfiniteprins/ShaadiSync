@@ -10,6 +10,7 @@ const {
   unblockArtist,
   viewBalance,
   updateIsVerified,
+  submitVerification
 } = require('../controllers/Artist.controller');
 
 const { authMiddleware } = require("../middleware/authmiddleware");
@@ -20,8 +21,10 @@ router.post('/', createArtist);
 router.get('/:id', authMiddleware, getArtistById); 
 router.put('/:id', authMiddleware, updateArtist); // Update artist
 router.get('/:id/balance', authMiddleware, viewBalance); // Get artist balance
-router.put('/:id/verify', authMiddleware, updateIsVerified); // Update artist verification status
+router.put('/:id/submit-verify', authMiddleware, submitVerification); // Unblock artist
 
+
+router.put('/:id/verify', authMiddleware,isAdminMiddleware, updateIsVerified); // Update artist verification status
 router.get('/', authMiddleware, isAdminMiddleware, getAllArtists); // Get all artists
 router.delete('/:id', authMiddleware, isAdminMiddleware, deleteArtist); // Delete artist
 router.put('/:id/block', authMiddleware, isAdminMiddleware, blockArtist); // Block artist
