@@ -15,9 +15,9 @@ const {
 const { authMiddleware } = require("../middleware/authmiddleware");
 const { isAdminMiddleware } = require("../middleware/adminmiddleware")
 
-router.post('/', createArtist); // Create new artist
+router.post('/', createArtist);
 
-router.get('/:id', authMiddleware, getArtistById); // Get artist by ID
+router.get('/:id', authMiddleware, getArtistById); 
 router.put('/:id', authMiddleware, updateArtist); // Update artist
 router.get('/:id/balance', authMiddleware, viewBalance); // Get artist balance
 router.put('/:id/verify', authMiddleware, updateIsVerified); // Update artist verification status

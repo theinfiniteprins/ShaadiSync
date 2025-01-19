@@ -4,23 +4,22 @@ const Artist = require('../models/Artist.model');
 // 1. Create a new Service
 const createService = async (req, res) => {
   try {
-    const { artistId, name, price, description, photos, videos, isLive } = req.body;
-
-    // Check if the artist exists
-    const artist = await Artist.findById(artistId);
+    const {name, price, description, photos, videos } = req.body;
+    
+    const artist = await Artist.findById(req.id);
     if (!artist) {
       return res.status(404).json({ message: 'Artist not found' });
     }
 
     // Create the new service
     const newService = new Service({
-      artistId,
+      artistId: req.id,
       name,
       price,
       description,
       photos,
       videos,
-      isLive,
+      isLive: false,
     });
 
     const savedService = await newService.save();

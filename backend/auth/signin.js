@@ -4,6 +4,7 @@ const zod = require("zod");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User.model");
 const Artist = require("../models/Artist.model");
+const bcrypt = require('bcrypt');
 require("dotenv").config();
 
 const signinBody = zod.object({
@@ -24,7 +25,6 @@ const signin = async (req, res) => {
         }
 
         const { email, password, role } = req.body;
-
         if (role === "user") {
             try {
                 const user = await User.findOne({ email });
@@ -35,15 +35,16 @@ const signin = async (req, res) => {
                         message: "User not found",
                     });
                 }
-
-                if (user.password !== password) {
+                const isMatch = await bcrypt.compare(password, user.password);
+                if (!isMatch) {
                     return res.status(401).json({
                         success: false,
                         message: "Incorrect password",
                     });
                 }
 
-                const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET);
+                
+                const token = jwt.sign({ userId: user._id,role: 'user' }, process.env.JWT_SECRET);
                 return res.status(200).json({
                     success: true,
                     token,
@@ -66,15 +67,14 @@ const signin = async (req, res) => {
                         message: "Artist not found",
                     });
                 }
-
-                if (artist.password !== password) {
+                const isMatch = await bcrypt.compare(password, artist.password);
+                if (!isMatch) {
                     return res.status(401).json({
                         success: false,
                         message: "Incorrect password",
                     });
-                }
-
-                const token = jwt.sign({ artistId: artist._id }, process.env.JWT_SECRET);
+                }                
+                const token = jwt.sign({ artistId: artist._id, role: 'artist' }, process.env.JWT_SECRET);
                 return res.status(200).json({
                     success: true,
                     token,

@@ -16,6 +16,14 @@ const userTransactionHistorySchema = new Schema(
         type: Number,
         required: true, // SyncCoins associated with the transaction
       },
+      transactionType: {
+        type: String,
+        required: true, // Type of transaction (e.g. credit, debit)
+      },
+      description: {
+        type: String,
+        required: true, // Description of the transaction
+      },
     },
     {
       timestamps: true, // Automatically include createdAt and updatedAt

@@ -1,5 +1,6 @@
 const zod = require("zod");
 const User = require("../models/User.model");
+const UserTransactionHistory = require("../models/UserTransactionHistory.model");
 const otpGenerator = require("otp-generator");
 const OTP = require("../models/Otp.model");
 require("dotenv").config();
@@ -151,16 +152,28 @@ const signup = async (req, res) => {
                         message: "Invalid OTP",
                     });
                 }
-
-                await User.create({
+                
+                var SyncCoin = 10;
+                const newUser = await User.create({
                     email,
                     password : hashedPassword,
-                    mobileNumber: 99999995259,
+                    mobileNumber: 99999255251,
+                    SyncCoin: SyncCoin,
+                });
+                
+                await UserTransactionHistory.create({
+                    userId: newUser._id,
+                    amount: 10,
+                    syncCoin: SyncCoin,
+                    transactionType: "credit",  
+                    description: "Initial SyncCoins added on signup", 
                 });
 
-                message = "User created successfully";
+                message = "User created successfully and 10 SyncCoins added to your account";
                 recentOtp.used = true;
                 await recentOtp.save();
+
+
             } catch (error) {
                 console.error("Error in user signup:", error);
                 return res.status(500).json({
