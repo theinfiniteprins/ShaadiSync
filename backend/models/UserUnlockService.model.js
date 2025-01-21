@@ -1,17 +1,17 @@
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
-// Define the UserUnlockArtist Schema
-const userUnlockArtistSchema = new Schema(
+// Define the UserUnlockService Schema
+const userUnlockServiceSchema = new Schema(
   {
     userId: {
       type: Schema.Types.ObjectId, // Reference to the User model
       ref: 'User',
       required: true,
     },
-    artistId: {
-      type: Schema.Types.ObjectId, // Reference to the Artist model
-      ref: 'Artist',
+    serviceId: {
+      type: Schema.Types.ObjectId, // Reference to the Service model
+      ref: 'Service',
       required: true,
     },
   },
@@ -20,6 +20,6 @@ const userUnlockArtistSchema = new Schema(
   }
 );
 
-const UserUnlockArtist = mongoose.model('UserUnlockArtist', userUnlockArtistSchema);
+const UserUnlockService = mongoose.model('UserUnlockService', userUnlockServiceSchema);
 
-module.exports = UserUnlockArtist;
+module.exports = UserUnlockService;

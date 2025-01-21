@@ -8,7 +8,7 @@ const serviceRoutes = require("./routes/Service.routes");
 const artistTransactionRoutes = require("./routes/ArtistTransaction.routes");
 const reviewRoutes = require("./routes/Review.routes");
 const userTransactionHistoryRoutes = require("./routes/UserTransactionHistory.routes");
-const userUnlockArtistRoutes = require("./routes/UserUnlockArtist.routes");
+const userUnlockServiceRoutes = require("./routes/UserUnlockService.routes");
 const authRoutes = require("./routes/Auth.routes");
 const Admin = require("./routes/Admin.routes")
 
@@ -38,7 +38,7 @@ app.use("/api/services", serviceRoutes);
 app.use("/api/artist-transactions", artistTransactionRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/user-transaction-history", userTransactionHistoryRoutes);
-app.use("/api/user-unlock-artist", userUnlockArtistRoutes);
+app.use("/api/user-unlock-service", userUnlockServiceRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/admin",Admin);
 

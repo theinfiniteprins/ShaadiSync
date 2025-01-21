@@ -1,6 +1,6 @@
 const UserTransactionHistory = require('../models/UserTransactionHistory.model');
 const User = require('../models/User.model');
-const UserUnlockArtist = require('../models/UserUnlockArtist.model');
+const UserUnlockArtist = require('../models/UserUnlockService.model');
 
 const createTransaction = async (req, res) => {
   try {

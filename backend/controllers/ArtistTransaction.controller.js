@@ -1,6 +1,6 @@
 const ArtistTransaction = require('../models/ArtistTransaction.model');
 const Artist = require('../models/Artist.model');
-const UserUnlockArtist = require('../models/UserUnlockArtist.model');
+const UserUnlockArtist = require('../models/UserUnlockService.model');
 
 const createTransaction = async (req, res) => {
   try {
