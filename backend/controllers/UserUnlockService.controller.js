@@ -31,8 +31,8 @@ const unlockService = async (req, res) => {
     const deductionAmount = service.price * 0.005;
 
     const artist = await Artist.findById(service.artistId);
-    if(!artist){
-      return res.status(400).json({message: 'Artist not found for this service'});
+    if (!artist) {
+      return res.status(400).json({ message: 'Artist not found for this service' });
     }
 
     // Check artist's balance
@@ -50,7 +50,7 @@ const unlockService = async (req, res) => {
     // Create a new unlock entry
     const newUnlock = new UserUnlockService({ userId, serviceId });
     const savedUnlock = await newUnlock.save();
-    
+
     const artistId = service.artistId;
 
     // Add the transaction to ArtistTransaction
@@ -73,6 +73,20 @@ const unlockService = async (req, res) => {
     });
     const savedUserTransaction = await userTransaction.save();
 
+    // Check user's balance against 0.5% of maxCharge
+    const maxChargeThreshold = artist.maxCharge * 0.005;
+    if (artist.balance < maxChargeThreshold) {
+      // Toggle off all live services that don't meet the balance criteria
+      const liveServices = await Service.find({ artist: artistId, isLive: true });
+
+      for (const liveService of liveServices) {
+        const serviceThreshold = liveService.price * 0.005;
+        if (artist.balance < serviceThreshold) {
+          await toggleServiceLiveStatus({ params: { id: liveService._id } }, res);
+        }
+      }
+    }
+
 
     // Respond with success
     res.status(201).json({
@@ -85,6 +99,7 @@ const unlockService = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
 
 
 const isServiceUnlocked = async (req, res) => {
@@ -125,3 +140,5 @@ module.exports = {
   isServiceUnlocked,
   getUnlockedServices,
 };
+
+

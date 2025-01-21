@@ -113,11 +113,6 @@ const toggleServiceLiveStatus = async (req, res) => {
   try {
     const service = await Service.findById(req.params.id).populate('artistId'); // Populate artist details
 
-    if(req.id!=service.artistId._id)
-    {
-      return res.status(403).json({message: 'you can not toggle other artist services'});
-    }
-
     if (!service) {
       return res.status(404).json({ message: 'Service not found' });
     }
@@ -136,9 +131,9 @@ const toggleServiceLiveStatus = async (req, res) => {
       const tenPercentOfPrice = service.price * 0.1;
 
       if (!artist.isVerified) {
-        return res
-          .status(403)
-          .json({ message: 'Service cannot be made live. Artist is not verified.' });
+        return res.status(403).json({
+          message: 'Service cannot be made live. Artist is not verified.',
+        });
       }
 
       if (artist.balance < tenPercentOfPrice) {
@@ -152,6 +147,9 @@ const toggleServiceLiveStatus = async (req, res) => {
 
     const updatedService = await service.save();
 
+    // Update maxCharge for the artist
+    await updateMaxCharge(artist._id);
+
     res.status(200).json({
       message: `Service is now ${service.isLive ? 'live' : 'offline'}`,
       updatedService,
@@ -160,6 +158,29 @@ const toggleServiceLiveStatus = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+// Function to update maxCharge for an artist
+const updateMaxCharge = async (artistId) => {
+  try {
+    // Find all live services for the artist
+    const liveServices = await Service.find({
+      artist: artistId,
+      isLive: true,
+    });
+
+    // Calculate the maximum charge from the live services
+    const maxCharge = liveServices.length > 0
+      ? Math.max(...liveServices.map((service) => service.price))
+      : 0;
+
+    // Update the artist's maxCharge
+    await Artist.findByIdAndUpdate(artistId, { maxCharge });
+  } catch (error) {
+    console.error('Error updating maxCharge:', error);
+    throw new Error('Failed to update maxCharge');
+  }
+};
+
 
 
 module.exports = {

@@ -53,6 +53,10 @@ const artistSchema = new Schema(
       type: Number,
       default: 0, // Artist's wallet balance
     },
+    maxCharge: {
+      type: Number,
+      default: 0,
+    },
     verificationDocuments: {
       bankDocument: {
         type: String, // Store URL or file path for bank document
