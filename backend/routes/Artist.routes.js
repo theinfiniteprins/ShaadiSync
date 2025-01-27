@@ -30,5 +30,4 @@ router.delete('/:id', authMiddleware, isAdminMiddleware, deleteArtist); // Delet
 router.put('/:id/block', authMiddleware, isAdminMiddleware, blockArtist); // Block artist
 router.put('/:id/unblock', authMiddleware, isAdminMiddleware, unblockArtist); // Unblock artist
 
-
 module.exports = router;

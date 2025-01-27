@@ -181,6 +181,16 @@ const updateMaxCharge = async (artistId) => {
   }
 };
 
+const getAllLiveServices = async (req, res) => {
+  try {
+    const liveServices = await Service.find({ isLive: true })
+      .populate('artistId', 'name email') // Populate artist details
+      .exec();
+    res.status(200).json(liveServices);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
 
 
 module.exports = {
@@ -191,4 +201,5 @@ module.exports = {
   deleteService,
   getServicesByArtist,
   toggleServiceLiveStatus,
+  getAllLiveServices,
 };
