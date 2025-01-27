@@ -160,26 +160,33 @@ const toggleServiceLiveStatus = async (req, res) => {
 };
 
 // Function to update maxCharge for an artist
-const updateMaxCharge = async (artistId) => {
+const updateMaxCharge = async (artistId, session = null) => {
   try {
-    // Find all live services for the artist
-    const liveServices = await Service.find({
-      artist: artistId,
-      isLive: true,
-    });
+    // Find all live services for the artist within the session
+    const liveServices = await Service.find({ artistId, isLive: true }).session(session);
 
     // Calculate the maximum charge from the live services
-    const maxCharge = liveServices.length > 0
-      ? Math.max(...liveServices.map((service) => service.price))
-      : 0;
+    let maxCharge = 0;
+    if (liveServices.length !== 0) {
+      // If there are live services, find the highest price
+      maxCharge = Math.max(...liveServices.map((service) => service.price));
+    }
 
-    // Update the artist's maxCharge
-    await Artist.findByIdAndUpdate(artistId, { maxCharge });
+    // Update the artist's maxCharge within the session
+    const updatedArtist = await Artist.findByIdAndUpdate(
+      artistId,
+      { maxCharge },
+      { new: true, session } // Include session in the update query
+    );
+
+    // Return the updated maxCharge and artist
+    return { updatedArtist, maxCharge };
   } catch (error) {
     console.error('Error updating maxCharge:', error);
     throw new Error('Failed to update maxCharge');
   }
 };
+
 
 const getAllLiveServices = async (req, res) => {
   try {
