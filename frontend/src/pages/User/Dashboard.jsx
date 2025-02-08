@@ -4,7 +4,7 @@ import SearchBar from "../../components/SearchBar"; // Importing the SearchBar c
 
 const Dashboard = () => {
   return (
-    <div>
+    <div className = "bg-pink-50 shadow-md  flex ">
       <div className="relative w-full h-[72vh]">
         {/* Background Image */}
         <img
