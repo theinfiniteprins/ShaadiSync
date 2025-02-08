@@ -114,7 +114,7 @@ const signup = async (req, res) => {
             });
         }
 
-        const { email, password, confirmPassword, otp, role } = req.body;
+        const { email, password,mobileNumber, confirmPassword, otp, role } = req.body;
 
         if (password !== confirmPassword) {
             return res.status(400).json({
@@ -157,7 +157,7 @@ const signup = async (req, res) => {
                 const newUser = await User.create({
                     email,
                     password : hashedPassword,
-                    mobileNumber: 9999925525,
+                    mobileNumber: mobileNumber,
                     SyncCoin: SyncCoin,
                 });
                 
@@ -211,7 +211,7 @@ const signup = async (req, res) => {
                 await Artist.create({
                     email,
                     password: hashedPassword,
-                    mobileNumber: 99999255259,
+                    mobileNumber: mobileNumber,
                 });
 
                 message = "Artist created successfully";

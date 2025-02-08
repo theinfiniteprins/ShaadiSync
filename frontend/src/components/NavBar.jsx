@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { FiSearch, FiUser, FiLogOut } from "react-icons/fi";
 import { useAuth } from "../context/AuthContext";
-import logo from "../assets/logo.svg";
+import logo from "../assets/ShaadiSync.png";
 // import defaultProfile from "../assets/default-profile.jpg"; // Default profile pic
 
 const Navbar = () => {
@@ -23,7 +23,7 @@ const Navbar = () => {
   }, []);
 
   return (
-    <nav className="bg-pink-70 shadow-md py-4 px-60 flex justify-between items-center relative z-50">
+    <nav className="bg-pink-100 shadow-md py-4 px-60 flex justify-between items-center relative z-50">
       {/* Left Side - Logo */}
       <Link to="/" className="flex-shrink-0">
         <img src={logo} alt="ShaadiSync Logo" className="h-10 scale-[5]" />
@@ -40,7 +40,7 @@ const Navbar = () => {
         <FiSearch className="text-gray-700 text-2xl cursor-pointer hover:text-gray-900" />
 
         {/* If user is signed in, show profile picture */}
-        {true ? (
+        {isSignin ? (
           <div className="relative" ref={dropdownRef}>
             <img
               src="https://lh3.googleusercontent.com/-WDZpHpG6mNM/AAAAAAAAAAI/AAAAAAAAAAA/ALKGfkmMXfatimyTR9vHPght4QuZFJe85Q/photo.jpg?sz=46" // Replace with user profile pic if available

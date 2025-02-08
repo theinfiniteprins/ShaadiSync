@@ -31,9 +31,9 @@ const Dashboard = () => {
             <SearchBar /> {/* Reusing the SearchBar component */}
           </div>
         </div>
-      </div>
-
+        
       <CategorywiseArtist />
+      </div>
     </div>
   );
 };
