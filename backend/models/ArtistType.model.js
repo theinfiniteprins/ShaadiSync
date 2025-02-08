@@ -8,6 +8,9 @@ const artistTypeSchema = new Schema(
       type: String,
       required: true,
       unique: true, // Each type should be unique
+    },
+    typeimg: {
+      type: String, // This can store the URL or file path for the profile picture
     }
   },
   {

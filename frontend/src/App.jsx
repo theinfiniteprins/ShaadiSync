@@ -1,15 +1,15 @@
-import TopBar from "./components/TopBar";
-import HeroSection from "./components/HeroSection";
-import FilterBar from "./components/FilterBar";
+import { Routes, Route } from "react-router-dom";
+import NotFound from "./pages/error/NotFound";
+import UserRoutes from "./routes/UserRoutes";
 
 export default function App() {
   return (
-    <div className="min-h-screen bg-pink-50">
-      <TopBar />
-      <HeroSection />
-      <div className="flex justify-center mt-8">
-        <FilterBar />
-      </div>
-    </div>
+
+      <Routes>
+      <Route path="/*" element={<UserRoutes />} />
+      {/* <Route path="/artist/*" element={<ArtistRoutes />} />
+      <Route path="/admin/*" element={<AdminRoutes />} /> */}
+      <Route path="*" element={<NotFound />} />
+    </Routes>
   );
 }
