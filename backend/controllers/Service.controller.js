@@ -1,5 +1,6 @@
 const Service = require('../models/Service.model');
 const Artist = require('../models/Artist.model');
+const ArtistType = require('../models/ArtistType.model');
 
 // 1. Create a new Service
 const createService = async (req, res) => {
@@ -199,6 +200,42 @@ const getAllLiveServices = async (req, res) => {
   }
 };
 
+// Modify the getServicesByCategory function
+const getServicesByCategory = async (req, res) => {
+  try {
+    const categoryId = req.params.category;
+    
+    // First find the artist type from ArtistType model
+    const artistType = await ArtistType.findById(categoryId);
+    if (!artistType) {
+      return res.status(404).json({ message: 'Artist type not found' });
+    }
+
+    // Find all artists of this artist type
+    const artists = await Artist.find({ artistType: categoryId });
+    //console.log(artists);
+    const artistIds = artists.map(artist => artist._id);
+    // console.log(artistIds);
+
+    // Find all live services from these artists and populate artist details
+    const services = await Service.find({
+      artistId: { $in: artistIds },
+      isLive: true
+    }).populate({
+      path: 'artistId',
+      select: 'name email profilePic artistType balance',
+      match: { artistType: categoryId } // Check to ensure artist type matches
+    });
+
+    // console.log(services);
+    // Filter out any services where artistId is null (in case artist type changed)
+    const validServices = services.filter(service => service.artistId);
+
+    res.status(200).json(validServices);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
 
 module.exports = {
   createService,
@@ -209,4 +246,5 @@ module.exports = {
   getServicesByArtist,
   toggleServiceLiveStatus,
   getAllLiveServices,
+  getServicesByCategory,
 };
