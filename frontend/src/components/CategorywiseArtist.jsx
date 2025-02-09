@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import ArtistCard from './ArtistCard';
+import ArtistCard from './ServiceCard';
 import config from '../configs/config';
+import { useNavigate } from 'react-router-dom';
 
 const styles = `
   .hide-scrollbar {
@@ -113,6 +114,7 @@ export default function CategorywiseArtist() {
                         }}
                         onClick={() => {
                           console.log(`Selected artist type: ${artistType.type}`);
+                          navigate(`/category/${artistType._id}`);
                         }}
                       />
                     </div>
