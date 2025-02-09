@@ -74,7 +74,7 @@ const Navbar = () => {
         ) : (
           <>
             {/* Sign In Button */}
-            <Link to="/signin" className="text-gray-700 font-medium hover:text-gray-900">
+            <Link to="/login" className="text-gray-700 font-medium hover:text-gray-900">
               Sign In
             </Link>
 
