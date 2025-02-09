@@ -1,15 +1,15 @@
 import { Outlet } from 'react-router-dom';
 import Navbar from "../components/NavBar";
-// import Footer from "../components/Footer";
 
 const UserLayout = () => {
   return (
-    <div>
-      <Navbar />
-      <main className="container mx-auto bg-pink-100 min-h-screen">
+    <div className="w-full min-h-screen bg-pink-50">
+      <div className="fixed top-0 left-0 w-full z-50 bg-pink-100 shadow-md">
+        <Navbar />
+      </div>
+      <main className="container mx-auto pt-16">
         <Outlet />
       </main>
-      {/* <Footer /> */}
     </div>
   );
 };

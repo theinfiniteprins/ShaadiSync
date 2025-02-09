@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import ArtistCard from './ServiceCard';
+import ArtistCategoryCard from './ArtistCategoryCard';  
 import config from '../configs/config';
 import { useNavigate } from 'react-router-dom';
+import Loading from '../pages/error/loading';
+import Error from '../pages/error/Error';
 
 const styles = `
   .hide-scrollbar {
@@ -19,6 +21,7 @@ export default function CategorywiseArtist() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const scrollContainerRef = useRef(null);
+  const navigate = useNavigate();
 
   const scroll = (direction) => {
     const container = scrollContainerRef.current;
@@ -58,17 +61,13 @@ export default function CategorywiseArtist() {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-[200px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-pink-500"></div>
-      </div>
+      <Loading/>
     );
   }
 
   if (error) {
     return (
-      <div className="text-center text-red-500 p-4">
-        Error: {error}
-      </div>
+      <Error message={error} onRetry={() => window.location.reload()} />
     );
   }
 
@@ -99,7 +98,7 @@ export default function CategorywiseArtist() {
             >
               <div className="flex space-x-4 min-w-max">
                 {/* Add an empty div at the start for better spacing */}
-                <div className="w-8"></div>
+                <div className=""></div>
                 
                 {artistTypes && artistTypes.length > 0 ? (
                   artistTypes.map((artistType) => (
@@ -107,7 +106,7 @@ export default function CategorywiseArtist() {
                       key={artistType._id} 
                       className="w-64 flex-shrink-0 transition-transform duration-300 hover:scale-105"
                     >
-                      <ArtistCard
+                      <ArtistCategoryCard
                         artist={{
                           name: artistType.type,
                           image: artistType.typeimg
@@ -126,7 +125,7 @@ export default function CategorywiseArtist() {
                 )}
                 
                 {/* Add an empty div at the end for better spacing */}
-                <div className="w-8"></div>
+                <div className=""></div>
               </div>
             </div>
 

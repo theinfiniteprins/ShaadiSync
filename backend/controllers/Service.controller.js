@@ -231,7 +231,10 @@ const getServicesByCategory = async (req, res) => {
     // Filter out any services where artistId is null (in case artist type changed)
     const validServices = services.filter(service => service.artistId);
 
-    res.status(200).json(validServices);
+    res.status(200).json({
+      artistType,
+      services: validServices
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
