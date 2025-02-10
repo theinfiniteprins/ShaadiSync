@@ -12,7 +12,10 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@cloudinary/react": "^1.13.1",
+    "@cloudinary/url-gen": "^1.21.0",
     "bcrypt": "^5.1.1",
+    "cloudinary": "^2.5.1",
     "cores": "^0.8.5",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",

@@ -21,11 +21,13 @@ const userSchema = new Schema(
     },
     name: {
       type: String,
-
     },
     address: {
       type: String,
-
+    },
+    profilePic: {
+      type: String,
+      default: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQMggZhOIH1vXmnv0bCyBu8iEuYQO-Dw1kpp7_v2mwhw_SKksetiK0e4VWUak3pm-v-Moc&usqp=CAU"
     },
     SyncCoin: {
       type: Number,
