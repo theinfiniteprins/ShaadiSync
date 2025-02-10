@@ -1,4 +1,13 @@
 const User = require('../models/User.model');
+const cloudinary = require('cloudinary').v2;
+const config = require('../configs/config');
+
+// Configure cloudinary
+cloudinary.config({
+  cloud_name: config.cloudinary.cloud_name,
+  api_key: config.cloudinary.api_key,
+  api_secret: config.cloudinary.api_secret
+});
 
 // 1. Create a new user
 const createUser = async (req, res) => {
@@ -100,22 +109,44 @@ const unblockUser = async (req, res) => {
 // 6. Update a user
 const updateUser = async (req, res) => {
   try {
-    const { mobileNumber, name, address, isAdmin } = req.body;
+    const { mobileNumber, name, address, profilePic, isAdmin, SyncCoin } = req.body;
 
-    const updates = { mobileNumber, name, address };
+    // Prepare update object with basic user fields
+    const updates = { 
+      mobileNumber, 
+      name, 
+      address,
+    };
 
-    // Only allow isAdmin if explicitly provided for updates
-    if (isAdmin !== undefined) {
-      updates.isAdmin = isAdmin;
+    // Only update profilePic if it's provided
+    if (profilePic) {
+      updates.profilePic = profilePic;
     }
 
-    const updatedUser = await User.findByIdAndUpdate(req.params.id, updates, { new: true }).select('-password');
+    // Admin-only updates
+    // First check if req.user exists and has isAdmin property
+    if (req.user && req.user.isAdmin === true) {
+      if (typeof isAdmin === 'boolean') {
+        updates.isAdmin = isAdmin;
+      }
+      if (typeof SyncCoin === 'number') {
+        updates.SyncCoin = SyncCoin;
+      }
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      req.params.id, 
+      updates, 
+      { new: true }
+    ).select('-password');
+
     if (!updatedUser) {
       return res.status(404).json({ message: 'User not found' });
     }
 
     res.status(200).json(updatedUser);
   } catch (error) {
+    console.error('Update user error:', error);
     res.status(400).json({ error: error.message });
   }
 };
@@ -136,12 +167,25 @@ const deleteUser = async (req, res) => {
 // Get current user
 const getCurrentUser = async (req, res) => {
   try {
-    // User is already attached to req by auth middleware
     const user = await User.findById(req.id).select('-password');
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
     res.status(200).json(user);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// Add this to your existing controller
+const deleteImage = async (req, res) => {
+  try {
+    const { public_id } = req.body;
+    
+    // Call Cloudinary API to delete the image
+    const result = await cloudinary.uploader.destroy(public_id);
+    
+    res.status(200).json({ message: 'Image deleted successfully', result });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -156,4 +200,5 @@ module.exports = {
   blockUser,
   unblockUser,
   getCurrentUser,
+  deleteImage,
 };

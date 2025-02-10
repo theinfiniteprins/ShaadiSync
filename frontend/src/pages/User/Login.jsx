@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import config from '../../configs/config';
+import { toast } from 'react-hot-toast';
 
 export default function Login() {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -50,10 +53,8 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (!validateForm()) return;
-
     setLoading(true);
+    
     try {
       const response = await fetch(`${config.baseUrl}/api/auth/signin`, {
         method: 'POST',
@@ -70,18 +71,21 @@ export default function Login() {
       }
 
       if (data.success && data.token) {
-        // Store the token in localStorage
+        // Store the token in localStorage and context
         localStorage.setItem('token', data.token);
-        // Redirect to home page
+        // Also store user data if available
+        if (data.user) {
+          localStorage.setItem('user', JSON.stringify(data.user));
+        }
+        // Update auth context
+        login(data.user, data.token);
+        toast.success('Login successful!');
         navigate('/');
       } else {
         throw new Error('Invalid response from server');
       }
     } catch (error) {
-      setErrors(prev => ({
-        ...prev,
-        general: error.message
-      }));
+      toast.error(error.message || 'Login failed');
     } finally {
       setLoading(false);
     }
