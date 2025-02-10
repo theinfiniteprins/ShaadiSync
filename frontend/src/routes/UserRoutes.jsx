@@ -5,6 +5,10 @@ import SignUp from "../pages/User/SignUp";
 import Login from "../pages/User/Login";
 import CategorywiseServiceList from "../pages/User/CategorywiseServiceList";
 import Search from "../pages/User/Search";
+import Profile from "../pages/User/Profile";
+
+
+
 
 const UserRoutes = () => {
     return (
@@ -14,7 +18,9 @@ const UserRoutes = () => {
                 <Route path="/" element={<Dashboard />} />
                 <Route path="/category/:categoryId" element={<CategorywiseServiceList />} />
                 <Route path="/search/" element={<Search />} />
+                <Route path="/profile/" element={<Profile />} />
             </Route>
+
 
             {/* Auth routes without UserLayout */}
             <Route path="/signup" element={<SignUp />} />
