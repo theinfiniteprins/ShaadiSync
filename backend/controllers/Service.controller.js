@@ -223,7 +223,7 @@ const getServicesByCategory = async (req, res) => {
       isLive: true
     }).populate({
       path: 'artistId',
-      select: 'name email profilePic artistType balance',
+      select: 'name email profilePic artistType address',
       match: { artistType: categoryId } // Check to ensure artist type matches
     });
 

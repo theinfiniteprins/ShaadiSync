@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom"; // Import useNavigate
 import { FiArrowRight, FiMapPin } from "react-icons/fi"; // Import location icon
 import Dropdown from "./Dropdown"; // Import the reusable dropdown component
 
-const SearchBar = () => {
+const SearchBar = ({ userId }) => {  // Accept userId as prop
   const [selectedVendor, setSelectedVendor] = useState(null);
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [error, setError] = useState(""); // State for validation message
@@ -11,9 +11,9 @@ const SearchBar = () => {
 
   // Dropdown options
   const vendorOptions = [
-    { label: "Photographers" },
-    { label: "Makeup Artists" },
-    { label: "Decorators" },
+    { label: "Photographers", id: "67a72fd5b5ed844973c075a0" },
+    { label: "Makeup Artists", id: "makeup-artists" },
+    { label: "Decorators", id: "decorators" },
   ];
 
   const locationOptions = [
@@ -24,18 +24,26 @@ const SearchBar = () => {
 
   // Function to handle search button click
   const handleSearch = () => {
-    const vendor = selectedVendor?.label || "";
-    const location = selectedLocation?.label || "";
+    const vendor = selectedVendor?.id;  // Use 'id' for URL path
+    const location = selectedLocation?.label?.toLowerCase().replace(/\s+/g, "-") || "";
 
     // Validation
     if (!vendor) {
-      setError("Please select vendor type .");
+      setError("Please select a vendor type.");
       return;
     }
 
-    // Clear error and navigate to search page with URL parameters
+    // Clear error
     setError("");
-    navigate(`/search?vendor=${encodeURIComponent(vendor)}&location=${encodeURIComponent(location)}`);
+
+    // Construct the navigation path
+    let path = `/${vendor}`;
+    if (location) {
+      path += `/${location}`; // Append location if provided
+    }
+    
+    // Navigate with userId as query param
+    navigate(`${path}`);
   };
 
   return (
@@ -56,7 +64,7 @@ const SearchBar = () => {
           options={locationOptions}
           selected={selectedLocation}
           setSelected={setSelectedLocation}
-          placeholder="Enter Location"
+          placeholder="Enter Location (Optional)"
           allowInput={true} // Enable text input for location
           className="flex-1 mx-4"
           icon={FiMapPin} // Pass location icon as prop

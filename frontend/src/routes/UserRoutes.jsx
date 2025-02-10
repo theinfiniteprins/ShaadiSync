@@ -16,7 +16,9 @@ const UserRoutes = () => {
             {/* Protected routes with UserLayout */}
             <Route element={<UserLayout />}>
                 <Route path="/" element={<Dashboard />} />
-                <Route path="/category/:categoryId" element={<CategorywiseServiceList />} />
+                <Route path="/:categoryId/" element={<CategorywiseServiceList />} />
+                {/* Route with location */}
+                <Route path="/:categoryId/:location" element={<CategorywiseServiceList />} />
                 <Route path="/search/" element={<Search />} />
                 <Route path="/profile/" element={<Profile />} />
             </Route>

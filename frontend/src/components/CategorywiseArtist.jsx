@@ -113,7 +113,7 @@ export default function CategorywiseArtist() {
                         }}
                         onClick={() => {
                           console.log(`Selected artist type: ${artistType.type}`);
-                          navigate(`/category/${artistType._id}`);
+                          navigate(`/${artistType._id}`);
                         }}
                       />
                     </div>

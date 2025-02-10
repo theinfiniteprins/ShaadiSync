@@ -28,7 +28,7 @@ const Dashboard = () => {
 
           {/* Search Bar */}
           <div className="w-full max-w-3xl">
-            <SearchBar /> {/* Reusing the SearchBar component */}
+            <SearchBar />
           </div>
         </div>
         
