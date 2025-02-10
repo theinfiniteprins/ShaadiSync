@@ -133,6 +133,20 @@ const deleteUser = async (req, res) => {
   }
 };
 
+// Get current user
+const getCurrentUser = async (req, res) => {
+  try {
+    // User is already attached to req by auth middleware
+    const user = await User.findById(req.id).select('-password');
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.status(200).json(user);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 module.exports = {
   createUser,
   getAllUsers,
@@ -141,4 +155,5 @@ module.exports = {
   deleteUser,
   blockUser,
   unblockUser,
+  getCurrentUser,
 };
