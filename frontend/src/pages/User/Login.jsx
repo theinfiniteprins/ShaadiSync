@@ -70,15 +70,10 @@ export default function Login() {
         throw new Error(data.message || 'Login failed');
       }
 
+      // console.log(data);
       if (data.success && data.token) {
-        // Store the token in localStorage and context
-        localStorage.setItem('token', data.token);
-        // Also store user data if available
-        if (data.user) {
-          localStorage.setItem('user', JSON.stringify(data.user));
-        }
         // Update auth context
-        login(data.user, data.token);
+        login(data.token);
         toast.success('Login successful!');
         navigate('/');
       } else {

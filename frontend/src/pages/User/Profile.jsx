@@ -43,7 +43,7 @@ export default function Profile() {
           }
         }
       );
-      
+      console.log(response.data);
       if (!response.data) {
         throw new Error('No user data received');
       }

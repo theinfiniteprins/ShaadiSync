@@ -100,7 +100,8 @@ const unblockUser = async (req, res) => {
     }
 
     user.isBlocked = false; // Unset isBlocked dynamically
-    res.status(200).json({ message: 'User unblocked successfully', user });
+    const unblockedUser = await user.save(); // Save the updated user document.
+    res.status(200).json({ message: 'User unblocked successfully', unblockedUser });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
