@@ -192,9 +192,9 @@ const updateMaxCharge = async (artistId, session = null) => {
 const getAllLiveServices = async (req, res) => {
   try {
     const liveServices = await Service.find({ isLive: true })
-      .populate('artistId', 'name email') // Populate artist details
+      .populate('artistId', 'name email address') // Populate artist details
       .exec();
-    res.status(200).json(liveServices);
+    res.status(200).json({services: liveServices});
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -204,6 +204,8 @@ const getAllLiveServices = async (req, res) => {
 const getServicesByCategory = async (req, res) => {
   try {
     const categoryId = req.params.category;
+  
+    
     
     // First find the artist type from ArtistType model
     const artistType = await ArtistType.findById(categoryId);
