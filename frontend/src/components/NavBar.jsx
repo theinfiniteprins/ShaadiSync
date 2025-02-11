@@ -6,7 +6,7 @@ import logo from "../assets/ShaadiSync.png";
 // import defaultProfile from "../assets/default-profile.jpg"; // Default profile pic
 
 const Navbar = () => {
-  const { isSignin, logout } = useAuth();
+  const { isSignin, logout, user } = useAuth();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -43,9 +43,9 @@ const Navbar = () => {
         {isSignin ? (
           <div className="relative" ref={dropdownRef}>
             <img
-              src="https://lh3.googleusercontent.com/-WDZpHpG6mNM/AAAAAAAAAAI/AAAAAAAAAAA/ALKGfkmMXfatimyTR9vHPght4QuZFJe85Q/photo.jpg?sz=46" // Replace with user profile pic if available
+              src={user?.profilePic || "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQMggZhOIH1vXmnv0bCyBu8iEuYQO-Dw1kpp7_v2mwhw_SKksetiK0e4VWUak3pm-v-Moc&usqp=CAU"}
               alt="User"
-              className="w-10 h-10 rounded-full cursor-pointer"
+              className="w-10 h-10 rounded-full cursor-pointer object-cover"
               onClick={() => setDropdownOpen(!dropdownOpen)}
             />
 

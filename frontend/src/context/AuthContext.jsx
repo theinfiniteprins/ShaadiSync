@@ -1,38 +1,83 @@
 import { createContext, useState, useEffect, useContext } from "react";
+import axios from "axios";
+import config from "../configs/config";
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-    const [token, setToken] = useState(null);
-    const [isSignin, setIsSignin] = useState(false);
+    const [token, setToken] = useState(localStorage.getItem("token"));
+    const [isSignin, setIsSignin] = useState(!!localStorage.getItem("token"));
+    const [user, setUser] = useState(null);
 
-    // Check if token exists in localStorage
-    useEffect(() => {
-        const storedToken = localStorage.getItem("token");
-        if (storedToken) {
-            setToken(storedToken);
-            setIsSignin(true);
+    // Fetch user data function
+    const fetchUser = async (authToken) => {
+        try {
+            const response = await axios.get(
+                `${config.baseUrl}/api/users/me`,
+                {
+                    headers: { 
+                        Authorization: `Bearer ${authToken}`,
+                        'Cache-Control': 'no-cache'
+                    }
+                }
+            );
+            setUser(response.data);
+        } catch (error) {
+            console.error('Error fetching user:', error);
+            // If unauthorized, logout
+            if (error.response?.status === 401) {
+                logout();
+            }
         }
-    }, []);
+    };
+
+    // Initialize auth state from localStorage
+    useEffect(() => {
+        if (token && !user) {
+            fetchUser(token);
+        }
+    }, [token, user]);
+
+    // Set up axios interceptor for token
+    useEffect(() => {
+        const interceptor = axios.interceptors.request.use(
+            (config) => {
+                if (token) {
+                    config.headers.Authorization = `Bearer ${token}`;
+                }
+                return config;
+            },
+            (error) => {
+                return Promise.reject(error);
+            }
+        );
+
+        return () => {
+            axios.interceptors.request.eject(interceptor);
+        };
+    }, [token]);
 
     // Login Function
     const login = (newToken) => {
+        localStorage.setItem("token", newToken);
         setToken(newToken);
         setIsSignin(true);
-        localStorage.setItem("token", newToken);
+        fetchUser(newToken);
     };
 
     // Logout Function
     const logout = () => {
+        localStorage.removeItem("token");
         setToken(null);
         setIsSignin(false);
-        localStorage.removeItem("token");
+        setUser(null);
     };
 
     return (
-        <AuthContext.Provider value={{ token, isSignin, login, logout }}>
+        <AuthContext.Provider value={{ token, isSignin, login, logout, user, setUser }}>
             {children}
         </AuthContext.Provider>
     );
 };
+
 export const useAuth = () => useContext(AuthContext);
