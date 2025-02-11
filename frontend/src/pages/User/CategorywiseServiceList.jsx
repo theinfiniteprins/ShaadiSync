@@ -90,8 +90,14 @@ export default function CategorywiseServiceList() {
       filtered = filtered.filter(service => service.isShortlisted);
     }
 
+
+  const handleServiceClick = (serviceId) => {
+    navigate(`/service/${serviceId}`);
+  };
+
     setFilteredServices(filtered);
   }, [filters, services]);
+
 
   if (loading) {
     return <Loading />;

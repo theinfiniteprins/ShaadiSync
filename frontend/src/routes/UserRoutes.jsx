@@ -6,6 +6,7 @@ import Login from "../pages/User/Login";
 import CategorywiseServiceList from "../pages/User/CategorywiseServiceList";
 import Search from "../pages/User/Search";
 import Profile from "../pages/User/Profile";
+import ViewService from "../pages/User/ViewService";
 
 
 
@@ -15,7 +16,9 @@ const UserRoutes = () => {
         <Routes>
             {/* Protected routes with UserLayout */}
             <Route element={<UserLayout />}>
+                <Route path="/services/:id" element={<ViewService />} />
                 <Route path="/" element={<Dashboard />} />
+                
                 <Route path="/:categoryId/" element={<CategorywiseServiceList />} />
                 {/* Route with location */}
                 <Route path="/:categoryId/:location" element={<CategorywiseServiceList />} />

@@ -252,4 +252,5 @@ module.exports = {
   toggleServiceLiveStatus,
   getAllLiveServices,
   getServicesByCategory,
+  updateMaxCharge,
 };

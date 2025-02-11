@@ -7,7 +7,7 @@ import logo from "../assets/ShaadiSync.png";
 import config from "../configs/config";
 
 const Navbar = () => {
-  const { isSignin, logout } = useAuth();
+  const { isSignin, logout, user } = useAuth();
   const [artistTypes, setArtistTypes] = useState([]);
   const navigate = useNavigate();
 
@@ -55,12 +55,13 @@ const Navbar = () => {
         />
 
 
+
         {/* User Profile Dropdown */}
         {isSignin ? (
           <Dropdown1
             label={
               <img
-                src="https://lh3.googleusercontent.com/-WDZpHpG6mNM/AAAAAAAAAAI/AAAAAAAAAAA/ALKGfkmMXfatimyTR9vHPght4QuZFJe85Q/photo.jpg?sz=46"
+                src={user?.profilePic || "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQMggZhOIH1vXmnv0bCyBu8iEuYQO-Dw1kpp7_v2mwhw_SKksetiK0e4VWUak3pm-v-Moc&usqp=CAU"}
                 alt="User"
                 className="w-10 h-10 rounded-full cursor-pointer"
               />
