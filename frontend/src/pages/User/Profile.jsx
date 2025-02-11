@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
 import config from '../../configs/config';
-import { FaCoins, FaUser, FaPhone, FaMapMarkerAlt, FaEnvelope } from 'react-icons/fa';
+import { FaCoins, FaUser, FaPhone, FaMapMarkerAlt, FaEnvelope, FaCamera, FaEdit } from 'react-icons/fa';
 
 export default function Profile() {
   const { user: authUser, token } = useAuth();
@@ -208,141 +208,151 @@ export default function Profile() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex justify-center items-center bg-gray-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-pink-600"></div>
+      <div className="min-h-screen flex justify-center items-center bg-gradient-to-br from-pink-50 to-purple-50">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-pink-500"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto">
-        <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
-          {/* Profile Header with Image */}
-          <div className="relative h-32 bg-gradient-to-r from-pink-500 to-purple-500">
-            <div className="absolute -bottom-16 left-1/2 transform -translate-x-1/2">
-              <div className="relative">
-                <img
-                  src={formData.profilePic || user?.profilePic}
-                  alt="Profile"
-                  className="w-32 h-32 rounded-full border-4 border-white object-cover"
-                />
-                {isEditing && (
-                  <label className="absolute bottom-0 right-0 bg-pink-600 rounded-full p-2 cursor-pointer hover:bg-pink-700 transition-colors">
+    <div className="min-h-screen bg-gradient-to-br from-rose-50 to-pink-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-6xl mx-auto">
+        <div className="bg-white rounded-2xl overflow-hidden">
+          <div className="flex flex-col md:flex-row">
+            {/* Left Sidebar - Profile Info */}
+            <div className="w-full md:w-1/3 bg-pink-300 p-8 text-center md:text-left">
+              <div className="flex flex-col items-center md:items-start">
+                {/* Profile Picture */}
+                <div className="relative mb-6">
+                  <img
+                    src={formData.profilePic || user?.profilePic}
+                    alt="Profile"
+                    className="w-40 h-40 rounded-full border-4 border-white shadow-xl object-cover"
+                  />
+                  {isEditing && (
+                    <label className="absolute bottom-2 right-2 bg-white rounded-full p-2.5 cursor-pointer hover:bg-gray-100 transition-all duration-300 shadow-lg">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageChange}
+                        disabled={uploadingImage}
+                        className="hidden"
+                      />
+                      {uploadingImage ? (
+                        <div className="animate-spin h-5 w-5 border-2 border-rose-400 rounded-full border-t-transparent"></div>
+                      ) : (
+                        <FaCamera className="h-4 w-4 text-rose-400" />
+                      )}
+                    </label>
+                  )}
+                </div>
+
+                {/* Name - Now with constrained width */}
+                <div className="w-full max-w-[300px]">
+                  {isEditing ? (
                     <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageChange}
-                      disabled={uploadingImage}
-                      className="hidden"
+                      type="text"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      className="w-full text-3xl font-bold text-gray-800 mb-2 bg-white rounded-lg px-3 py-1 border border-gray-300 focus:ring-2 focus:ring-rose-400 focus:border-rose-400"
                     />
-                    {uploadingImage ? (
-                      <div className="animate-spin rounded-full h-5 w-5 border-2 border-white"></div>
-                    ) : (
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-white" viewBox="0 0 20 20" fill="currentColor">
-                        <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                      </svg>
-                    )}
-                  </label>
+                  ) : (
+                    <h1 className="text-3xl font-bold text-gray-800 mb-2">{user?.name || 'Welcome!'}</h1>
+                  )}
+                </div>
+                
+                {/* Edit Profile Button */}
+                {!isEditing && (
+                  <button
+                    onClick={() => setIsEditing(true)}
+                    className="mt-4 flex items-center justify-center px-4 py-2 bg-white text-rose-400 rounded-lg hover:bg-gray-50 transition-colors duration-200"
+                  >
+                    <FaEdit className="mr-2" />
+                    Edit Profile
+                  </button>
                 )}
               </div>
             </div>
-          </div>
 
-          {/* Profile Card */}
-          <div className="pt-20 px-8 pb-8">
-            <div className="flex flex-col sm:flex-row items-center">
-              <div className="mt-4 sm:mt-0 sm:ml-6 text-center sm:text-left">
-                <h1 className="text-2xl font-bold text-gray-900">{user?.name || 'Welcome!'}</h1>
-                <div className="flex items-center justify-center sm:justify-start mt-2">
-                  <FaEnvelope className="h-5 w-5 text-gray-400" />
-                  <p className="ml-2 text-gray-500">{user?.email}</p>
+            {/* Right Content Area */}
+            <div className="w-full md:w-2/3 p-8">
+              {/* SyncCoin Card */}
+              <div className="bg-pink-300 rounded-xl p-6 text-white shadow-lg mb-8">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <p className="text-white text-sm">SyncCoin Balance</p>
+                    <p className="text-3xl font-bold mt-1">{user?.SyncCoin || 0}</p>
+                  </div>
+                  <div className="bg-white/10 rounded-full p-3">
+                    <FaCoins className="h-8 w-8 text-white" />
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* SyncCoin Balance Card */}
-            <div className="mt-4 sm:mt-0 sm:ml-6 text-center sm:text-left">
-              <div className="bg-gradient-to-r from-yellow-400 to-yellow-500 rounded-xl p-6 flex justify-between items-center">
-                <div>
-                  <p className="text-sm font-medium text-yellow-900">Your Balance</p>
-                  <p className="text-3xl font-bold text-white mt-1">{user?.SyncCoin || 0} SyncCoins</p>
+              {/* Profile Details Form */}
+              <form onSubmit={handleSubmit} className="space-y-6">
+                {/* Email Field - Read Only */}
+                <div className="space-y-2">
+                  <label className="flex items-center text-sm font-medium text-gray-700">
+                    <FaEnvelope className="h-4 w-4 text-gray-400 mr-2" />
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    value={user?.email || ''}
+                    disabled
+                    className="w-full px-4 py-2.5 rounded-lg bg-gray-50 border-transparent"
+                  />
                 </div>
-                <FaCoins className="h-12 w-12 text-yellow-100" />
-              </div>
-            </div>
 
-            {/* Profile Form */}
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Name Input */}
-              <div>
-                <label className="flex items-center text-sm font-medium text-gray-700">
-                  <FaUser className="h-5 w-5 text-gray-400 mr-2" />
-                  Name
-                </label>
-                <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  disabled={!isEditing}
-                  className={`mt-1 block w-full rounded-lg ${
-                    isEditing 
-                      ? 'border-gray-300 focus:ring-pink-500 focus:border-pink-500' 
-                      : 'border-transparent bg-gray-50'
-                  } shadow-sm transition-all duration-200`}
-                />
-              </div>
+                {/* Mobile Number Field - Editable */}
+                <div className="space-y-2">
+                  <label className="flex items-center text-sm font-medium text-gray-700">
+                    <FaPhone className="h-4 w-4 text-gray-400 mr-2" />
+                    Mobile Number
+                  </label>
+                  <input
+                    type="text"
+                    name="mobileNumber"
+                    value={formData.mobileNumber}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                    className={`w-full px-4 py-2.5 rounded-lg border ${
+                      isEditing 
+                        ? 'border-gray-300 focus:ring-2 focus:ring-rose-400 focus:border-rose-400' 
+                        : 'bg-gray-50 border-transparent'
+                    } transition-all duration-200`}
+                  />
+                </div>
 
-              {/* Mobile Number Input */}
-              <div>
-                <label className="flex items-center text-sm font-medium text-gray-700">
-                  <FaPhone className="h-5 w-5 text-gray-400 mr-2" />
-                  Mobile Number
-                </label>
-                <input
-                  type="text"
-                  name="mobileNumber"
-                  value={formData.mobileNumber}
-                  onChange={handleInputChange}
-                  disabled={!isEditing}
-                  className={`mt-1 block w-full rounded-lg ${
-                    isEditing 
-                      ? 'border-gray-300 focus:ring-pink-500 focus:border-pink-500' 
-                      : 'border-transparent bg-gray-50'
-                  } shadow-sm transition-all duration-200`}
-                />
-              </div>
+                {/* Address Field - Editable */}
+                <div className="space-y-2">
+                  <label className="flex items-center text-sm font-medium text-gray-700">
+                    <FaMapMarkerAlt className="h-4 w-4 text-gray-400 mr-2" />
+                    Address
+                  </label>
+                  <textarea
+                    name="address"
+                    value={formData.address}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                    rows="3"
+                    className={`w-full px-4 py-2.5 rounded-lg border ${
+                      isEditing 
+                        ? 'border-gray-300 focus:ring-2 focus:ring-rose-400 focus:border-rose-400' 
+                        : 'bg-gray-50 border-transparent'
+                    } transition-all duration-200`}
+                  />
+                </div>
 
-              {/* Address Input */}
-              <div>
-                <label className="flex items-center text-sm font-medium text-gray-700">
-                  <FaMapMarkerAlt className="h-5 w-5 text-gray-400 mr-2" />
-                  Address
-                </label>
-                <textarea
-                  name="address"
-                  value={formData.address}
-                  onChange={handleInputChange}
-                  disabled={!isEditing}
-                  rows="3"
-                  className={`mt-1 block w-full rounded-lg ${
-                    isEditing 
-                      ? 'border-gray-300 focus:ring-pink-500 focus:border-pink-500' 
-                      : 'border-transparent bg-gray-50'
-                  } shadow-sm transition-all duration-200`}
-                />
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex justify-end space-x-4 pt-4">
-                {isEditing ? (
-                  <>
+                {/* Action Buttons */}
+                {isEditing && (
+                  <div className="flex justify-end space-x-4 pt-4">
                     <button
                       type="button"
                       onClick={() => {
                         setIsEditing(false);
-                        // Reset form data to current user data
                         setFormData({
                           name: user?.name || '',
                           mobileNumber: user?.mobileNumber || '',
@@ -350,28 +360,20 @@ export default function Profile() {
                           profilePic: user?.profilePic || ''
                         });
                       }}
-                      className="px-6 py-2.5 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors duration-200"
+                      className="px-6 py-2.5 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-all duration-200"
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
-                      className="px-6 py-2.5 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors duration-200"
+                      className="px-6 py-2.5 bg-rose-400 text-white rounded-lg hover:bg-rose-500 transition-all duration-200"
                     >
                       Save Changes
                     </button>
-                  </>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => setIsEditing(true)}
-                    className="px-6 py-2.5 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors duration-200"
-                  >
-                    Edit Profile
-                  </button>
+                  </div>
                 )}
-              </div>
-            </form>
+              </form>
+            </div>
           </div>
         </div>
       </div>
