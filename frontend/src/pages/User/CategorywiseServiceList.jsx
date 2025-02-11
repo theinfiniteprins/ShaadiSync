@@ -5,7 +5,7 @@ import ServiceCard from "../../components/ServiceCard";
 import config from "../../configs/config";
 import Loading from "../error/loading";
 import Error from "../error/Error";
-
+import FilterSection from "../../components/FilterSection";
 const CategoryInfo = ({ artistType, totalServices }) => {
   return (
     <div className="text-left mb-6">
@@ -24,7 +24,7 @@ export default function CategorywiseServiceList() {
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const { categoryId, location } = useParams(); // Get categoryId and location from URL
+  const { categoryId, location } = useParams(); 
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -54,8 +54,37 @@ export default function CategorywiseServiceList() {
         setLoading(false);
       }
     };
+    const fetchallServices = async () => {
+      try {
+        setLoading(true);
 
-    fetchServices();
+        // Fetch all services for the category
+        const response = await axios.get(`${config.baseUrl}/api/services/live`);
+        console.log("API Response:", response.data);        
+
+        setArtistType("All Services");
+
+        // Filter services based on location if it exists
+        const filteredServices = location
+          ? response.data.services.filter(service => 
+              service.artistId?.address?.toLowerCase().includes(location.toLowerCase())
+            )
+          : response.data.services;
+
+        setServices(Array.isArray(filteredServices) ? filteredServices : []);
+        setLoading(false);
+      } catch (err) {
+        console.error("Error fetching services:", err);
+        setError("Failed to load services. Please try again later.");
+        setLoading(false);
+      }
+    };
+    if(categoryId === "all"){
+      fetchallServices();
+    }
+    else{
+      fetchServices();
+    }
   }, [categoryId, location]);
 
   useEffect(() => {
@@ -88,13 +117,15 @@ export default function CategorywiseServiceList() {
       </nav>
 
       <CategoryInfo artistType={artistType} totalServices={services.length} />
+      <FilterSection/>
 
       {services.length === 0 ? (
         <div className="text-left py-12">
           <p className="text-gray-500">No services available in this category{location ? ` for ${location}` : ""}.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-20">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-12 mt-20 px-6 mr-6">
+
           {services.map((service) => (
             <ServiceCard key={service._id} service={service} onClick={() => handleServiceClick(service._id)} />
           ))}

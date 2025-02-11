@@ -15,6 +15,7 @@ const {
 const {authMiddleware} = require("../middleware/authmiddleware");
 const {isAdminMiddleware} = require("../middleware/adminmiddleware")
 
+router.get('/live', getAllLiveServices); // Get all services
 router.get('/:id', getServiceById);
 
 router.post('/', authMiddleware, createService); // Create new service
@@ -23,7 +24,6 @@ router.get('/artist/:artistId', authMiddleware, getServicesByArtist); // Get ser
 router.delete('/:id', authMiddleware, deleteService); // Delete service
 router.get('/', authMiddleware, isAdminMiddleware, getAllServices); // Get all services
 router.put('/toggle/:id', authMiddleware, toggleServiceLiveStatus); // Update service
-router.get('/get-live-services', getAllLiveServices); // Get all services
 router.get('/category/:category', getServicesByCategory);
 
 module.exports = router;

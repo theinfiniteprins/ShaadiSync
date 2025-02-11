@@ -15,9 +15,8 @@ const styles = `
   }
 `;
 
-export default function CategorywiseArtist() {
-  console.log("Hello React")  // This should print immediately when component mounts
-  const [artistTypes, setArtistTypes] = useState([]);
+export default function CategorywiseArtist({artistTypes}) {
+  console.log(artistTypes);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const scrollContainerRef = useRef(null);
@@ -36,40 +35,7 @@ export default function CategorywiseArtist() {
     }
   };
 
-  useEffect(() => {
-    const fetchArtistTypes = async () => {
-      try {
-        const response = await fetch(`${config.baseUrl}/api/artist-types/`);
-                
-        if (!response.ok) {
-          throw new Error('Failed to fetch artist types');
-        }
-        
-        const data = await response.json();
 
-        setArtistTypes(data);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchArtistTypes();
-  }, []);
-
-
-  if (loading) {
-    return (
-      <Loading/>
-    );
-  }
-
-  if (error) {
-    return (
-      <Error message={error} onRetry={() => window.location.reload()} />
-    );
-  }
 
   return (
     <>
