@@ -6,6 +6,7 @@ import config from "../../configs/config";
 import Loading from "../error/loading";
 import Error from "../error/Error";
 import FilterSection from "../../components/FilterSection";
+
 const CategoryInfo = ({ artistType, totalServices }) => {
   return (
     <div className="text-left mb-6">
@@ -22,31 +23,27 @@ const CategoryInfo = ({ artistType, totalServices }) => {
 export default function CategorywiseServiceList() {
   const [artistType, setArtistType] = useState("");
   const [services, setServices] = useState([]);
+  const [filteredServices, setFilteredServices] = useState([]); // State for filtered services
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const { categoryId, location } = useParams(); 
+  const { categoryId, location } = useParams();
   const navigate = useNavigate();
+  const [filters, setFilters] = useState({ budget: "", rating: "", shortlisted: false });
+  console.log(services);
+  
 
   useEffect(() => {
     window.scrollTo(0, 0);
+    
     const fetchServices = async () => {
       try {
         setLoading(true);
-
-        // Fetch all services for the category
         const response = await axios.get(`${config.baseUrl}/api/services/category/${categoryId}`);
-        console.log("API Response:", response.data);
-
         setArtistType(response.data.artistType?.type || "");
-
-        // Filter services based on location if it exists
-        const filteredServices = location
-          ? response.data.services.filter(service => 
-              service.artistId?.address?.toLowerCase().includes(location.toLowerCase())
-            )
+        const filtered = location
+          ? response.data.services.filter(service => service.artistId?.address?.toLowerCase().includes(location.toLowerCase()))
           : response.data.services;
-
-        setServices(Array.isArray(filteredServices) ? filteredServices : []);
+        setServices(Array.isArray(filtered) ? filtered : []);
         setLoading(false);
       } catch (err) {
         console.error("Error fetching services:", err);
@@ -54,24 +51,16 @@ export default function CategorywiseServiceList() {
         setLoading(false);
       }
     };
-    const fetchallServices = async () => {
+
+    const fetchAllServices = async () => {
       try {
         setLoading(true);
-
-        // Fetch all services for the category
         const response = await axios.get(`${config.baseUrl}/api/services/live`);
-        console.log("API Response:", response.data);        
-
         setArtistType("All Services");
-
-        // Filter services based on location if it exists
-        const filteredServices = location
-          ? response.data.services.filter(service => 
-              service.artistId?.address?.toLowerCase().includes(location.toLowerCase())
-            )
+        const filtered = location
+          ? response.data.services.filter(service => service.artistId?.address?.toLowerCase().includes(location.toLowerCase()))
           : response.data.services;
-
-        setServices(Array.isArray(filteredServices) ? filteredServices : []);
+        setServices(Array.isArray(filtered) ? filtered : []);
         setLoading(false);
       } catch (err) {
         console.error("Error fetching services:", err);
@@ -79,21 +68,36 @@ export default function CategorywiseServiceList() {
         setLoading(false);
       }
     };
-    if(categoryId === "all"){
-      fetchallServices();
-    }
-    else{
+
+    if (categoryId === "all") {
+      fetchAllServices();
+    } else {
       fetchServices();
     }
   }, [categoryId, location]);
 
+  // Apply filters whenever filters or services change
   useEffect(() => {
-    console.log("Filtered Services Updated:", services);
-  }, [services]);
+    let filtered = [...services];
+    
+    if (filters.budget) {
+      filtered = filtered.filter(service => service.price <= parseInt(filters.budget));
+    }
+    if (filters.rating) {
+      filtered = filtered.filter(service => Math.round(service.rating) === parseInt(filters.rating));
+    }
+    if (filters.shortlisted) {
+      filtered = filtered.filter(service => service.isShortlisted);
+    }
+
 
   const handleServiceClick = (serviceId) => {
     navigate(`/service/${serviceId}`);
   };
+
+    setFilteredServices(filtered);
+  }, [filters, services]);
+
 
   if (loading) {
     return <Loading />;
@@ -106,28 +110,24 @@ export default function CategorywiseServiceList() {
   return (
     <div className="py-4 px-45">
       <nav className="text-gray-600 text-sm mb-4 text-left">
-        <span className="cursor-pointer text-pink-500" onClick={() => navigate("/")}>
-          Home
-        </span>{" "}
-        /{" "}
-        <span className="capitalize cursor-pointer text-pink-500" onClick={() => navigate(`/${categoryId}`)}>
-          {artistType}
-        </span>
+        <span className="cursor-pointer text-pink-500" onClick={() => navigate("/")}>Home</span> /
+        <span className="capitalize cursor-pointer text-pink-500" onClick={() => navigate(`/${categoryId}`)}>{artistType}</span>
         {location && ` / ${location}`}
       </nav>
 
-      <CategoryInfo artistType={artistType} totalServices={services.length} />
-      <FilterSection/>
+      <CategoryInfo artistType={artistType} totalServices={filteredServices.length} />
 
-      {services.length === 0 ? (
+      {/* Pass filter state update function */}
+      <FilterSection onFilterChange={(filterType, value) => setFilters(prev => ({ ...prev, [filterType]: value }))} />
+
+      {filteredServices.length === 0 ? (
         <div className="text-left py-12">
           <p className="text-gray-500">No services available in this category{location ? ` for ${location}` : ""}.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-12 mt-20 px-6 mr-6">
-
-          {services.map((service) => (
-            <ServiceCard key={service._id} service={service} onClick={() => handleServiceClick(service._id)} />
+          {filteredServices.map(service => (
+            <ServiceCard key={service._id} service={service} />
           ))}
         </div>
       )}

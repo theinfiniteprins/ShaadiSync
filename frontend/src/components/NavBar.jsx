@@ -1,25 +1,34 @@
-import { useState, useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
-import { FiSearch, FiUser, FiLogOut } from "react-icons/fi";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { FiSearch, FiUser, FiLogOut, FiChevronDown } from "react-icons/fi";
 import { useAuth } from "../context/AuthContext";
+import Dropdown1 from "./Dropdown1"; // ✅ Import reusable dropdown component
 import logo from "../assets/ShaadiSync.png";
-// import defaultProfile from "../assets/default-profile.jpg"; // Default profile pic
+import config from "../configs/config";
 
 const Navbar = () => {
   const { isSignin, logout, user } = useAuth();
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const dropdownRef = useRef(null);
+  const [artistTypes, setArtistTypes] = useState([]);
+  const navigate = useNavigate();
 
-  // Close dropdown when clicking outside
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setDropdownOpen(false);
+    const fetchArtistTypes = async () => {
+      try {
+        const response = await fetch(`${config.baseUrl}/api/artist-types/`);
+        if (!response.ok) throw new Error("Failed to fetch artist types");
+        const data = await response.json();
+        setArtistTypes(
+          data.map((type) => ({
+            id: type._id,
+            label: type.type,
+            image: type.typeimg || "https://via.placeholder.com/40",
+          }))
+        );
+      } catch (error) {
+        console.error("Error fetching artist types:", error);
       }
     };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    fetchArtistTypes();
   }, []);
 
   return (
@@ -30,47 +39,42 @@ const Navbar = () => {
       </Link>
 
       {/* Right Side - Navigation */}
-      <div className="flex items-center gap-6 relative">
-        {/* Vendors Link */}
-        <Link to="/vendors" className="text-gray-700 font-medium hover:text-gray-900">
-          Vendors
-        </Link>
+      <div className="flex items-center gap-12 relative">
+        {/* Artist Dropdown */}
+        <Dropdown1
+          label="Artist"
+          options={artistTypes}
+          icon={<FiChevronDown />}
+          onSelect={(id) => navigate(`/${id}`)}
+        />
 
         {/* Search Icon */}
-        <FiSearch className="text-gray-700 text-2xl cursor-pointer hover:text-gray-900" />
+        <FiSearch
+          className="text-gray-700 text-2xl cursor-pointer hover:text-gray-900"
+          onClick={() => navigate("/search")} // ✅ Redirects to search page
+        />
 
-        {/* If user is signed in, show profile picture */}
+
+
+        {/* User Profile Dropdown */}
         {isSignin ? (
-          <div className="relative" ref={dropdownRef}>
-            <img
-              src={user?.profilePic || "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQMggZhOIH1vXmnv0bCyBu8iEuYQO-Dw1kpp7_v2mwhw_SKksetiK0e4VWUak3pm-v-Moc&usqp=CAU"}
-              alt="User"
-              className="w-10 h-10 rounded-full cursor-pointer object-cover"
-              onClick={() => setDropdownOpen(!dropdownOpen)}
-            />
-
-            {/* Dropdown Menu */}
-            {dropdownOpen && (
-              <div className="absolute right-0 top-full mt-2 w-40 bg-white shadow-lg rounded-lg border border-gray-200 z-50">
-                <Link
-                  to="/profile"
-                  className="block px-4 py-2 text-gray-700 hover:bg-gray-100 flex items-center"
-                  onClick={() => setDropdownOpen(false)} // Close on click
-                >
-                  <FiUser className="mr-2" /> Profile
-                </Link>
-                <button
-                  onClick={() => {
-                    logout();
-                    setDropdownOpen(false);
-                  }}
-                  className="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 flex items-center"
-                >
-                  <FiLogOut className="mr-2" /> Logout
-                </button>
-              </div>
-            )}
-          </div>
+          <Dropdown1
+            label={
+              <img
+                src={user?.profilePic || "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQMggZhOIH1vXmnv0bCyBu8iEuYQO-Dw1kpp7_v2mwhw_SKksetiK0e4VWUak3pm-v-Moc&usqp=CAU"}
+                alt="User"
+                className="w-10 h-10 rounded-full cursor-pointer"
+              />
+            }
+            options={[
+              { id: "profile", label: "Profile", icon: <FiUser className="text-xl" /> },
+              { id: "logout", label: "Logout", icon: <FiLogOut className="text-xl" /> },
+            ]}
+            onSelect={(id) => {
+              if (id === "logout") logout();
+              else navigate(`/${id}`);
+            }}
+          />
         ) : (
           <>
             {/* Sign In Button */}
