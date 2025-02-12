@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import dashboard_img from "../../assets/delhi_bg.webp";
 import SearchBar from "../../components/SearchBar";
 import CategorywiseArtist from "../../components/CategorywiseArtist";
+import Footer from "../../components/Footer";
 import config from "../../configs/config";
 import Loading from "../error/loading"; // Import Loading component
 import Error from "../error/Error"; // Import Error component
@@ -60,9 +61,10 @@ const Dashboard = () => {
             <SearchBar artistTypes={artistTypes} />
           </div>
         </div>
-
         {/* Category-wise Artists Section */}
         <CategorywiseArtist artistTypes={artistTypes} />
+          <Footer />
+
       </div>
     </div>
   );
