@@ -3,26 +3,30 @@ import { useNavigate } from "react-router-dom"; // Import useNavigate
 import { FiArrowRight, FiMapPin } from "react-icons/fi"; // Import location icon
 import Dropdown from "./Dropdown"; // Import the reusable dropdown component
 
-const SearchBar = ({ userId }) => {  // Accept userId as prop
+const SearchBar = ({ artistTypes }) => {  
   const [selectedVendor, setSelectedVendor] = useState(null);
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [error, setError] = useState(""); // State for validation message
   const navigate = useNavigate(); // Initialize navigation
 
   // Dropdown options
-  const vendorOptions = [
-    { label: "Photographers", id: "67a72fd5b5ed844973c075a0" },
-    { label: "Makeup Artists", id: "makeup-artists" },
-    { label: "Decorators", id: "decorators" },
-  ];
+  // const vendorOptions = [
+  //   { label: "Photographers", id: "67a72fd5b5ed844973c075a0" },
+  //   { label: "Makeup Artists", id: "makeup-artists" },
+  //   { label: "Decorators", id: "decorators" },
+  // ];
+  const vendorOptions = [{ label: "All Categories", id: "all" }];
+  vendorOptions.push(...artistTypes.map(artist => ({
+    id: artist._id,
+      label: artist.type
+  })));
 
   const locationOptions = [
     { label: "Delhi", icon: FiMapPin },
     { label: "Mumbai", icon: FiMapPin },
     { label: "Bangalore", icon: FiMapPin },
   ];
-
-  // Function to handle search button click
+  
   const handleSearch = () => {
     const vendor = selectedVendor?.id;  // Use 'id' for URL path
     const location = selectedLocation?.label?.toLowerCase().replace(/\s+/g, "-") || "";
@@ -55,7 +59,7 @@ const SearchBar = ({ userId }) => {  // Accept userId as prop
           selected={selectedVendor}
           setSelected={setSelectedVendor}
           allowInput={true}
-          placeholder="Search For Vendors"
+          placeholder="Search For Artist Type"  
           className="flex-1"
         />
 

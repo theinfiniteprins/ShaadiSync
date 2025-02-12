@@ -100,7 +100,8 @@ const unblockUser = async (req, res) => {
     }
 
     user.isBlocked = false; // Unset isBlocked dynamically
-    res.status(200).json({ message: 'User unblocked successfully', user });
+    const unblockedUser = await user.save(); // Save the updated user document.
+    res.status(200).json({ message: 'User unblocked successfully', unblockedUser });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
@@ -190,6 +191,17 @@ const deleteImage = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+const viewBalance = async (req, res) => {
+  try {
+    const user = await User.findById(req.id).select('-password');
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.status(200).json({SyncCoin :user.SyncCoin});
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
 
 module.exports = {
   createUser,
@@ -201,4 +213,5 @@ module.exports = {
   unblockUser,
   getCurrentUser,
   deleteImage,
+  viewBalance,
 };
