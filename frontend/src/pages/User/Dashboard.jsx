@@ -2,6 +2,7 @@ import React from "react";
 import dashboard_img from "../../assets/delhi_bg.webp";
 import SearchBar from "../../components/SearchBar"; // Importing the SearchBar component
 import CategorywiseArtist from "../../components/CategorywiseArtist";
+import Footer from "../../components/Footer";
 
 const Dashboard = () => {
   return (
@@ -33,6 +34,7 @@ const Dashboard = () => {
         </div>
         
       <CategorywiseArtist />
+      <Footer />
       </div>
     </div>
   );

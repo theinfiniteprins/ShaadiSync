@@ -6,6 +6,7 @@ import Login from "../pages/User/Login";
 import CategorywiseServiceList from "../pages/User/CategorywiseServiceList";
 import Search from "../pages/User/Search";
 import Profile from "../pages/User/Profile";
+import AboutUs from "../pages/User/AboutUs";
 
 
 
@@ -15,6 +16,7 @@ const UserRoutes = () => {
         <Routes>
             {/* Protected routes with UserLayout */}
             <Route element={<UserLayout />}>
+                <Route path='/AboutUs' element={<AboutUs />}/>
                 <Route path="/" element={<Dashboard />} />
                 <Route path="/:categoryId/" element={<CategorywiseServiceList />} />
                 {/* Route with location */}
