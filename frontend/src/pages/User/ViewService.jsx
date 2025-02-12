@@ -15,6 +15,9 @@ import {
   FaChevronRight,
   FaLock,
   FaUser,
+  FaStar,
+  FaMinus,
+  FaPlus,
 } from "react-icons/fa";
 
 // Import slick carousel CSS
@@ -30,35 +33,55 @@ export default function ViewService() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [quantity, setQuantity] = useState(1);
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  // Add a new function to check unlock status
+  const checkUnlockStatus = async () => {
+    if (user?._id) {
+      try {
+        await axios.get(
+          `${config.baseUrl}/api/user-unlock-service/is-unlocked/${user._id}/${id}`
+        );
+        setIsUnlocked(true);
+      } catch (unlockError) {
+        if (unlockError.response?.status === 404) {
+          setIsUnlocked(false);
+        }
+      }
+    }
+  };
+
+  const handleUnlock = async () => {
+    try {
+      await axios.post(`${config.baseUrl}/api/user-unlock-service/unlock`, {
+        serviceId: id
+      });
+      // Instead of reloading page, just check unlock status again
+      await checkUnlockStatus();
+    } catch (err) {
+      console.error('Error unlocking service:', err);
+    }
+  };
 
   useEffect(() => {
     const fetchServiceAndUnlockStatus = async () => {
       try {
         setLoading(true);
-        
         // Fetch service details
         const serviceResponse = await axios.get(`${config.baseUrl}/api/services/${id}`);
         setService(serviceResponse.data);
-
+        
         // Fetch artist details
         const artistResponse = await axios.get(`${config.baseUrl}/api/artists/${serviceResponse.data.artistId._id}`);
         setArtist(artistResponse.data);
 
-        // Check if service is unlocked for the user
-        if (user?._id) {
-          try {
-            await axios.get(`${config.baseUrl}/api/user-unlock-service/is-unlocked/${user._id}/${id}`);
-            setIsUnlocked(true); // If request succeeds, service is unlocked
-            console.log("Service is unlocked");
-          } catch (unlockError) {
-            if (unlockError.response?.status === 404) {
-              setIsUnlocked(false); // 404 means service is not unlocked
-            }
-          }
-        }
+        // Check unlock status
+        await checkUnlockStatus();
+        
       } catch (err) {
-        console.error("Error fetching data:", err);
-        setError("Failed to load service details. Please try again later.");
+        console.error('Error fetching data:', err);
+        setError('Failed to load service details. Please try again later.');
       } finally {
         setLoading(false);
       }
@@ -82,15 +105,14 @@ export default function ViewService() {
 
   // Slider settings
   const sliderSettings = {
-    dots: true,
+    dots: false,
     infinite: true,
     speed: 500,
     slidesToShow: 1,
     slidesToScroll: 1,
+    beforeChange: (current, next) => setCurrentSlide(next),
     nextArrow: <NextArrow />,
-    prevArrow: <PrevArrow />,
-    autoplay: true,
-    autoplaySpeed: 3000,
+    prevArrow: <PrevArrow />
   };
 
   // Render artist details based on unlock status
@@ -156,7 +178,7 @@ export default function ViewService() {
                   <h3 className="text-xl font-bold text-gray-800 mb-2">Unlock Artist Details</h3>
                   <p className="text-gray-600 mb-4">Get access to contact information and more</p>
                   <button
-                    onClick={() => navigate(`/unlock/${id}`)}
+                    onClick={handleUnlock}
                     className="bg-pink-500 text-white px-8 py-3 rounded-xl font-semibold 
                              hover:bg-pink-600 transform transition-all duration-300 
                              hover:shadow-lg active:scale-95"
@@ -198,56 +220,98 @@ export default function ViewService() {
   if (error) return <Error message={error} onRetry={() => window.location.reload()} />;
   if (!service || !artist) return null;
 
+  // Check if service is not live
+  if (!service.isLive) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="bg-white p-8 rounded-2xl shadow-lg text-center max-w-md">
+          <h1 className="text-2xl font-bold text-gray-800 mb-2">Service Unavailable</h1>
+          <p className="text-gray-600 mb-6">
+            This service is currently not available. Please check back later or explore other services.
+          </p>
+          <button
+            onClick={() => navigate('/')}
+            className="bg-pink-500 text-white px-6 py-2 rounded-lg hover:bg-pink-600 transition-colors"
+          >
+            Back to Home
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // If service is live, show the normal content
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-          {/* Image Slider */}
-          <div className="relative h-[500px]">
-            <Slider {...sliderSettings}>
-              {service.photos?.map((image, index) => (
-                <div key={index} className="h-[500px]">
-                  <img src={image} alt={`${service.name} - ${index + 1}`} className="w-full h-full object-cover" />
-                </div>
-              ))}
-            </Slider>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-8">
+            {/* Left side - Image Slider */}
+            <div>
+              <div className="relative h-[500px] mb-4">
+                <Slider {...sliderSettings}>
+                  {service.photos?.map((image, index) => (
+                    <div key={index} className="h-[500px]">
+                      <img
+                        src={image}
+                        alt={`${service.name} - ${index + 1}`}
+                        className="w-full h-full object-cover rounded-lg"
+                      />
+                    </div>
+                  ))}
+                </Slider>
+              </div>
+              
+              {/* Thumbnails */}
+              <div className="grid grid-cols-5 gap-2 mt-4">
+                {service.photos?.map((image, index) => (
+                  <div 
+                    key={index} 
+                    className={`cursor-pointer h-24 overflow-hidden rounded-lg border-2 
+                      ${currentSlide === index ? 'border-pink-500' : 'border-transparent'}`}
+                    onClick={() => setCurrentSlide(index)}
+                  >
+                    <img
+                      src={image}
+                      alt={`thumbnail ${index + 1}`}
+                      className="w-full h-full object-cover hover:opacity-75 transition-opacity"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Right side - Service Details */}
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-4">{service.name}</h1>
+              
+              {/* Rating */}
+              <div className="flex items-center mb-4">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <FaStar 
+                    key={star} 
+                    className={`w-5 h-5 ${star <= (service.rating || 0) ? 'text-yellow-400' : 'text-gray-300'}`} 
+                  />
+                ))}
+                <span className="ml-2 text-gray-600">({service.reviews?.length || 0})</span>
+              </div>
+
+              {/* Price */}
+              <div className="mb-6">
+                <span className="text-3xl font-bold text-pink-600">₹{service.price}</span>
+                {service.originalPrice && (
+                  <span className="ml-2 text-gray-500 line-through">₹{service.originalPrice}</span>
+                )}
+              </div>
+
+              {/* Description */}
+              <p className="text-gray-600">{service.description}</p>
+            </div>
           </div>
 
-          {/* Service Details */}
-          <div className="p-8">
-            <div className="flex flex-col md:flex-row justify-between items-start gap-4">
-              <div className="flex-1">
-                <h1 className="text-3xl font-bold text-gray-900 mb-4">{service.name}</h1>
-                <div className="flex items-center gap-4 text-gray-600 mb-4">
-                  <span className="flex items-center">
-                    <FaMapMarkerAlt className="mr-2" />
-                    {artist.address}
-                  </span>
-                </div>
-              </div>
-              <div className="text-right">
-                <p className="text-3xl font-bold text-pink-500 flex items-center justify-end">
-                  <FaRupeeSign className="mr-1" />
-                  {service.price?.toLocaleString()}
-                </p>
-              </div>
-            </div>
-
-            {/* Description */}
-            <div className="mt-8">
-              <h2 className="text-2xl font-semibold mb-4">About This Service</h2>
-              <p className="text-gray-600 whitespace-pre-line leading-relaxed">{service.description}</p>
-            </div>
-
-            {/* Artist Details */}
+          {/* Artist Details Section - Clear separation */}
+          <div className="mt-8">
             {renderArtistDetails()}
-
-            {/* Booking Button */}
-            <div className="mt-8 flex justify-end">
-              <button onClick={() => navigate(`/book/${id}`)} className="bg-pink-500 text-white px-8 py-3 rounded-lg hover:bg-pink-600 transition">
-                Book Now
-              </button>
-            </div>
           </div>
         </div>
       </div>
