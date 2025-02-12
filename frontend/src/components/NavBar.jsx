@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { FiSearch, FiUser, FiLogOut, FiChevronDown } from "react-icons/fi";
+import { FiSearch, FiUser, FiLogOut, FiChevronDown  } from "react-icons/fi";
+import { FaWallet } from "react-icons/fa6";
 import { useAuth } from "../context/AuthContext";
 import Dropdown1 from "./Dropdown1"; // ✅ Import reusable dropdown component
 import logo from "../assets/ShaadiSync.png";
@@ -67,11 +68,13 @@ const Navbar = () => {
               />
             }
             options={[
+              {id: "wallet", label: "Wallet", icon: <FaWallet className="text-xl" />},
               { id: "profile", label: "Profile", icon: <FiUser className="text-xl" /> },
               { id: "logout", label: "Logout", icon: <FiLogOut className="text-xl" /> },
             ]}
             onSelect={(id) => {
               if (id === "logout") logout();
+              else if (id === "wallet") navigate("/wallet");
               else navigate(`/${id}`);
             }}
           />
