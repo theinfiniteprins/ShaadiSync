@@ -26,7 +26,7 @@ const userTransactionHistorySchema = new Schema(
       },
       unlockId: {
         type: Schema.Types.ObjectId, // Reference to the UserUnlockArtist model
-        ref: 'UserUnlockArtist',
+        ref: 'UserUnlockService',
         required: false,
       },
     },

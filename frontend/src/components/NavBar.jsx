@@ -1,13 +1,14 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { FiSearch, FiUser, FiLogOut, FiChevronDown } from "react-icons/fi";
+import { FiSearch, FiUser, FiLogOut, FiChevronDown  } from "react-icons/fi";
+import { FaWallet } from "react-icons/fa6";
 import { useAuth } from "../context/AuthContext";
 import Dropdown1 from "./Dropdown1"; // ✅ Import reusable dropdown component
 import logo from "../assets/ShaadiSync.png";
 import config from "../configs/config";
 
 const Navbar = () => {
-  const { isSignin, logout } = useAuth();
+  const { isSignin, logout, user } = useAuth();
   const [artistTypes, setArtistTypes] = useState([]);
   const navigate = useNavigate();
 
@@ -55,22 +56,25 @@ const Navbar = () => {
         />
 
 
+
         {/* User Profile Dropdown */}
         {isSignin ? (
           <Dropdown1
             label={
               <img
-                src="https://lh3.googleusercontent.com/-WDZpHpG6mNM/AAAAAAAAAAI/AAAAAAAAAAA/ALKGfkmMXfatimyTR9vHPght4QuZFJe85Q/photo.jpg?sz=46"
+                src={user?.profilePic || "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQMggZhOIH1vXmnv0bCyBu8iEuYQO-Dw1kpp7_v2mwhw_SKksetiK0e4VWUak3pm-v-Moc&usqp=CAU"}
                 alt="User"
                 className="w-10 h-10 rounded-full cursor-pointer"
               />
             }
             options={[
+              {id: "wallet", label: "Wallet", icon: <FaWallet className="text-xl" />},
               { id: "profile", label: "Profile", icon: <FiUser className="text-xl" /> },
               { id: "logout", label: "Logout", icon: <FiLogOut className="text-xl" /> },
             ]}
             onSelect={(id) => {
               if (id === "logout") logout();
+              else if (id === "wallet") navigate("/wallet");
               else navigate(`/${id}`);
             }}
           />

@@ -52,16 +52,16 @@ const createTransaction = async (req, res) => {
 
 const getTransactionHistory = async (req, res) => {
   try {
-    const { userId } = req.params;
+
 
     // Validate User
-    const user = await User.findById(userId);
+    const user = await User.findById(req.id);
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
     // Retrieve Transactions
-    const transactions = await UserTransactionHistory.find({ userId })
+    const transactions = await UserTransactionHistory.find({ userId: req.id })
       .populate('unlockId') // Populate UnlockId details
       .sort({ createdAt: -1 });
 
