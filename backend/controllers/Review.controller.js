@@ -4,14 +4,14 @@ const User = require('../models/User.model');
 
 const createReview = async (req, res) => {
   try {
-    const { artistId, userId, rating, reviewText } = req.body;
+    const { artistId, rating, reviewText } = req.body;
 
     const artist = await Artist.findById(artistId);
     if (!artist) {
       return res.status(404).json({ message: 'Artist not found' });
     }
 
-    const user = await User.findById(userId);
+    const user = await User.findById(req.id);
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
@@ -20,7 +20,7 @@ const createReview = async (req, res) => {
       return res.status(400).json({ message: 'Rating must be between 1 and 5' });
     }
 
-    const newReview = new Review({ artistId, userId, rating, reviewText });
+    const newReview = new Review({ artistId, userId:req.id, rating, reviewText });
     const savedReview = await newReview.save();
 
     res.status(201).json({ message: 'Review created successfully', savedReview });
@@ -29,21 +29,26 @@ const createReview = async (req, res) => {
   }
 };
 
+const mongoose = require("mongoose");
+
 const getReviewsByArtist = async (req, res) => {
   try {
     const { artistId } = req.params;
+    console.log("Received artistId:", artistId);
 
-    const artist = await Artist.findById(artistId);
-    if (!artist) {
-      return res.status(404).json({ message: 'Artist not found' });
+    const reviews = await Review.find({ artistId: artistId }).populate("userId", "name email");
+
+    if (reviews.length === 0) {
+      return res.status(404).json({ message: "No reviews found for this artist." });
     }
 
-    const reviews = await Review.find({ artistId }).populate('userId', 'name email');
     res.status(200).json(reviews);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
+
+
 
 const getReviewsByUser = async (req, res) => {
   try {

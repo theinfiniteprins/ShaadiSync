@@ -23,6 +23,8 @@ import {
 // Import slick carousel CSS
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
+import ReviewList from "../../components/ReviewList";
+import ReviewForm from "../../components/ReviewForm";
 
 export default function ViewService() {
   const [service, setService] = useState(null);
@@ -35,6 +37,8 @@ export default function ViewService() {
   const { user } = useAuth();
   const [quantity, setQuantity] = useState(1);
   const [currentSlide, setCurrentSlide] = useState(0);
+  console.log(artist);
+  
 
   // Add a new function to check unlock status
   const checkUnlockStatus = async () => {
@@ -168,6 +172,8 @@ export default function ViewService() {
                 </div>
               </div>
             </div>
+            
+              <ReviewForm artistId={artist._id}/>
           </div>
         ) : (
           <div className="mt-8 p-8 bg-white rounded-2xl shadow-lg relative overflow-hidden">
@@ -212,6 +218,7 @@ export default function ViewService() {
             </div>
           </div>
         )}
+        <ReviewList artistId={artist._id}/>
       </div>
     );
   };
