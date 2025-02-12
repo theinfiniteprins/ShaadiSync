@@ -23,14 +23,12 @@ const CategoryInfo = ({ artistType, totalServices }) => {
 export default function CategorywiseServiceList() {
   const [artistType, setArtistType] = useState("");
   const [services, setServices] = useState([]);
-  const [filteredServices, setFilteredServices] = useState([]); // State for filtered services
+  const [filteredServices, setFilteredServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { categoryId, location } = useParams();
   const navigate = useNavigate();
   const [filters, setFilters] = useState({ budget: "", rating: "", shortlisted: false });
-  console.log(services);
-  
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -44,6 +42,7 @@ export default function CategorywiseServiceList() {
           ? response.data.services.filter(service => service.artistId?.address?.toLowerCase().includes(location.toLowerCase()))
           : response.data.services;
         setServices(Array.isArray(filtered) ? filtered : []);
+        setFilteredServices(Array.isArray(filtered) ? filtered : []);
         setLoading(false);
       } catch (err) {
         console.error("Error fetching services:", err);
@@ -61,6 +60,7 @@ export default function CategorywiseServiceList() {
           ? response.data.services.filter(service => service.artistId?.address?.toLowerCase().includes(location.toLowerCase()))
           : response.data.services;
         setServices(Array.isArray(filtered) ? filtered : []);
+        setFilteredServices(Array.isArray(filtered) ? filtered : []);
         setLoading(false);
       } catch (err) {
         console.error("Error fetching services:", err);
@@ -76,7 +76,6 @@ export default function CategorywiseServiceList() {
     }
   }, [categoryId, location]);
 
-  // Apply filters whenever filters or services change
   useEffect(() => {
     let filtered = [...services];
     
@@ -90,22 +89,16 @@ export default function CategorywiseServiceList() {
       filtered = filtered.filter(service => service.isShortlisted);
     }
 
-
-  const handleServiceClick = (serviceId) => {
-    navigate(`/service/${serviceId}`);
-  };
-
     setFilteredServices(filtered);
   }, [filters, services]);
 
+  const handleServiceClick = (serviceId) => {
+    console.log("Service clicked:", serviceId);
+    navigate(`/services/${serviceId}`);
+  };
 
-  if (loading) {
-    return <Loading />;
-  }
-
-  if (error) {
-    return <Error message={error} onRetry={() => window.location.reload()} />;
-  }
+  if (loading) return <Loading />;
+  if (error) return <Error message={error} onRetry={() => window.location.reload()} />;
 
   return (
     <div className="py-4 px-45">
@@ -117,7 +110,6 @@ export default function CategorywiseServiceList() {
 
       <CategoryInfo artistType={artistType} totalServices={filteredServices.length} />
 
-      {/* Pass filter state update function */}
       <FilterSection onFilterChange={(filterType, value) => setFilters(prev => ({ ...prev, [filterType]: value }))} />
 
       {filteredServices.length === 0 ? (
@@ -126,8 +118,16 @@ export default function CategorywiseServiceList() {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-12 mt-20 px-6 mr-6">
-          {filteredServices.map(service => (
-            <ServiceCard key={service._id} service={service} />
+          {filteredServices.map((service) => (
+            <div 
+              key={service._id}
+              onClick={() => handleServiceClick(service._id)}
+              className="cursor-pointer"
+            >
+              <ServiceCard 
+                service={service}
+              />
+            </div>
           ))}
         </div>
       )}
