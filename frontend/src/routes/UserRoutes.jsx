@@ -9,7 +9,7 @@ import Profile from "../pages/User/Profile";
 import ViewService from "../pages/User/ViewService";
 
 import Wallet from "../pages/User/Wallet";
-
+import UnlockedService from "../pages/User/UnlockedService";
 
 
 
@@ -19,6 +19,7 @@ const UserRoutes = () => {
             {/* Protected routes with UserLayout */}
             <Route element={<UserLayout />}>
                 <Route path="/services/:id" element={<ViewService />} />
+                <Route path="/unlocked-services" element={<UnlockedService />} />
                 <Route path="/" element={<Dashboard />} />
                 
                 <Route path="/:categoryId/" element={<CategorywiseServiceList />} />

@@ -21,9 +21,9 @@ export default function ArtistCategoryCard({ artist, onClick }) {
           {artist.name || 'Artist Name'}
         </h3>
         {/* Random Number */}
-        <div className="flex justify-center items-center space-x-2 text-pink-600">
+        {/* <div className="flex justify-center items-center space-x-2 text-pink-600">
           <span className="text-lg font-semibold">₹{randomNumber}</span>
-        </div>
+        </div> */}
       </div>
     </div>
   );
