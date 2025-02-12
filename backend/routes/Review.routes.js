@@ -17,7 +17,7 @@ router.post('/', authMiddleware, createReview);
 router.get('/user/:userId', authMiddleware, getReviewsByUser);
 router.put('/:id', authMiddleware, updateReview);
 
-router.delete('/:id', authMiddleware, isAdminMiddleware, deleteReview);
+router.delete('/delete/:id', authMiddleware, deleteReview);
 
 module.exports = router;
 
