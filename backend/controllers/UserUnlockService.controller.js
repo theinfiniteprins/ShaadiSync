@@ -155,7 +155,7 @@ const getUnlockedServices = async (req, res) => {
     }
 
     const unlockedServices = await UserUnlockService.find({ userId })
-      .populate('artistId', 'name email profilePic');
+      .populate('serviceId', 'name price photos');
 
     res.status(200).json(unlockedServices);
   } catch (error) {
