@@ -167,8 +167,8 @@ export default function ViewService() {
             <div className="flex items-start space-x-8">
               <div className="relative">
                 <img
-                  src={artist.profilePic || 'https://via.placeholder.com/150'}
-                  alt={artist.name}
+                  src={artist?.profilePic || 'https://via.placeholder.com/150'}
+                  alt={artist?.name || "Unknown Artist"}
                   className="w-32 h-32 rounded-2xl object-cover shadow-lg transform transition-all duration-300 hover:scale-105"
                 />
                 <div className="absolute -bottom-2 -right-2 bg-pink-500 text-white p-2 rounded-lg">
@@ -176,34 +176,34 @@ export default function ViewService() {
                 </div>
               </div>
               <div className="flex-1">
-                <h3 className="text-2xl font-bold text-gray-800 mb-4">{artist.name}</h3>
+                <h3 className="text-2xl font-bold text-gray-800 mb-4">{artist?.name || "N/A"}</h3>
                 <div className="space-y-4">
                   <div className="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-all duration-200">
                     <FaPhone className="text-xl text-pink-500 mr-4" />
                     <div>
                       <p className="text-sm text-gray-500">Phone Number</p>
-                      <p className="text-lg font-medium text-gray-800">{artist.mobileNumber}</p>
+                      <p className="text-lg font-medium text-gray-800">{artist?.mobileNumber || "Not Available"}</p>
                     </div>
                   </div>
                   <div className="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-all duration-200">
                     <FaEnvelope className="text-xl text-pink-500 mr-4" />
                     <div>
                       <p className="text-sm text-gray-500">Email Address</p>
-                      <p className="text-lg font-medium text-gray-800">{artist.email}</p>
+                      <p className="text-lg font-medium text-gray-800">{artist?.email || "Not Available"}</p>
                     </div>
                   </div>
                   <div className="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-all duration-200">
                     <FaMapMarkerAlt className="text-xl text-pink-500 mr-4" />
                     <div>
                       <p className="text-sm text-gray-500">Location</p>
-                      <p className="text-lg font-medium text-gray-800">{artist.address}</p>
+                      <p className="text-lg font-medium text-gray-800">{artist?.address || "Not Available"}</p>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-            
-              <ReviewForm artistId={service.artistId}/>
+  
+            <ReviewForm artistId={service?.artistId?._id || ""} />
           </div>
         ) : (
           <div className="mt-8 p-8 bg-white rounded-2xl shadow-lg relative overflow-hidden">
@@ -234,24 +234,14 @@ export default function ViewService() {
                   </span>
                 </div>
               </div>
-              <div className="flex items-start space-x-8">
-                <div className="w-32 h-32 bg-gray-200 rounded-2xl"></div>
-                <div className="flex-1 space-y-4">
-                  <div className="h-8 bg-gray-200 w-1/3 rounded-lg"></div>
-                  <div className="space-y-4">
-                    <div className="h-16 bg-gray-200 rounded-lg"></div>
-                    <div className="h-16 bg-gray-200 rounded-lg"></div>
-                    <div className="h-16 bg-gray-200 rounded-lg"></div>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
         )}
-        <ReviewList artistId={service.artistId}/>
+        <ReviewList artistId={service?.artistId || ""} />
       </div>
     );
   };
+  
 
   if (loading) return <Loading />;
   if (error) return <Error message={error} onRetry={() => window.location.reload()} />;

@@ -68,6 +68,8 @@ const getReviewsByUser = async (req, res) => {
 
 const deleteReview = async (req, res) => {
   try {
+    console.log("Received delete request");
+
     const { id } = req.params;
 
     const review = await Review.findById(id);
@@ -75,7 +77,8 @@ const deleteReview = async (req, res) => {
       return res.status(404).json({ message: 'Review not found' });
     }
 
-    await review.remove();
+    await Review.findByIdAndDelete(id);
+    
     res.status(200).json({ message: 'Review deleted successfully' });
   } catch (error) {
     res.status(500).json({ error: error.message });
