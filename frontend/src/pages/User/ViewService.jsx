@@ -40,48 +40,47 @@ export default function ViewService() {
   console.log(artist);
   
 
-  // Add a new function to check unlock status
-  const checkUnlockStatus = async () => {
-    if (user?._id) {
-      try {
-        await axios.get(
-          `${config.baseUrl}/api/user-unlock-service/is-unlocked/${user._id}/${id}`
-        );
-        setIsUnlocked(true);
-      } catch (unlockError) {
-        if (unlockError.response?.status === 404) {
-          setIsUnlocked(false);
-        }
-      }
-    }
-  };
-
-  const handleUnlock = async () => {
-    try {
-      await axios.post(`${config.baseUrl}/api/user-unlock-service/unlock`, {
-        serviceId: id
-      });
-      // Instead of reloading page, just check unlock status again
-      await checkUnlockStatus();
-    } catch (err) {
-      console.error('Error unlocking service:', err);
-    }
-  };
-
   useEffect(() => {
     const fetchServiceAndUnlockStatus = async () => {
       try {
         setLoading(true);
-        // Fetch service details
-        const serviceResponse = await axios.get(`${config.baseUrl}/api/services/${id}`);
-        setService(serviceResponse.data);
-        
-        // Fetch artist details
-        const artistResponse = await axios.get(`${config.baseUrl}/api/artists/${serviceResponse.data.artistId._id}`);
-        setArtist(artistResponse.data);
+        const token = localStorage.getItem("token");
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
-        // Check unlock status
-        await checkUnlockStatus();
+        // Fetch service details
+        const serviceResponse = await axios.get(
+          `${config.baseUrl}/api/services/${id}`,
+          { headers }
+        );
+        setService(serviceResponse.data);
+
+        // Only check unlock status if user is logged in
+        if (user?._id) {
+          try {
+            await axios.get(
+              `${config.baseUrl}/api/user-unlock-service/is-unlocked/${user._id}/${id}`,
+              { headers }
+            );
+            setIsUnlocked(true);
+            
+            // Only fetch artist details if service is unlocked
+            const artistResponse = await axios.get(
+              `${config.baseUrl}/api/artists/${serviceResponse.data.artistId._id}`,
+              { headers }
+            );
+            setArtist(artistResponse.data);
+          } catch (unlockError) {
+            // If 404, service is not unlocked - this is an expected case
+            if (unlockError.response?.status === 404) {
+              setIsUnlocked(false);
+              setArtist(null); // Clear any existing artist data
+            }
+          }
+        } else {
+          // Not logged in, so service is not unlocked
+          setIsUnlocked(false);
+          setArtist(null);
+        }
         
       } catch (err) {
         console.error('Error fetching data:', err);
@@ -93,6 +92,37 @@ export default function ViewService() {
 
     fetchServiceAndUnlockStatus();
   }, [id, user?._id]);
+
+  const handleUnlock = async () => {
+    if (!user) {
+      navigate('/login', { 
+        state: { 
+          redirectTo: `/service/${id}`,
+          message: "Please login to unlock artist details" 
+        } 
+      });
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+      await axios.post(
+        `${config.baseUrl}/api/user-unlock-service/unlock`, 
+        { serviceId: id },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      // After successful unlock, fetch artist details
+      const artistResponse = await axios.get(
+        `${config.baseUrl}/api/artists/${service.artistId._id}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setArtist(artistResponse.data);
+      setIsUnlocked(true);
+    } catch (err) {
+      console.error('Error unlocking service:', err);
+    }
+  };
 
   // Custom arrows for slider
   const NextArrow = ({ onClick }) => (
@@ -173,7 +203,7 @@ export default function ViewService() {
               </div>
             </div>
             
-              <ReviewForm artistId={artist._id}/>
+              <ReviewForm artistId={service.artistId}/>
           </div>
         ) : (
           <div className="mt-8 p-8 bg-white rounded-2xl shadow-lg relative overflow-hidden">
@@ -218,14 +248,14 @@ export default function ViewService() {
             </div>
           </div>
         )}
-        <ReviewList artistId={artist._id}/>
+        <ReviewList artistId={service.artistId}/>
       </div>
     );
   };
 
   if (loading) return <Loading />;
   if (error) return <Error message={error} onRetry={() => window.location.reload()} />;
-  if (!service || !artist) return null;
+  if (!service) return null;
 
   // Check if service is not live
   if (!service.isLive) {
