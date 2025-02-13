@@ -14,7 +14,7 @@ const ReviewList = ({ artistId }) => {
 
     const fetchReviews = async () => {
         try {
-            const response = await fetch(`${config.baseUrl}/api/reviews/artist/${artistId}`);
+            const response = await fetch(`${config.baseUrl}/api/reviews/artist/${artistId._id}`);
             const data = await response.json();
             setReviews(data);
         } catch (error) {
@@ -50,7 +50,7 @@ const ReviewList = ({ artistId }) => {
                             <p className="text-gray-700 text-sm leading-relaxed">{review.reviewText}</p>
 
                             {/* Show delete button only if the logged-in user is the review owner */}
-                            {review.userId?._id === user._id && (
+                            {user && review.userId && review.userId._id === user._id && (
                                 <button onClick={() => handleDelete(review._id)} className="text-red-500">
                                     <FaTrash />
                                 </button>
