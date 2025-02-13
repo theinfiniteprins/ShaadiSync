@@ -5,6 +5,8 @@ const authMiddleware = (req, res, next) => {
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        console.log("Authorization token is missing or invalid.");
+        
         return res.status(403).json({
             success: false,
             message: 'Authorization token is missing or invalid.',

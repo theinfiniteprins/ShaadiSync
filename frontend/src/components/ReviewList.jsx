@@ -6,7 +6,7 @@ import { useAuth } from "../context/AuthContext";
 const ReviewList = ({ artistId }) => {
     const [reviews, setReviews] = useState([]);
     const [editReview, setEditReview] = useState(null);
-    const { user } = useAuth();
+    const { user,token } = useAuth();
 
     useEffect(() => {
         fetchReviews();
@@ -25,7 +25,12 @@ const ReviewList = ({ artistId }) => {
     const handleDelete = async (reviewId) => {
         if (!window.confirm("Are you sure you want to delete this review?")) return;
         try {
-            await fetch(`${config.baseUrl}/api/reviews/${reviewId}`, { method: "DELETE" });
+            await fetch(`${config.baseUrl}/api/reviews/${reviewId}`, {
+                method: "DELETE",
+                headers: {
+                    Authorization: `Bearer ${token}` 
+                }
+            });
             setReviews(reviews.filter((review) => review._id !== reviewId));
             window.location.reload();
         } catch (error) {
