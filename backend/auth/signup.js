@@ -191,7 +191,6 @@ const signup = async (req, res) => {
                         message: "Email already registered",
                     });
                 }
-
                 const recentOtp = await OTP.findOne({ email })
                     .sort({ createdAt: -1 })
                     .limit(1);
