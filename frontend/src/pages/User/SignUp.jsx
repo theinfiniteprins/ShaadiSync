@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import config from '../../configs/config';
 
 export default function SignUp() {
@@ -317,15 +317,33 @@ export default function SignUp() {
                 ) : null}
                 {otpSent ? 'Complete Signup' : 'Send OTP'}
               </button>
-            </div>
 
-            <div className="text-center text-sm">
-              <p className="text-gray-600">
-                Already have an account?{' '}
-                <a href="/login" className="font-medium text-pink-500 hover:text-pink-600 transition duration-150 ease-in-out">
-                  Login here
-                </a>
-              </p>
+              <div className="text-center mt-4 space-y-2">
+                <p className="text-gray-600 text-sm">
+                  Already have an account?{' '}
+                  <a href="/login" className="font-medium text-pink-500 hover:text-pink-600 transition duration-150 ease-in-out">
+                    Login here
+                  </a>
+                </p>
+                
+                <p className="text-xs text-gray-500">
+                  By signing up to create an account you are accepting our
+                  <br />
+                  <span 
+                    onClick={() => window.location.href = '/Terms&Condition'} 
+                    className="text-pink-600 hover:text-pink-700 hover:underline cursor-pointer"
+                  >
+                    terms & condition
+                  </span>{' '}
+                  and{' '}
+                  <span 
+                    onClick={() => window.location.href = '/PrivacyPolicy'} 
+                    className="text-pink-600 hover:text-pink-700 hover:underline cursor-pointer"
+                  >
+                    privacy policy
+                  </span>
+                </p>
+              </div>
             </div>
           </form>
         </div>

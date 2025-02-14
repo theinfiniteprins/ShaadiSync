@@ -40,7 +40,7 @@ export default function Footer() {
               </li>
               <li>
                 <Link 
-                  to="/terms" 
+                  to="./Terms&Condition" 
                   className="text-gray-700 hover:text-pink-600 transition-colors duration-200"
                 >
                   Terms & Conditions
@@ -48,7 +48,7 @@ export default function Footer() {
               </li>
               <li>
                 <Link 
-                  to="/privacy" 
+                  to="./PrivacyPolicy" 
                   className="text-gray-700 hover:text-pink-600 transition-colors duration-200"
                 >
                   Privacy Policy
