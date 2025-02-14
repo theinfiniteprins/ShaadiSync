@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { FaStar, FaEdit, FaTrash } from "react-icons/fa";
+import { FaStar, FaTrash, FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import config from "../configs/config";
 import { useAuth } from "../context/AuthContext";
 
 const ReviewList = ({ artistId }) => {
     const [reviews, setReviews] = useState([]);
-    const [editReview, setEditReview] = useState(null);
-    const { user,token } = useAuth();
+    const [currentPage, setCurrentPage] = useState(1);
+    const reviewsPerPage = 5;
+    const { user, token } = useAuth();
 
     useEffect(() => {
         fetchReviews();
@@ -28,15 +29,20 @@ const ReviewList = ({ artistId }) => {
             await fetch(`${config.baseUrl}/api/reviews/${reviewId}`, {
                 method: "DELETE",
                 headers: {
-                    Authorization: `Bearer ${token}` 
+                    Authorization: `Bearer ${token}`
                 }
             });
             setReviews(reviews.filter((review) => review._id !== reviewId));
-            window.location.reload();
         } catch (error) {
             console.error("Failed to delete review", error);
         }
     };
+
+    // Pagination logic
+    const indexOfLastReview = currentPage * reviewsPerPage;
+    const indexOfFirstReview = indexOfLastReview - reviewsPerPage;
+    const currentReviews = reviews.slice(indexOfFirstReview, indexOfLastReview);
+    const totalPages = Math.ceil(reviews.length / reviewsPerPage);
 
     return (
         <div className="bg-white p-6 shadow-lg rounded-xl mt-6">
@@ -46,23 +52,62 @@ const ReviewList = ({ artistId }) => {
                 <p className="text-gray-500 text-center py-4">No reviews yet. Be the first to review!</p>
             ) : (
                 <div className="space-y-6">
-
-                    {reviews.map((review) => (
+                    {currentReviews.map((review) => (
                         <div key={review._id} className="p-4 bg-gray-50 rounded-lg shadow-sm">
-                            <div className="flex items-center mb-2">
+                            <div className="flex items-center justify-between">
                                 <p className="text-gray-900 font-semibold">{review.userId?.name || "Anonymous"}</p>
+                                {user && review.userId && review.userId._id === user._id && (
+                                    <button onClick={() => handleDelete(review._id)} className="text-red-500">
+                                        <FaTrash />
+                                    </button>
+                                )}
                             </div>
-                            <p className="text-gray-700 text-sm leading-relaxed">{review.reviewText}</p>
 
-                            {/* Show delete button only if the logged-in user is the review owner */}
-                            {user && review.userId && review.userId._id === user._id && (
-                                <button onClick={() => handleDelete(review._id)} className="text-red-500">
-                                    <FaTrash />
-                                </button>
-                            )}
+                            {/* Rating Stars */}
+                            <div className="flex items-center my-2">
+                                {[1, 2, 3, 4, 5].map((star) => (
+                                    <FaStar
+                                        key={star}
+                                        className={`w-4 h-4 ${star <= review.rating ? 'text-yellow-400' : 'text-gray-300'}`}
+                                    />
+                                ))}
+                                <span className="ml-2 text-gray-600 text-sm">({review.rating || "No Rating"})</span>
+                            </div>
+
+                            <p className="text-gray-700 text-sm leading-relaxed">{review.reviewText}</p>
                         </div>
                     ))}
+                </div>
+            )}
 
+            {/* Pagination Controls */}
+            {reviews.length > reviewsPerPage && (
+                <div className="flex items-center justify-center space-x-2 pt-4 border-t border-gray-100 mt-4">
+                    <button
+                        onClick={() => setCurrentPage(currentPage - 1)}
+                        disabled={currentPage === 1}
+                        className={`p-2 rounded-lg ${currentPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600 hover:bg-pink-50'}`}
+                    >
+                        <FaChevronLeft className="text-lg" />
+                    </button>
+
+                    {[...Array(totalPages)].map((_, index) => (
+                        <button
+                            key={index + 1}
+                            onClick={() => setCurrentPage(index + 1)}
+                            className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${currentPage === index + 1 ? 'bg-pink-500 text-white' : 'text-gray-600 hover:bg-pink-50'}`}
+                        >
+                            {index + 1}
+                        </button>
+                    ))}
+
+                    <button
+                        onClick={() => setCurrentPage(currentPage + 1)}
+                        disabled={currentPage === totalPages}
+                        className={`p-2 rounded-lg ${currentPage === totalPages ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600 hover:bg-pink-50'}`}
+                    >
+                        <FaChevronRight className="text-lg" />
+                    </button>
                 </div>
             )}
         </div>

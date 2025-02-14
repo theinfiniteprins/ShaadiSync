@@ -57,7 +57,7 @@ const Navbar = () => {
 
         {/* User Profile Section */}
         {isSignin ? (
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-7">
             {/* SyncCoins Display */}
             <div className="flex items-center gap-2 bg-pink-200 px-3 py-1 rounded-full">
               <FaCoins className="text-yellow-500" />
