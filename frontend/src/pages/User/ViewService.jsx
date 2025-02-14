@@ -37,8 +37,10 @@ export default function ViewService() {
   const { user } = useAuth();
   const [quantity, setQuantity] = useState(1);
   const [currentSlide, setCurrentSlide] = useState(0);
-  console.log(artist);
-  
+  const [averageRating, setAverageRating] = useState(0);
+  const [totalReviews, setTotalReviews] = useState(0);
+  console.log(service);
+
 
   useEffect(() => {
     const fetchServiceAndUnlockStatus = async () => {
@@ -62,7 +64,7 @@ export default function ViewService() {
               { headers }
             );
             setIsUnlocked(true);
-            
+
             // Only fetch artist details if service is unlocked
             const artistResponse = await axios.get(
               `${config.baseUrl}/api/artists/${serviceResponse.data.artistId._id}`,
@@ -81,7 +83,7 @@ export default function ViewService() {
           setIsUnlocked(false);
           setArtist(null);
         }
-        
+
       } catch (err) {
         console.error('Error fetching data:', err);
         setError('Failed to load service details. Please try again later.');
@@ -93,13 +95,35 @@ export default function ViewService() {
     fetchServiceAndUnlockStatus();
   }, [id, user?._id]);
 
+
+  useEffect(() => {
+    const fetchArtistRating = async () => {
+      try {
+
+        const response = await axios.get(`${config.baseUrl}/api/reviews/get-rating/${service.artistId._id}`);
+        
+        setAverageRating(response.data.averageRating);
+        setTotalReviews(response.data.totalReviews);
+      } catch (err) {
+        setError("Failed to fetch rating");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (service) {
+      fetchArtistRating();
+    }
+
+  }, [service]);
+
   const handleUnlock = async () => {
     if (!user) {
-      navigate('/login', { 
-        state: { 
+      navigate('/login', {
+        state: {
           redirectTo: `/service/${id}`,
-          message: "Please login to unlock artist details" 
-        } 
+          message: "Please login to unlock artist details"
+        }
       });
       return;
     }
@@ -107,11 +131,11 @@ export default function ViewService() {
     try {
       const token = localStorage.getItem("token");
       await axios.post(
-        `${config.baseUrl}/api/user-unlock-service/unlock`, 
+        `${config.baseUrl}/api/user-unlock-service/unlock`,
         { serviceId: id },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      
+
       // After successful unlock, fetch artist details
       const artistResponse = await axios.get(
         `${config.baseUrl}/api/artists/${service.artistId._id}`,
@@ -168,7 +192,7 @@ export default function ViewService() {
               <div className="relative">
                 <img
                   src={artist?.profilePic || 'https://via.placeholder.com/150'}
-                  alt={artist?.name || "Unknown Artist"}
+                  alt={artist?.name || 'Unknown Artist'}
                   className="w-32 h-32 rounded-2xl object-cover shadow-lg transform transition-all duration-300 hover:scale-105"
                 />
                 <div className="absolute -bottom-2 -right-2 bg-pink-500 text-white p-2 rounded-lg">
@@ -176,34 +200,34 @@ export default function ViewService() {
                 </div>
               </div>
               <div className="flex-1">
-                <h3 className="text-2xl font-bold text-gray-800 mb-4">{artist?.name || "N/A"}</h3>
+                <h3 className="text-2xl font-bold text-gray-800 mb-4">{artist?.name || 'N/A'}</h3>
                 <div className="space-y-4">
                   <div className="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-all duration-200">
                     <FaPhone className="text-xl text-pink-500 mr-4" />
                     <div>
                       <p className="text-sm text-gray-500">Phone Number</p>
-                      <p className="text-lg font-medium text-gray-800">{artist?.mobileNumber || "Not Available"}</p>
+                      <p className="text-lg font-medium text-gray-800">{artist?.mobileNumber || 'N/A'}</p>
                     </div>
                   </div>
                   <div className="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-all duration-200">
                     <FaEnvelope className="text-xl text-pink-500 mr-4" />
                     <div>
                       <p className="text-sm text-gray-500">Email Address</p>
-                      <p className="text-lg font-medium text-gray-800">{artist?.email || "Not Available"}</p>
+                      <p className="text-lg font-medium text-gray-800">{artist?.email || 'N/A'}</p>
                     </div>
                   </div>
                   <div className="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-all duration-200">
                     <FaMapMarkerAlt className="text-xl text-pink-500 mr-4" />
                     <div>
                       <p className="text-sm text-gray-500">Location</p>
-                      <p className="text-lg font-medium text-gray-800">{artist?.address || "Not Available"}</p>
+                      <p className="text-lg font-medium text-gray-800">{artist?.address || 'N/A'}</p>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-  
-            <ReviewForm artistId={service?.artistId?._id || ""} />
+
+            <ReviewForm artistId={service?.artistId || ''} />
           </div>
         ) : (
           <div className="mt-8 p-8 bg-white rounded-2xl shadow-lg relative overflow-hidden">
@@ -234,14 +258,25 @@ export default function ViewService() {
                   </span>
                 </div>
               </div>
+              <div className="flex items-start space-x-8">
+                <div className="w-32 h-32 bg-gray-200 rounded-2xl"></div>
+                <div className="flex-1 space-y-4">
+                  <div className="h-8 bg-gray-200 w-1/3 rounded-lg"></div>
+                  <div className="space-y-4">
+                    <div className="h-16 bg-gray-200 rounded-lg"></div>
+                    <div className="h-16 bg-gray-200 rounded-lg"></div>
+                    <div className="h-16 bg-gray-200 rounded-lg"></div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         )}
-        <ReviewList artistId={service?.artistId || ""} />
+        <ReviewList artistId={service?.artistId || ''} />
       </div>
+
     );
   };
-  
 
   if (loading) return <Loading />;
   if (error) return <Error message={error} onRetry={() => window.location.reload()} />;
@@ -270,78 +305,84 @@ export default function ViewService() {
   // If service is live, show the normal content
   return (
     <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-8">
-            {/* Left side - Image Slider */}
-            <div>
-              <div className="relative h-[500px] mb-4">
-                <Slider {...sliderSettings}>
-                  {service.photos?.map((image, index) => (
-                    <div key={index} className="h-[500px]">
-                      <img
-                        src={image}
-                        alt={`${service.name} - ${index + 1}`}
-                        className="w-full h-full object-cover rounded-lg"
-                      />
-                    </div>
-                  ))}
-                </Slider>
-              </div>
-              
-              {/* Thumbnails */}
-              <div className="grid grid-cols-5 gap-2 mt-4">
-                {service.photos?.map((image, index) => (
-                  <div 
-                    key={index} 
-                    className={`cursor-pointer h-24 overflow-hidden rounded-lg border-2 
-                      ${currentSlide === index ? 'border-pink-500' : 'border-transparent'}`}
-                    onClick={() => setCurrentSlide(index)}
-                  >
+  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-8">
+        {/* Left side - Image Slider */}
+        <div>
+          <div className="relative h-[500px] mb-4">
+            <Slider {...sliderSettings}>
+              {service?.photos?.map((image, index) => (
+                image ? (
+                  <div key={index} className="h-[500px]">
                     <img
                       src={image}
-                      alt={`thumbnail ${index + 1}`}
-                      className="w-full h-full object-cover hover:opacity-75 transition-opacity"
+                      alt={`${service?.name || "Service"} - ${index + 1}`}
+                      className="w-full h-full object-cover rounded-lg"
                     />
                   </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Right side - Service Details */}
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-4">{service.name}</h1>
-              
-              {/* Rating */}
-              <div className="flex items-center mb-4">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <FaStar 
-                    key={star} 
-                    className={`w-5 h-5 ${star <= (service.rating || 0) ? 'text-yellow-400' : 'text-gray-300'}`} 
-                  />
-                ))}
-                <span className="ml-2 text-gray-600">({service.reviews?.length || 0})</span>
-              </div>
-
-              {/* Price */}
-              <div className="mb-6">
-                <span className="text-3xl font-bold text-pink-600">₹{service.price}</span>
-                {service.originalPrice && (
-                  <span className="ml-2 text-gray-500 line-through">₹{service.originalPrice}</span>
-                )}
-              </div>
-
-              {/* Description */}
-              <p className="text-gray-600">{service.description}</p>
-            </div>
+                ) : null
+              ))}
+            </Slider>
           </div>
 
-          {/* Artist Details Section - Clear separation */}
-          <div className="mt-8">
-            {renderArtistDetails()}
+          {/* Thumbnails */}
+          <div className="grid grid-cols-5 gap-2 mt-4">
+            {service?.photos?.map((image, index) => (
+              image ? (
+                <div
+                  key={index}
+                  className={`cursor-pointer h-24 overflow-hidden rounded-lg border-2 
+                    ${currentSlide === index ? 'border-pink-500' : 'border-transparent'}`}
+                  onClick={() => setCurrentSlide(index)}
+                >
+                  <img
+                    src={image}
+                    alt={`thumbnail ${index + 1}`}
+                    className="w-full h-full object-cover hover:opacity-75 transition-opacity"
+                  />
+                </div>
+              ) : null
+            ))}
           </div>
         </div>
+
+        {/* Right side - Service Details */}
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">
+            {service?.name || "No name available"}
+          </h1>
+
+          {/* Rating */}
+          <div className="flex items-center mb-4">
+            {[1, 2, 3, 4, 5].map((star) => (
+              <FaStar
+                key={star}
+                className={`w-5 h-5 ${star <= (averageRating ?? 0) ? 'text-yellow-400' : 'text-gray-300'}`}
+              />
+            ))}
+            <span className="ml-2 text-gray-600">({totalReviews ?? 0})</span>
+          </div>
+
+          {/* Price */}
+          <div className="mb-6">
+            <span className="text-3xl font-bold text-pink-600">
+              ₹{service?.price ?? "N/A"}
+            </span>
+            {service?.originalPrice && (
+              <span className="ml-2 text-gray-500 line-through">₹{service.originalPrice}</span>
+            )}
+          </div>
+
+          {/* Description */}
+          <p className="text-gray-600">{service?.description || "No description available"}</p>
+        </div>
       </div>
+
+      {/* Artist Details Section - Clear separation */}
+      <div className="mt-8">{renderArtistDetails?.()}</div>
     </div>
+  </div>
+</div>
   );
 }
