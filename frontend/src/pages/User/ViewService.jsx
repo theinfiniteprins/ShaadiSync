@@ -227,7 +227,7 @@ export default function ViewService() {
               </div>
             </div>
 
-            <ReviewForm artistId={service?.artistId || ''} />
+            <ReviewForm artistId={service?.artistId._id || ''} />
           </div>
         ) : (
           <div className="mt-8 p-8 bg-white rounded-2xl shadow-lg relative overflow-hidden">
@@ -272,7 +272,7 @@ export default function ViewService() {
             </div>
           </div>
         )}
-        <ReviewList artistId={service?.artistId || ''} />
+        <ReviewList artistId={service?.artistId._id || ''} />
       </div>
 
     );
