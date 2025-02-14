@@ -22,7 +22,6 @@ const ReviewList = ({ artistId }) => {
         setError(null);
         try {
             const response = await fetch(`${config.baseUrl}/api/reviews/artist/${artistId}`);
-            console.log(response);
             
             const data = await response.json();
             setReviews(data.length ? data : []);
