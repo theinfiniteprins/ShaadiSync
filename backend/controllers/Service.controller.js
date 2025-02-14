@@ -34,7 +34,7 @@ const createService = async (req, res) => {
 const getAllServices = async (req, res) => {
   try {
     const services = await Service.find()
-      .populate('artistId', 'name email') // Populate artist details
+      .populate('artistId', 'name email address artistType') // Populate artist details
       .exec();
     res.status(200).json(services);
   } catch (error) {

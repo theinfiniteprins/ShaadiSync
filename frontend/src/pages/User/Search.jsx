@@ -1,82 +1,127 @@
 import React, { useEffect, useState } from "react";
-import SearchBar from "../../components/SearchBar";
-import config from "../../configs/config"; // ✅ Import config
+import axios from "axios";
+import { FaSearch } from "react-icons/fa";
+import config from "../../configs/config";
+import ServiceCard from "../../components/ServiceCard";
+import Loading from "../error/loading";
 
 const Search = () => {
+  const [services, setServices] = useState([]);
+  const [filteredServices, setFilteredServices] = useState([]);
   const [artistTypes, setArtistTypes] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
   const [error, setError] = useState(null);
 
+  // Fetch all services and artist types on component mount
   useEffect(() => {
-    const fetchArtistTypes = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`${config.baseUrl}/api/artist-types/`);
+        const token = localStorage.getItem("token");
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
-        if (!response.ok) {
-          throw new Error("Failed to fetch artist types");
-        }
+        // Fetch services
+        const servicesResponse = await axios.get(
+          `${config.baseUrl}/api/services`,
+          { headers }
+        );
+        
+        // Fetch artist types
+        const artistTypesResponse = await axios.get(
+          `${config.baseUrl}/api/artist-types`,
+          { headers }
+        );
 
-        const data = await response.json();
-        setArtistTypes(data);
+        setServices(servicesResponse.data);
+        setArtistTypes(artistTypesResponse.data);
+        setFilteredServices([]); // Initialize with empty array
       } catch (err) {
-        setError(err.message);
+        setError("Failed to fetch data");
+        console.error(err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchArtistTypes();
+    fetchData();
   }, []);
 
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    setSearchTerm(value);
+    
+    if (!value.trim()) {
+      setFilteredServices([]);
+    } else {
+      const term = value.toLowerCase();
+      const filtered = services.filter(service => {
+        const artist = service.artistId;
+        if (!artist) return false;
+
+        const cityMatch = artist.address?.toLowerCase().includes(term);
+        const artistType = artistTypes.find(type => type._id === artist.artistType);
+        const typeMatch = artistType?.type?.toLowerCase().includes(term);
+        
+        return cityMatch || typeMatch;
+      });
+      
+      setFilteredServices(filtered);
+    }
+  };
+
+  if (loading) return <Loading />;
+
   return (
-    <div className="px-60 py-6 text-center">
-      {/* Title and Description */}
-      <h1 className="text-4xl font-bold text-gray-800 mb-4">
-        Find the Perfect Artist for Your Event
-      </h1>
-      <p className="text-gray-600 text-lg mb-6 max-w-3xl mx-auto">
-        Discover talented artists for weddings, events, and special occasions. 
-        Explore different artist types and connect with the best professionals in the industry.
-      </p>
-
-      {/* Search Bar */}
-      <div className="flex justify-center">
-        <SearchBar artistTypes={artistTypes} />
-      </div>
-
-      {/* Loading State */}
-      {loading && <p className="text-blue-600 text-lg mt-4">Fetching artists...</p>}
-
-      {/* Error State */}
-      {error && <p className="text-red-500 text-lg mt-4">{error}</p>}
-
-      {/* Artist Type Grid */}
-      {!loading && !error && artistTypes.length > 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-6 justify-center">
-          {artistTypes.map((type) => (
-            <div
-              key={type._id}
-              className="border border-gray-200 rounded-lg shadow-md p-5 flex flex-col items-center hover:shadow-lg transition-all bg-white"
-            >
-              <img
-                src={type.typeimg || "https://via.placeholder.com/100"}
-                alt={type.type}
-                className="w-24 h-24 rounded-full mb-4 object-cover"
+    <div className="min-h-screen bg-gray-50 py-8">
+      {/* Search Section */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
+            Search Services
+          </h2>
+          
+          <div className="max-w-2xl mx-auto">
+            {/* Combined Search Input */}
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <FaSearch className="text-gray-400" />
+              </div>
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={handleSearchChange}
+                onKeyPress={(e) => e.key === 'Enter' && handleSearchChange(e)}
+                placeholder="Search by city or artist type..."
+                className="pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500 text-lg"
               />
-              <p className="text-gray-700 font-semibold text-xl">{type.type}</p>
-              <p className="text-gray-500 text-sm mt-2 max-w-xs">
-                Top-rated artists offering the best services for your special day.
-              </p>
             </div>
-          ))}
+          </div>
         </div>
-      )}
 
-      {/* No Data Message */}
-      {!loading && artistTypes.length === 0 && (
-        <p className="text-gray-500 text-lg mt-6">No artist types available. Please check back later.</p>
-      )}
+        {/* Results Section */}
+        {searchTerm && (
+          <div>
+            <h3 className="text-xl font-semibold text-gray-900 mb-4">
+              {filteredServices.length} Services Found
+            </h3>
+            
+            {error ? (
+              <div className="text-center text-red-500 py-8">{error}</div>
+            ) : filteredServices.length === 0 ? (
+              <div className="text-center text-gray-500 py-8">
+                No services found matching your criteria
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredServices.map((service) => (
+                  <ServiceCard key={service._id} service={service} />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
