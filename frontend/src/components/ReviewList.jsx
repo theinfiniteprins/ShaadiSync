@@ -6,20 +6,31 @@ import { useAuth } from "../context/AuthContext";
 const ReviewList = ({ artistId }) => {
     const [reviews, setReviews] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const reviewsPerPage = 5;
     const { user, token } = useAuth();
+    console.log(artistId);
+    
 
     useEffect(() => {
         fetchReviews();
     }, []);
 
     const fetchReviews = async () => {
+        setLoading(true);
+        setError(null);
         try {
-            const response = await fetch(`${config.baseUrl}/api/reviews/artist/${artistId._id}`);
+            const response = await fetch(`${config.baseUrl}/api/reviews/artist/${artistId}`);
+            console.log(response);
+            
             const data = await response.json();
-            setReviews(data);
+            setReviews(data.length ? data : []);
         } catch (error) {
-            console.error("Failed to fetch reviews", error);
+            setError(error.message);
+            setReviews([]);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -38,7 +49,6 @@ const ReviewList = ({ artistId }) => {
         }
     };
 
-    // Pagination logic
     const indexOfLastReview = currentPage * reviewsPerPage;
     const indexOfFirstReview = indexOfLastReview - reviewsPerPage;
     const currentReviews = reviews.slice(indexOfFirstReview, indexOfLastReview);
@@ -48,7 +58,11 @@ const ReviewList = ({ artistId }) => {
         <div className="bg-white p-6 shadow-lg rounded-xl mt-6">
             <h3 className="text-xl font-bold mb-4 text-gray-900">User Reviews</h3>
 
-            {reviews.length === 0 ? (
+            {loading ? (
+                <p className="text-gray-500 text-center py-4">Loading reviews...</p>
+            ) : error ? (
+                <p className="text-red-500 text-center py-4">{error}</p>
+            ) : reviews.length === 0 ? (
                 <p className="text-gray-500 text-center py-4">No reviews yet. Be the first to review!</p>
             ) : (
                 <div className="space-y-6">
@@ -63,7 +77,6 @@ const ReviewList = ({ artistId }) => {
                                 )}
                             </div>
 
-                            {/* Rating Stars */}
                             <div className="flex items-center my-2">
                                 {[1, 2, 3, 4, 5].map((star) => (
                                     <FaStar
@@ -74,13 +87,12 @@ const ReviewList = ({ artistId }) => {
                                 <span className="ml-2 text-gray-600 text-sm">({review.rating || "No Rating"})</span>
                             </div>
 
-                            <p className="text-gray-700 text-sm leading-relaxed">{review.reviewText}</p>
+                            <p className="text-gray-700 text-sm leading-relaxed">{review.reviewText || "No review text provided."}</p>
                         </div>
                     ))}
                 </div>
             )}
 
-            {/* Pagination Controls */}
             {reviews.length > reviewsPerPage && (
                 <div className="flex items-center justify-center space-x-2 pt-4 border-t border-gray-100 mt-4">
                     <button
