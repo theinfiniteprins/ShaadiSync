@@ -7,6 +7,8 @@ import CategorywiseServiceList from "../pages/User/CategorywiseServiceList";
 import Search from "../pages/User/Search";
 import Profile from "../pages/User/Profile";
 import AboutUs from "../pages/User/AboutUs";
+import Terms from "../pages/User/Terms&Condition";
+import Privacy from "../pages/User/PrivacyPolicy";
 import ViewService from "../pages/User/ViewService";
 import Wallet from "../pages/User/Wallet";
 
@@ -20,6 +22,8 @@ const UserRoutes = () => {
             {/* Protected routes with UserLayout */}
             <Route element={<UserLayout />}>
                 <Route path='/AboutUs' element={<AboutUs />}/>
+                <Route path='/Terms&Condition' element={<Terms />}/>
+                <Route path='/PrivacyPolicy' element={<Privacy />}/>
                 <Route path="/services/:id" element={<ViewService />} />
                 <Route path="/" element={<Dashboard />} />
                 
