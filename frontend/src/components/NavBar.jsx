@@ -97,7 +97,7 @@ const Navbar = () => {
             <div className="w-px h-6 bg-gray-400"></div>
 
             {/* Are you an Artist? */}
-            <Link to="/artist-signup" className="text-gray-600 font-small hover:text-gray-900">
+            <Link to="/artist/login" className="text-gray-600 font-small hover:text-gray-900">
               Are you an Artist?
             </Link>
           </>

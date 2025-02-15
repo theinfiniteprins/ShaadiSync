@@ -8,7 +8,7 @@ const Sidebar = () => {
            <Link to="/artist">Home</Link>
         </li>
         <li className="p-2 rounded-md cursor-pointer flex items-center">
-           <Link to="/artist">Leads</Link>
+           <Link to="/artist/leads">Leads</Link>
         </li>
         <li className="p-2 rounded-md cursor-pointer flex items-center">
            <Link to="/artist">Availability</Link>

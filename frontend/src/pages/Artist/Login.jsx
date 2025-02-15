@@ -4,28 +4,65 @@ import { useAuth } from '../../context/AuthContext';
 import config from '../../configs/config';
 import { toast } from 'react-hot-toast';
 
-export default function Login() {
+export default function ArtistLogin() {
   const navigate = useNavigate();
   const { login } = useAuth();
-
+  
+  // Add redirect check on component mount
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('artistToken');
     if (token) {
-      navigate('/');
+      navigate('/artist');
     }
   }, [navigate]);
 
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    role: 'user'
+    role: 'artist' // Set role as artist
   });
 
+  const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
+  const validateForm = () => {
+    const newErrors = {};
+    
+    // Email validation
+    if (!formData.email) {
+      newErrors.email = 'Email is required';
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = 'Email is invalid';
+    }
+
+    // Password validation
+    if (!formData.password) {
+      newErrors.password = 'Password is required';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validateForm()) return;
     setLoading(true);
     
     try {
@@ -44,9 +81,10 @@ export default function Login() {
       }
 
       if (data.success && data.token) {
-        login(data.token);
+        // Update auth context
+        login(data.token,'artist');
         toast.success('Login successful!');
-        navigate('/');
+        navigate('/artist'); // Redirect to artist dashboard
       } else {
         throw new Error('Invalid response from server');
       }
@@ -58,19 +96,25 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-100 via-white to-blue-100">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#155dfc]/10 via-white to-[#155dfc]/5">
       <div className="max-w-md w-full m-4">
         <div className="bg-white p-8 rounded-2xl shadow-2xl space-y-8">
           <div>
-            <h2 className="text-center text-3xl font-extrabold bg-gradient-to-r from-pink-500 to-blue-500 bg-clip-text text-transparent">
-              Welcome Back
+            <h2 className="text-center text-3xl font-extrabold text-[#155dfc]">
+              Artist Login
             </h2>
             <p className="mt-2 text-center text-sm text-gray-600">
-              Sign in to your account
+              Sign in to your artist account
             </p>
           </div>
           
           <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+            {errors.general && (
+              <div className="text-red-500 text-center text-sm bg-red-50 p-3 rounded-lg">
+                {errors.general}
+              </div>
+            )}
+
             <div className="space-y-5">
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
@@ -81,11 +125,14 @@ export default function Login() {
                   name="email"
                   type="email"
                   required
-                  className="appearance-none relative block w-full px-4 py-3 border border-gray-300 rounded-lg placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                  className={`appearance-none relative block w-full px-4 py-3 border ${
+                    errors.email ? 'border-red-500' : 'border-gray-300'
+                  } rounded-lg placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#155dfc] focus:border-transparent transition duration-150 ease-in-out`}
                   placeholder="Enter your email"
                   value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  onChange={handleChange}
                 />
+                {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
               </div>
 
               <div>
@@ -98,10 +145,12 @@ export default function Login() {
                     name="password"
                     type={showPassword ? "text" : "password"}
                     required
-                    className="appearance-none relative block w-full px-4 py-3 border border-gray-300 rounded-lg placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                    className={`appearance-none relative block w-full px-4 py-3 border ${
+                      errors.password ? 'border-red-500' : 'border-gray-300'
+                    } rounded-lg placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#155dfc] focus:border-transparent transition duration-150 ease-in-out`}
                     placeholder="Enter your password"
                     value={formData.password}
-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    onChange={handleChange}
                   />
                   <button
                     type="button"
@@ -120,6 +169,7 @@ export default function Login() {
                     )}
                   </button>
                 </div>
+                {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
               </div>
             </div>
 
@@ -127,7 +177,7 @@ export default function Login() {
               <button
                 type="submit"
                 disabled={loading}
-                className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-pink-500 to-blue-500 hover:from-pink-600 hover:to-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500 disabled:opacity-50"
+                className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-[#155dfc] hover:bg-[#1550e0] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#155dfc] disabled:opacity-50 transition duration-150 ease-in-out transform hover:-translate-y-0.5"
               >
                 {loading ? (
                   <span className="absolute left-0 inset-y-0 flex items-center pl-3">
@@ -143,8 +193,8 @@ export default function Login() {
 
             <div className="text-center text-sm">
               <p className="text-gray-600">
-                Don't have an account?{' '}
-                <a href="/signup" className="font-medium text-pink-500 hover:text-pink-600">
+                Don't have an artist account?{' '}
+                <a href="/artist/signup" className="font-medium text-[#155dfc] hover:text-[#1550e0] transition duration-150 ease-in-out">
                   Sign up here
                 </a>
               </p>
