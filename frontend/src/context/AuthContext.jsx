@@ -58,11 +58,18 @@ export const AuthProvider = ({ children }) => {
     }, [token]);
 
     // Login Function
-    const login = (newToken) => {
-        localStorage.setItem("token", newToken);
-        setToken(newToken);
-        setIsSignin(true);
-        fetchUser(newToken);
+    const login = (newToken,role='user') => {
+        if(role==='user'){
+            localStorage.setItem("token", newToken);
+            setToken(newToken);
+            setIsSignin(true);
+            fetchUser(newToken);
+        }else{
+            localStorage.setItem("artistToken", newToken);
+            setToken(newToken);
+            setIsSignin(true);
+            fetchUser(newToken);
+        }
     };
 
     // Logout Function
