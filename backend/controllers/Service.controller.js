@@ -33,7 +33,7 @@ const createService = async (req, res) => {
 // 2. Get all Services
 const getAllServices = async (req, res) => {
   try {
-    const services = await Service.find()
+    const services = await Service.find({isLive: true})
       .populate('artistId', 'name email address artistType') // Populate artist details
       .exec();
     res.status(200).json(services);
