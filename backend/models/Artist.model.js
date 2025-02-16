@@ -21,6 +21,8 @@ const artistSchema = new Schema(
     },
     mobileNumber: {
       type: String,
+      required: true,
+      unique: true,
     },
     artistType: {
       type: Schema.Types.ObjectId,
@@ -35,10 +37,6 @@ const artistSchema = new Schema(
     description: {
       type: String,
       default: '', // Optional field
-    },
-    certificates: {
-      type: [String], // Store URLs or file paths for certificates
-      default: [],
     },
     isBlocked: {
       type: Boolean,
