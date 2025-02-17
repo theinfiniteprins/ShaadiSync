@@ -163,8 +163,56 @@ const getUnlockedServices = async (req, res) => {
   }
 };
 
+const getUserByService = async (req, res) => {
+  try {
+    const { serviceId } = req.params;
+
+    // First check if service exists
+    const service = await Service.findById(serviceId);
+    if (!service) {
+      return res.status(404).json({ message: 'Service not found' });
+    }
+
+    // Find all unlock records for this service and populate user details
+    const unlockedUsers = await UserUnlockService.find({ serviceId })
+      .populate({
+        path: 'userId',
+        select: 'name email phone'
+      })
+      .populate({
+        path: 'serviceId',
+        select: 'name ' // Only select necessary fields
+      })
+      .sort({ createdAt: -1 });
+
+
+    // Format the response
+    const response = {
+      service: {
+        _id: service._id,
+        name: service.name,
+      },
+      unlockedBy: unlockedUsers.map(unlock => ({
+        _id: unlock._id,
+        userId: unlock.userId,
+        createdAt: unlock.createdAt
+      }))
+    };
+
+    res.status(200).json(response);
+  } catch (error) {
+    console.error('Error in getUserByService:', error);
+    res.status(500).json({ 
+      message: 'Failed to fetch service users',
+      error: error.message 
+    });
+  }
+};
+
+
 module.exports = {
   unlockService,
   isServiceUnlocked,
   getUnlockedServices,
+  getUserByService,
 };

@@ -33,7 +33,7 @@ const createService = async (req, res) => {
 // 2. Get all Services
 const getAllServices = async (req, res) => {
   try {
-    const services = await Service.find()
+    const services = await Service.find({isLive: true})
       .populate('artistId', 'name email address artistType') // Populate artist details
       .exec();
     res.status(200).json(services);
@@ -93,7 +93,7 @@ const deleteService = async (req, res) => {
 // 6. Get all Services for a specific Artist
 const getServicesByArtist = async (req, res) => {
   try {
-    const artistId = req.params.artistId;
+    const artistId = req.id;
 
     // Check if the artist exists
     const artist = await Artist.findById(artistId);
@@ -102,10 +102,16 @@ const getServicesByArtist = async (req, res) => {
     }
 
     // Get all services for the artist
-    const services = await Service.find({ artistId }).exec();
+    const services = await Service.find({ artistId })
+      .sort({ createdAt: -1 }) // Sort by newest first
+      .exec();
+
     res.status(200).json(services);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ 
+      message: 'Failed to fetch artist services',
+      error: error.message 
+    });
   }
 };
 
