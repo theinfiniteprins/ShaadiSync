@@ -30,28 +30,31 @@ const ArtistServiceCard = ({ service }) => {
     } finally {
       setTimeout(() => {
         setIsToggling(false);
-      }, 500); // Match transition duration
+      }, 500);
     }
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 ease-in-out">
-      <div className="aspect-w-16 aspect-h-9 relative">
+    <div 
+      onClick={() => navigate(`/artist/service/${service._id}`)}
+      className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 ease-in-out"
+    >
+      <div className="relative h-28">
         <img
           src={service.photos[0] || '/default-service.jpg'}
           alt={service.name}
-          className="w-full h-48 object-cover"
+          className="w-full h-full object-cover"
           onError={(e) => {
             e.target.src = '/default-service.jpg';
           }}
         />
-        <div className="absolute top-4 right-4">
+        <div className="absolute top-2 right-2">
           <button 
             onClick={toggleService}
             disabled={isToggling}
             className={`
               group relative flex items-center justify-center
-              w-12 h-12 rounded-full 
+              w-8 h-8 rounded-full 
               transition-all duration-500 ease-in-out
               transform hover:scale-110
               ${isLive 
@@ -64,7 +67,7 @@ const ArtistServiceCard = ({ service }) => {
           >
             <FaPowerOff 
               className={`
-                text-white text-lg
+                text-white text-sm
                 transition-transform duration-500 ease-in-out
                 transform
                 ${isToggling ? 'rotate-180' : isLive ? 'rotate-0' : 'rotate-180'}
@@ -72,7 +75,7 @@ const ArtistServiceCard = ({ service }) => {
             />
             
             <span className="
-              absolute top-14 right-0
+              absolute top-10 right-0
               bg-gray-900 text-white text-xs
               px-2 py-1 rounded
               transition-all duration-300 ease-in-out
@@ -88,13 +91,13 @@ const ArtistServiceCard = ({ service }) => {
         </div>
       </div>
 
-      <div className="p-6">
-        <div className="flex items-center justify-between mb-2">
-          <h2 className="text-xl font-bold text-gray-900 line-clamp-1">
+      <div className="p-3">
+        <div className="flex items-center justify-between mb-1">
+          <h2 className="text-mm font-semibold text-gray-900 line-clamp-1">
             {service.name}
           </h2>
           <span className={`
-            text-xs px-2 py-1 rounded-full
+            text-[10px] px-1.5 py-0.5 rounded-full
             transition-all duration-500 ease-in-out
             ${isLive 
               ? 'bg-green-100 text-green-800' 
@@ -104,13 +107,13 @@ const ArtistServiceCard = ({ service }) => {
             {isLive ? 'Active' : 'Inactive'}
           </span>
         </div>
-        <p className="text-gray-600 mb-4 line-clamp-2">
+        <p className="text-xs text-gray-600 mb-2 line-clamp-1">
           {service.description}
         </p>
         
-        <div className="flex items-center justify-between text-sm">
+        <div className="flex items-center justify-between text-[10px]">
           <span className="text-gray-500 flex items-center">
-            <FaCalendar className="mr-2" />
+            <FaCalendar className="mr-1 text-[10px]" />
             {new Date(service.createdAt).toLocaleDateString('en-US', {
               year: 'numeric',
               month: 'short',

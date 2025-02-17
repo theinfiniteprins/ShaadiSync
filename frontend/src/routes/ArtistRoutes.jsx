@@ -5,7 +5,8 @@ import Dashboard from "../pages/Artist/Dashboard";
 import Login from "../pages/Artist/Login";
 import Leads from "../pages/Artist/leads";
 import LeadsByService from "../pages/Artist/leadsByService";
-import Services from "../pages/Artist/services";
+import Services from "../pages/Artist/Services";
+import ViewService from "../pages/Artist/ViewService";
 
 
 const ArtistRoutes = () => {
@@ -18,6 +19,7 @@ const ArtistRoutes = () => {
                 <Route path="/leads" element={<Leads />} />
                 <Route path="/leads/:serviceId" element={<LeadsByService />} />
                 <Route path="/services" element={<Services />} />
+                <Route path="/service/:id" element={<ViewService />} />
 
             </Route>
 
