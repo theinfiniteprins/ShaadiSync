@@ -94,7 +94,6 @@ export default function Signup() {
 
     // Handle Final Submission (Step 6)
     const handleFinalSubmit = async () => {
-        if (!validateStep()) return;
         setLoading(true);
         try {
             const response = await fetch(`${config.baseUrl}/api/auth/createArtist`, {
@@ -128,9 +127,9 @@ export default function Signup() {
         <div>
             {step === 1 && <ArtistSignup formData={formData} handleChange={handleChange} handleSubmit={handleSignup} loading={loading} />}
             {step === 2 && <OtpVerification prevStep={() => setStep(1)} email={formData.email} otp={otp} setOtp={setOtp} handleVerifyOtp={handleVerifyOtp} loading={loading} />}
-            {step === 3 && <ArtistType prevStep={() => setStep(2)} nextStep={() => validateStep() && setStep(4)} formData={formData} handleChange={handleChange} />}
-            {step === 4 && <BusinessInfo prevStep={() => setStep(3)} nextStep={() => validateStep() && setStep(5)} formData={formData} handleChange={handleChange} />}
-            {step === 5 && <ServiceArea prevStep={() => setStep(4)} nextStep={() => validateStep() && setStep(6)} formData={formData} handleChange={handleChange} />}
+            {step === 3 && <ArtistType prevStep={() => setStep(2)} nextStep={() => setStep(4)} formData={formData} handleChange={handleChange} />}
+            {step === 4 && <BusinessInfo prevStep={() => setStep(3)} nextStep={() =>setStep(5)} formData={formData} handleChange={handleChange} />}
+            {step === 5 && <ServiceArea prevStep={() => setStep(4)} nextStep={() => setStep(6)} formData={formData} handleChange={handleChange} />}
             {step === 6 &&
                 <MobileVerification
                     prevStep={() => setStep(5)}
