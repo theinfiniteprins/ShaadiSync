@@ -208,8 +208,9 @@ const signup = async (req, res) => {
                 // OTP is valid, mark it as used
                 recentOtp.used = true;
                 await recentOtp.save();
+                const hashedPassword = await bcrypt.hash(password, 10);
         
-                const token = jwt.sign({ email, password }, process.env.JWT_SECRET, { expiresIn: "15m" });
+                const token = jwt.sign({ email, password:hashedPassword }, process.env.JWT_SECRET, { expiresIn: "15m" });
         
                 return res.status(200).json({
                     success: true,
