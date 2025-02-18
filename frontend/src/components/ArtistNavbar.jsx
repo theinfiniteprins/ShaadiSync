@@ -1,11 +1,16 @@
+import Logo from '../assets/ShaadiSync.png';
+
 const ArtistNavbar = () => {
     return (
         <nav className="w-full h-22 fixed bg-white shadow-md flex items-center px-6">
-        <div className="text-xl font-bold text-purple-600">LOGO</div>
-
-      </nav>
+            <img 
+                src={Logo} 
+                alt="Logo" 
+                className="h-60 w-auto"
+            />
+        </nav>
     );
-  };
+};
   
-  export default ArtistNavbar;
+export default ArtistNavbar;
   

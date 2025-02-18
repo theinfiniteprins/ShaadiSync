@@ -8,6 +8,7 @@ import LeadsByService from "../pages/Artist/leadsByService";
 import Services from "../pages/Artist/Services";
 import ViewService from "../pages/Artist/ViewService";
 import Wallet from "../pages/Artist/Wallet";
+import AddService from "../pages/Artist/AddService";
 
 // Private Route component
 const PrivateRoute = () => {
@@ -27,6 +28,7 @@ const ArtistRoutes = () => {
                     <Route path="/services" element={<Services />} />
                     <Route path="/service/:id" element={<ViewService />} />
                     <Route path="/wallet" element={<Wallet />} />
+                    <Route path="/add-service" element={<AddService />} />
                 </Route>
             </Route>
 

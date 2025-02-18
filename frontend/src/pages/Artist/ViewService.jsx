@@ -91,6 +91,58 @@ export default function ViewService() {
     }));
   };
 
+  const deleteImages = async (images) => {
+    try {
+      const token = localStorage.getItem("artistToken");
+      
+      // Delete each image
+      for (const imageUrl of images) {
+        if (imageUrl) {
+          // Extract public_id from the URL
+          const publicId = imageUrl.split('/').slice(-1)[0].split('.')[0];
+          
+          await axios.post(
+            `${config.baseUrl}/api/users/delete-image`,
+            { public_id: publicId },
+            {
+              headers: { Authorization: `Bearer ${token}` }
+            }
+          );
+        }
+      }
+    } catch (error) {
+      console.error('Error deleting images:', error);
+      throw new Error('Failed to delete images');
+    }
+  };
+
+  const handleDelete = async () => {
+    if (window.confirm('Are you sure you want to delete this service?')) {
+      try {
+        setLoading(true);
+        const token = localStorage.getItem("artistToken");
+
+        // First delete all images
+        await deleteImages(service.photos);
+
+        // Then delete the service
+        await axios.delete(
+          `${config.baseUrl}/api/services/${id}`,
+          {
+            headers: { Authorization: `Bearer ${token}` }
+          }
+        );
+        
+        navigate('/artist/services');
+      } catch (error) {
+        console.error('Error deleting service:', error);
+        setError(error.message || 'Failed to delete service. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
   // Custom arrows for slider
   const NextArrow = ({ onClick }) => (
     <button className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-white/80 p-2 rounded-full shadow-lg hover:bg-white transition-all" onClick={onClick}>
@@ -144,35 +196,46 @@ export default function ViewService() {
             Back to Services
           </button>
 
-          {!isEditing ? (
-            <button
-              onClick={() => setIsEditing(true)}
-              className="flex items-center px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-            >
-              <FaEdit className="mr-2" />
-              Edit Service
-            </button>
-          ) : (
-            <div className="flex gap-2">
-              <button
-                onClick={handleSave}
-                className="flex items-center px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
-              >
-                <FaSave className="mr-2" />
-                Save Changes
-              </button>
-              <button
-                onClick={() => {
-                  setIsEditing(false);
-                  setEditedService(service);
-                }}
-                className="flex items-center px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
-              >
-                <FaTimes className="mr-2" />
-                Cancel
-              </button>
-            </div>
-          )}
+          <div className="flex gap-2">
+            {!isEditing ? (
+              <>
+                <button
+                  onClick={() => setIsEditing(true)}
+                  className="flex items-center px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                >
+                  <FaEdit className="mr-2" />
+                  Edit Service
+                </button>
+                <button
+                  onClick={handleDelete}
+                  className="flex items-center px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                >
+                  <FaTimes className="mr-2" />
+                  Delete Service
+                </button>
+              </>
+            ) : (
+              <div className="flex gap-2">
+                <button
+                  onClick={handleSave}
+                  className="flex items-center px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+                >
+                  <FaSave className="mr-2" />
+                  Save Changes
+                </button>
+                <button
+                  onClick={() => {
+                    setIsEditing(false);
+                    setEditedService(service);
+                  }}
+                  className="flex items-center px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+                >
+                  <FaTimes className="mr-2" />
+                  Cancel
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">
