@@ -62,7 +62,7 @@ const Leads = () => {
   if (error) return <div className="text-center text-red-500 py-8">{error}</div>;
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 overflow-auto" style={{
+    <div className="min-h-screen py-8 overflow-auto" style={{
       msOverflowStyle: 'none',
       scrollbarWidth: 'none'
     }}>

@@ -11,6 +11,8 @@ const Services = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const [averageRating, setAverageRating] = useState(0);
+  const [totalReviews, setTotalReviews] = useState(0);
 
   useEffect(() => {
     const fetchServices = async () => {
@@ -36,12 +38,40 @@ const Services = () => {
 
     fetchServices();
   }, []);
+  useEffect(() => {
+    const fetchArtistRating = async () => {
+      try {
+        const response = await axios.get(`${config.baseUrl}/api/reviews/get-rating/${services[0].artistId}`);
+        console.log(response.data);
+  
+        if (response.data.totalReviews === 0) {
+          setAverageRating(0);
+          setTotalReviews(0);
+        } else {
+          setAverageRating(response.data.averageRating);
+          setTotalReviews(response.data.totalReviews);
+        }
+        
+      } catch (err) {
+        console.error(err);
+        setError("Failed to fetch rating");
+      } finally {
+        setLoading(false);
+      }
+    };
+  
+    if (services.length !== 0) {
+      fetchArtistRating();
+    }
+  
+  }, [services]);
+  
 
   if (loading) return <Loading />;
   if (error) return <div className="text-center text-red-500 py-8">{error}</div>;
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 overflow-auto" style={{
+    <div className="min-h-screen py-8 overflow-auto" style={{
       msOverflowStyle: 'none',
       scrollbarWidth: 'none'
     }}>

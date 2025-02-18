@@ -4,7 +4,7 @@ const {
   createTransaction,
   getAllTransactions,
   getTransactionById,
-
+  getTotalDebitedAmount,
   deleteTransaction,
   getTransactionsByArtist,
 } = require('../controllers/ArtistTransaction.controller');
@@ -17,6 +17,7 @@ router.get('/artist/:artistId', authMiddleware, getTransactionsByArtist); // Get
 router.get('/:id', authMiddleware, getTransactionById); // Get transaction by ID
 
 router.get('/', authMiddleware, isAdminMiddleware, getAllTransactions); // Get all transactions
+router.get('/total-debited-amount/amount', authMiddleware, getTotalDebitedAmount); // Get total debited amount
 
 // router.delete('/:id', authMiddleware, deleteTransaction); // Delete transaction (No one should be able to delete transactions)
 

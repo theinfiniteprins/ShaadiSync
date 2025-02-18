@@ -20,7 +20,7 @@ router.post('/', createArtist);
 
 router.get('/:id', authMiddleware, getArtistById); 
 router.put('/:id', authMiddleware, updateArtist); // Update artist
-router.get('/:id/balance', authMiddleware, viewBalance); // Get artist balance
+router.get('/viewbalance/balance', authMiddleware, viewBalance); // Get artist balance
 router.put('/:id/submit-verify', authMiddleware, submitVerification); // Unblock artist
 
 
