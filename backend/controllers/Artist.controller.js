@@ -143,10 +143,13 @@ const unblockArtist = async (req, res) => {
 
 const viewBalance = async (req, res) => {
     try {
-      const artist = await Artist.findById(req.params.id).select('balance');
+      console.log("hello");
+      
+      const artist = await Artist.findById(req.id).select('balance');
       if (!artist) {
         return res.status(404).json({ message: 'Artist not found' });
       }
+      
       res.status(200).json({ balance: artist.balance });
     } catch (error) {
       res.status(500).json({ error: error.message });

@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 const Dashboard = () => {
     return (
         <div className="p-6 bg-white rounded-lg ">
-            <h1 className="text-2xl font-bold text-blue-600 mb-4">Dashboard</h1>
+            <h1 className="text-2xl font-bold text-blue-600">Dashboard</h1>
             
             <div className="grid grid-cols-3 gap-6">
                 {/* Live Services Card */}
