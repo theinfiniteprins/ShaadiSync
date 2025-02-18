@@ -20,7 +20,7 @@ const Sidebar = () => {
            <Link to="/artist/profile">Profile</Link>
         </li>
         <li className="p-2 rounded-md cursor-pointer flex items-center">
-            <Link to="/artist/other">Other</Link>
+            <Link to="/artist/more">Other</Link>
         </li>
       </ul>
     </aside>

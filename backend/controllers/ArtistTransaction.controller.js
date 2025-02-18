@@ -1,6 +1,7 @@
 const ArtistTransaction = require('../models/ArtistTransaction.model');
 const Artist = require('../models/Artist.model');
 const UserUnlockService = require('../models/UserUnlockService.model');
+const mongoose = require('mongoose');
 
 
 const createTransaction = async (req, res) => {
@@ -75,16 +76,14 @@ const getAllTransactions = async (req, res) => {
 
 const getTransactionsByArtist = async (req, res) => {
   try {
-    const artistId = req.params.artistId;
+    const artistId = req.id;
 
     const artist = await Artist.findById(artistId);
     if (!artist) {
       return res.status(404).json({ message: 'Artist not found' });
     }
 
-    const transactions = await ArtistTransaction.find({ artistId })
-      .populate('unlockId') // Include unlock details
-      .exec();
+    const transactions = await ArtistTransaction.find({ artistId });
     res.status(200).json(transactions);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -148,6 +147,7 @@ const getTotalDebitedAmount = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
 
 
 

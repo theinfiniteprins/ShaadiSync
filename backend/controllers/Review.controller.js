@@ -32,7 +32,6 @@ const createReview = async (req, res) => {
 const getReviewsByArtist = async (req, res) => {
   try {
     const { artistId } = req.params;
-    console.log("Received artistId:", artistId);
 
     const reviews = await Review.find({ artistId: artistId }).populate("userId", "name email");
 
@@ -128,6 +127,23 @@ const getAverageRatingByArtist = async (req, res) => {
   }
 };
 
+const getReviewsByArtistToken = async (req, res) => {
+  try {
+    const  artistId  = req.id;
+
+    const reviews = await Review.find({ artistId: artistId }).populate("userId", "name email");
+
+    if (reviews.length === 0) {
+      return res.status(404).json({ message: "No reviews found for this artist." });
+    }
+
+    res.status(200).json(reviews);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
 module.exports = {
   createReview,
   getReviewsByArtist,
@@ -135,4 +151,5 @@ module.exports = {
   deleteReview,
   updateReview,
   getAverageRatingByArtist,
+  getReviewsByArtistToken,
 };

@@ -38,33 +38,6 @@ const Services = () => {
 
     fetchServices();
   }, []);
-  useEffect(() => {
-    const fetchArtistRating = async () => {
-      try {
-        const response = await axios.get(`${config.baseUrl}/api/reviews/get-rating/${services[0].artistId}`);
-        console.log(response.data);
-  
-        if (response.data.totalReviews === 0) {
-          setAverageRating(0);
-          setTotalReviews(0);
-        } else {
-          setAverageRating(response.data.averageRating);
-          setTotalReviews(response.data.totalReviews);
-        }
-        
-      } catch (err) {
-        console.error(err);
-        setError("Failed to fetch rating");
-      } finally {
-        setLoading(false);
-      }
-    };
-  
-    if (services.length !== 0) {
-      fetchArtistRating();
-    }
-  
-  }, [services]);
   
 
   if (loading) return <Loading />;
