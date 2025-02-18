@@ -4,6 +4,7 @@ const { Schema } = mongoose;
 // Define the ArtistType Schema
 const artistTypeSchema = new Schema(
   {
+    //artistType
     type: {
       type: String,
       required: true,

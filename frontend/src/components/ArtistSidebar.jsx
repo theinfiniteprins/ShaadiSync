@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 
-const Sidebar = () => {
+const ArtistSidebar = () => {
   return (
     <aside className="w-64 bg-white fixed ounded-lg p-6 flex flex-col m-4">
       <ul className="space-y-4 shadow-md p-4 rounded-3xl border border-gray-200 ">
@@ -21,4 +21,4 @@ const Sidebar = () => {
   );
 };
 
-export default Sidebar;
+export default ArtistSidebar;
