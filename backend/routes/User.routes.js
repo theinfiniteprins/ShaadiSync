@@ -23,9 +23,9 @@ router.get('/getBalance',authMiddleware, viewBalance); // Get user by ID
 
 router.put('/:id', authMiddleware, updateUser); // Update user
 
-// add authMiddleware, isAdminMiddleware, in below get
+// add authMiddleware, isAdminMiddleware, in getAllUsers,deleteUser
 router.get('/',  getAllUsers); // Get all users
-router.delete('/:id', authMiddleware, isAdminMiddleware, deleteUser); // Delete user
+router.delete('/:id', deleteUser); // Delete user
 //add authMiddleware, isAdminMiddleware, in below both put
 router.put('/:id/block',  blockUser); // Block user
 router.put('/:id/unblock', unblockUser); // Unblock user

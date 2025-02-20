@@ -18,9 +18,20 @@ import {
   Switch,
   Grid,
   Alert,
-  Snackbar
+  Snackbar,
+  IconButton,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Button,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from '@mui/material';
-import { FaSearch, FaUsers, FaMapMarkerAlt, FaPhoneAlt } from 'react-icons/fa';
+import { FaSearch, FaUsers, FaMapMarkerAlt, FaPhoneAlt, FaTrash } from 'react-icons/fa';
 import axios from 'axios';
 import config from "../../configs/config";
 
@@ -32,6 +43,11 @@ export default function AllUsers() {
   const [searchQuery, setSearchQuery] = useState('');
   const [error, setError] = useState(null);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  const [deleteDialog, setDeleteDialog] = useState({
+    open: false,
+    userId: null
+  });
+  const [blockFilter, setBlockFilter] = useState('all');
 
   useEffect(() => {
     fetchUsers();
@@ -83,13 +99,65 @@ export default function AllUsers() {
     }
   };
 
-  // Safe filter function with null checks
-  const filteredUsers = users.filter(user =>
-    (user?.name?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
-    (user?.email?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
-    (user?.mobileNumber?.toString() || '').includes(searchQuery) ||
-    (user?.address?.toLowerCase() || '').includes(searchQuery.toLowerCase())
-  );
+  const handleDeleteClick = (userId) => {
+    setDeleteDialog({
+      open: true,
+      userId: userId
+    });
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteDialog({
+      open: false,
+      userId: null
+    });
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (deleteDialog.userId) {
+      await handleDeleteUser(deleteDialog.userId);
+      handleDeleteCancel(); // Close the dialog
+    }
+  };
+
+  const handleDeleteUser = async (userId) => {
+    try {
+      const response = await axios.delete(`${config.baseUrl}/api/users/${userId}`);
+      
+      if (response.status === 200) {
+        setSnackbar({
+          open: true,
+          message: 'User successfully deleted',
+          severity: 'success'
+        });
+        await fetchUsers(); // Refresh the list
+      }
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      setSnackbar({
+        open: true,
+        message: error.response?.data?.message || 'Failed to delete user',
+        severity: 'error'
+      });
+    }
+  };
+
+  const filteredUsers = users.filter(user => {
+    const matchesSearch = (
+      (user?.name?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
+      (user?.email?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
+      (user?.mobileNumber?.toString() || '').includes(searchQuery) ||
+      (user?.address?.toLowerCase() || '').includes(searchQuery.toLowerCase())
+    );
+
+    const matchesBlockStatus = 
+      blockFilter === 'all' ? true :
+      blockFilter === 'blocked' ? user.isBlocked :
+      blockFilter === 'active' ? !user.isBlocked :
+      true;
+
+    return matchesSearch && matchesBlockStatus;
+  });
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -102,6 +170,11 @@ export default function AllUsers() {
 
   const handleCloseSnackbar = () => {
     setSnackbar({ ...snackbar, open: false });
+  };
+
+  const handleBlockFilterChange = (event) => {
+    setBlockFilter(event.target.value);
+    setPage(0);
   };
 
   if (loading) {
@@ -155,29 +228,39 @@ export default function AllUsers() {
 
       {/* Updated Search Bar with helper text */}
       <Card sx={{ mb: 3, p: 2, boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
-        <TextField
-          fullWidth
-          variant="outlined"
-          placeholder="Search by name, email, mobile number or address..."
-          helperText="You can search by any user detail including mobile number and address"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <FaSearch color="#666" />
-              </InputAdornment>
-            ),
-          }}
-          sx={{ 
-            backgroundColor: 'white',
-            '& .MuiFormHelperText-root': {
-              margin: '4px 0 0 0',
-              fontSize: '0.75rem',
-              color: '#666'
-            }
-          }}
-        />
+        <Grid container spacing={2} alignItems="center">
+          <Grid item xs={12} md={8}>
+            <TextField
+              fullWidth
+              variant="outlined"
+              placeholder="Search by name, email, mobile number or address..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <FaSearch color="#666" />
+                  </InputAdornment>
+                ),
+              }}
+              sx={{ backgroundColor: 'white' }}
+            />
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <FormControl fullWidth variant="outlined" sx={{ backgroundColor: 'white' }}>
+              <InputLabel>User Status</InputLabel>
+              <Select
+                value={blockFilter}
+                onChange={handleBlockFilterChange}
+                label="User Status"
+              >
+                <MenuItem value="all">All Status</MenuItem>
+                <MenuItem value="active">Active Users</MenuItem>
+                <MenuItem value="blocked">Blocked Users</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
+        </Grid>
       </Card>
 
       {/* Users Table */}
@@ -186,18 +269,11 @@ export default function AllUsers() {
           <Table sx={{ minWidth: 650 }}>
             <TableHead>
               <TableRow sx={{ backgroundColor: '#f8f9fa' }}>
-                <TableCell sx={{ fontWeight: 'bold', width: '30%' }}>
-                  User Details
-                </TableCell>
-                <TableCell sx={{ fontWeight: 'bold', width: '20%' }}>
-                  Mobile Number
-                </TableCell>
-                <TableCell sx={{ fontWeight: 'bold', width: '30%' }}>
-                  Address
-                </TableCell>
-                <TableCell sx={{ fontWeight: 'bold', width: '20%' }}>
-                  Status
-                </TableCell>
+                <TableCell sx={{ fontWeight: 'bold', width: '25%' }}>User Details</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', width: '20%' }}>Mobile Number</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', width: '25%' }}>Address</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', width: '15%' }}>Status</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', width: '15%' }}>Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -292,6 +368,18 @@ export default function AllUsers() {
                           </Typography>
                         </Box>
                       </TableCell>
+
+                      {/* Delete Button */}
+                      <TableCell>
+                        <IconButton
+                          onClick={() => handleDeleteClick(user._id)}
+                          color="error"
+                          size="small"
+                          title="Delete User"
+                        >
+                          <FaTrash />
+                        </IconButton>
+                      </TableCell>
                     </TableRow>
                   ))
               )}
@@ -313,6 +401,31 @@ export default function AllUsers() {
           }}
         />
       </Card>
+
+      {/* Add the confirmation dialog */}
+      <Dialog
+        open={deleteDialog.open}
+        onClose={handleDeleteCancel}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">
+          {"Confirm Delete"}
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            Are you sure you want to delete this user? This action cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDeleteCancel} color="primary">
+            Cancel
+          </Button>
+          <Button onClick={handleDeleteConfirm} color="error" autoFocus>
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }

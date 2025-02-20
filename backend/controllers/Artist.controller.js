@@ -48,7 +48,7 @@ const getAllArtists = async (req, res) => {
   try {
     const artists = await Artist.find()
       .populate('artistType', 'type') // Populate artistType with its name
-      .select('-password'); // Exclude password field
+      .select('-password +isBlocked'); // Exclude password field
     res.status(200).json(artists);
   } catch (error) {
     res.status(500).json({ error: error.message });

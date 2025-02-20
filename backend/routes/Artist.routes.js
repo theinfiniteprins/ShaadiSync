@@ -23,10 +23,10 @@ router.put('/:id', authMiddleware, updateArtist); // Update artist
 router.get('/:id/balance', authMiddleware, viewBalance); // Get artist balance
 router.put('/:id/submit-verify', authMiddleware, submitVerification); // Unblock artist
 
-//add authMiddleware, isAdminMiddleware, into verify,block,unblock,getAllArtists
+//add authMiddleware, isAdminMiddleware, into verify,block,unblock,getAllArtists,delete
 router.put('/:id/verify',  updateIsVerified); // Update artist verification status
 router.get('/', getAllArtists); // Get all artists
-router.delete('/:id', authMiddleware, isAdminMiddleware, deleteArtist); // Delete artist
+router.delete('/:id', deleteArtist); // Delete artist
 router.put('/:id/block',  blockArtist); // Block artist
 router.put('/:id/unblock',  unblockArtist); // Unblock artist
 

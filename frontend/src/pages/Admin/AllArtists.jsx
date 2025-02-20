@@ -18,9 +18,22 @@ import {
   Switch,
   Alert,
   Snackbar,
-  Chip
+  Chip,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  IconButton,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Button
 } from '@mui/material';
-import { FaSearch, FaUsers, FaMapMarkerAlt, FaPhoneAlt, FaPaintBrush } from 'react-icons/fa';
+import { FaSearch, FaUsers, FaMapMarkerAlt, FaPhoneAlt, FaPaintBrush, FaTrash } from 'react-icons/fa';
+//import { DeleteIcon } from '@mui/icons-material';
+//import IconButton from '@mui/material/IconButton';
 import axios from 'axios';
 import config from "../../configs/config";
 
@@ -33,6 +46,12 @@ export default function AllArtists() {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedArtistType, setSelectedArtistType] = useState('all');
+  const [selectedBlockStatus, setSelectedBlockStatus] = useState('all');
+  const [deleteDialog, setDeleteDialog] = useState({
+    open: false,
+    artistId: null
+  });
 
   const fetchAllArtistTypes = async () => {
     try {
@@ -93,20 +112,11 @@ export default function AllArtists() {
       const response = await axios.put(`${config.baseUrl}/api/artists/${artistId}/${endpoint}`);
       
       if (response.status === 200) {
-        setArtists(prevArtists => 
-          prevArtists.map(artist => 
-            artist._id === artistId 
-              ? { ...artist, isBlocked: !currentStatus }
-              : artist
-          )
-        );
-
         setSnackbar({
           open: true,
           message: `Artist successfully ${currentStatus ? 'unblocked' : 'blocked'}`,
           severity: 'success'
         });
-
         await fetchArtists();
       }
     } catch (error) {
@@ -119,35 +129,52 @@ export default function AllArtists() {
     }
   };
 
-  const handleVerifyToggle = async (artistId, currentStatus) => {
+  const handleDeleteArtist = async (artistId) => {
     try {
-      const endpoint = currentStatus ? 'unverify' : 'verify';
-      const response = await axios.put(`${config.baseUrl}/api/artists/${artistId}/${endpoint}`);
+      const response = await axios.delete(`${config.baseUrl}/api/artists/${artistId}`, {
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
       
-      if (response.status === 200) {
-        setArtists(prevArtists => 
-          prevArtists.map(artist => 
-            artist._id === artistId 
-              ? { ...artist, isVerified: !currentStatus }
-              : artist
-          )
-        );
-
+      if (response.status === 200 || response.status === 204) {
         setSnackbar({
           open: true,
-          message: `Artist successfully ${currentStatus ? 'unverified' : 'verified'}`,
+          message: 'Artist successfully deleted',
           severity: 'success'
         });
-
         await fetchArtists();
+      } else {
+        throw new Error('Failed to delete artist');
       }
     } catch (error) {
-      console.error(`Error ${currentStatus ? 'unverifying' : 'verifying'} artist:`, error);
+      console.error('Error deleting artist:', error);
       setSnackbar({
         open: true,
-        message: `Failed to ${currentStatus ? 'unverify' : 'verify'} artist`,
+        message: error.response?.data?.message || 'Failed to delete artist',
         severity: 'error'
       });
+    }
+  };
+
+  const handleDeleteClick = (artistId) => {
+    setDeleteDialog({
+      open: true,
+      artistId: artistId
+    });
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteDialog({
+      open: false,
+      artistId: null
+    });
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (deleteDialog.artistId) {
+      await handleDeleteArtist(deleteDialog.artistId);
+      handleDeleteCancel(); // Close the dialog
     }
   };
 
@@ -163,7 +190,17 @@ export default function AllArtists() {
     
     const addressMatch = artist.address?.toLowerCase().includes(searchLower);
 
-    return nameMatch || emailMatch || artistTypeMatch || mobileMatch || addressMatch;
+    const typeMatch = 
+      selectedArtistType === 'all' || 
+      artist.artistType?.type === selectedArtistType;
+
+    const blockMatch = 
+      selectedBlockStatus === 'all' || 
+      (selectedBlockStatus === 'blocked' ? artist.isBlocked : !artist.isBlocked);
+
+    return (nameMatch || emailMatch || artistTypeMatch || mobileMatch || addressMatch) 
+      && typeMatch 
+      && blockMatch;
   });
 
   const handleChangePage = (event, newPage) => {
@@ -220,28 +257,59 @@ export default function AllArtists() {
         }}>
           <FaPaintBrush size={24} />
           <Typography variant="h6">
-            Total Artists: {artists.length}
+            Total Artists: {filteredArtists.length}
           </Typography>
         </Card>
       </Box>
 
       <Card sx={{ mb: 3, p: 2, boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
-        <TextField
-          fullWidth
-          variant="outlined"
-          placeholder="Search by name, email, artist type, mobile number or address..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <FaSearch color="#666" />
-              </InputAdornment>
-            ),
-          }}
-          sx={{ backgroundColor: 'white' }}
-          helperText="Enter any search term to filter artists"
-        />
+        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+          <TextField
+            sx={{ flex: 2, backgroundColor: 'white' }}
+            variant="outlined"
+            placeholder="Search by name, email, artist type, mobile number or address..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <FaSearch color="#666" />
+                </InputAdornment>
+              ),
+            }}
+          />
+
+          <FormControl sx={{ minWidth: 200, flex: 1 }}>
+            <InputLabel>Artist Type</InputLabel>
+            <Select
+              value={selectedArtistType}
+              onChange={(e) => setSelectedArtistType(e.target.value)}
+              label="Artist Type"
+            >
+              <MenuItem value="all">All Types</MenuItem>
+              <MenuItem value="Nail Artist">Nail Artist</MenuItem>
+              <MenuItem value="Mahendi Artist">Mahendi Artist</MenuItem>
+              <MenuItem value="Photographer">Photographer</MenuItem>
+              <MenuItem value="Panditji">Panditji</MenuItem>
+              <MenuItem value="Makeup">Makeup</MenuItem>
+              <MenuItem value="Djs">DJs</MenuItem>
+              <MenuItem value="Decorators">Decorators</MenuItem>
+            </Select>
+          </FormControl>
+
+          <FormControl sx={{ minWidth: 200, flex: 1 }}>
+            <InputLabel>Status</InputLabel>
+            <Select
+              value={selectedBlockStatus}
+              onChange={(e) => setSelectedBlockStatus(e.target.value)}
+              label="Status"
+            >
+              <MenuItem value="all">All Status</MenuItem>
+              <MenuItem value="active">Active Artists</MenuItem>
+              <MenuItem value="blocked">Blocked Artists</MenuItem>
+            </Select>
+          </FormControl>
+        </Box>
       </Card>
 
       <Card sx={{ boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
@@ -254,6 +322,7 @@ export default function AllArtists() {
                 <TableCell sx={{ fontWeight: 'bold' }}>Contact Info</TableCell>
                 <TableCell sx={{ fontWeight: 'bold' }}>Address</TableCell>
                 <TableCell sx={{ fontWeight: 'bold' }}>Status</TableCell>
+                <TableCell sx={{ fontWeight: 'bold' }}>Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -357,34 +426,27 @@ export default function AllArtists() {
                     </TableCell>
 
                     <TableCell>
-                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                           <Switch
                             checked={!artist.isBlocked}
                             onChange={() => handleBlockToggle(artist._id, artist.isBlocked)}
                             color="primary"
                           />
-                          <Typography 
-                            color={artist.isBlocked ? "error" : "success"}
-                            sx={{ fontWeight: 500 }}
-                          >
+                          <Typography color={artist.isBlocked ? "error" : "success"}>
                             {artist.isBlocked ? "Blocked" : "Active"}
                           </Typography>
                         </Box>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <Switch
-                            checked={Boolean(artist.isVerified)}
-                            onChange={() => handleVerifyToggle(artist._id, artist.isVerified)}
-                            color="success"
-                          />
-                          <Typography 
-                            color={artist.isVerified ? "success" : "error"}
-                            sx={{ fontWeight: 500 }}
-                          >
-                            {artist.isVerified ? "Verified" : "Unverified"}
-                          </Typography>
-                        </Box>
-                      </Box>
+                      </TableCell>
+
+                    <TableCell>
+                      <IconButton
+                        onClick={() => handleDeleteClick(artist._id)}
+                        color="error"
+                        size="small"
+                        title="Delete Artist"
+                      >
+                        <FaTrash />
+                      </IconButton>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -415,6 +477,30 @@ export default function AllArtists() {
           }}
         />
       </Card>
+
+      <Dialog
+        open={deleteDialog.open}
+        onClose={handleDeleteCancel}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">
+          {"Confirm Delete"}
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            Are you sure you want to delete this artist? This action cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDeleteCancel} color="primary">
+            Cancel
+          </Button>
+          <Button onClick={handleDeleteConfirm} color="error" autoFocus>
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 } 

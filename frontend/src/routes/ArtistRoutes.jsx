@@ -3,7 +3,7 @@ import ArtistLayout from "../layouts/ArtistLayout";
 import Dashboard from "../pages/Artist/Dashboard";
 // import SignUp from "../pages/Artist/SignUp";
 import Login from "../pages/Artist/Login";
-import Leads from "../pages/Artist/leads";
+//import Leads from "../pages/Artist/leads";
 
 
 
@@ -15,7 +15,7 @@ const ArtistRoutes = () => {
             <Route element={<ArtistLayout />}>
                
                 <Route path="/" element={<Dashboard />} />
-                <Route path="/leads" element={<Leads />} />
+                //<Route path="/leads" element={<Leads />} />
                
             </Route>
 

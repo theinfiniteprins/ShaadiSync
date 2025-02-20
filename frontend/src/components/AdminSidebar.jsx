@@ -8,13 +8,13 @@ const AdminSidebar = () => {
            <Link to="/admin">Home</Link>
         </li>
         <li className="p-2 rounded-md cursor-pointer flex items-center">
-           <Link to="/admin/user">Users</Link>
+           <Link to="/admin/users">Users</Link>
         </li>
         <li className="p-2 rounded-md cursor-pointer flex items-center">
-           <Link to="/admin/artist">Artists</Link>
+           <Link to="/admin/artists">Artists</Link>
         </li>
         <li className="p-2 rounded-md cursor-pointer flex items-center">
-           <Link to="/admin/service">Services</Link>
+           <Link to="/admin/services">Services</Link>
         </li>
       </ul>
     </aside>
