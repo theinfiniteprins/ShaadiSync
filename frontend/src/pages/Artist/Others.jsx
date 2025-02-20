@@ -15,13 +15,13 @@ const tabs = [
     { 
         name: "Terms and conditions", 
         icon: <FaFileContract className="text-blue-500" />, 
-        link: "/terms",
+        link: "/artist/terms&condition",
         description: "Read our terms of service"
     },
     { 
         name: "Privacy policy", 
         icon: <FaShieldAlt className="text-green-500" />, 
-        link: "/privacy",
+        link: "/artist/privacy-policy",
         description: "Learn about data protection"
     },
 ];
