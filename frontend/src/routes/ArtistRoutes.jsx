@@ -8,6 +8,7 @@ import LeadsByService from "../pages/Artist/leadsByService";
 import Services from "../pages/Artist/Services";
 import ViewService from "../pages/Artist/ViewService";
 import Wallet from "../pages/Artist/Wallet";
+import Profile from "../pages/Artist/Profile";
 
 import Others from "../pages/Artist/Others";
 import Review from "../pages/Artist/Review";
@@ -33,6 +34,7 @@ const ArtistRoutes = () => {
                     <Route path="/services" element={<Services />} />
                     <Route path="/service/:id" element={<ViewService />} />
                     <Route path="/wallet" element={<Wallet />} />
+                    <Route path="/profile" element={<Profile />} />
 
                     <Route path="/more" element={<Others/>} />
                     <Route path="/reviews-ratings" element={<Review/>} />

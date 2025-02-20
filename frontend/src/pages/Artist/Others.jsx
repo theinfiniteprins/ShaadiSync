@@ -1,18 +1,29 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
-    FaUserCog, FaFlask, FaImage, FaCrown, FaStar, FaClipboardCheck,
-    FaQuestionCircle, FaFileContract, FaShieldAlt, FaTrashAlt, FaSignOutAlt
+    FaStar, FaFileContract, FaShieldAlt, FaSignOutAlt
 } from "react-icons/fa";
 import { useAuth } from "../../context/AuthContext";
 
 const tabs = [
-    { name: "Reviews and Ratings", icon: <FaStar />, link: "/artist/reviews-ratings" },
-    { name: "Customer review policy", icon: <FaClipboardCheck />, link: "/review-policy" },
-    { name: "FAQ", icon: <FaQuestionCircle />, link: "/faq" },
-    { name: "Terms and conditions", icon: <FaFileContract />, link: "/terms" },
-    { name: "Privacy policy", icon: <FaShieldAlt />, link: "/privacy" },
-    { name: "Delete Account", icon: <FaTrashAlt />, link: "/delete-account" },
+    { 
+        name: "Reviews and Ratings", 
+        icon: <FaStar className="text-yellow-500" />, 
+        link: "/artist/reviews-ratings",
+        description: "View your performance and feedback"
+    },
+    { 
+        name: "Terms and conditions", 
+        icon: <FaFileContract className="text-blue-500" />, 
+        link: "/terms",
+        description: "Read our terms of service"
+    },
+    { 
+        name: "Privacy policy", 
+        icon: <FaShieldAlt className="text-green-500" />, 
+        link: "/privacy",
+        description: "Learn about data protection"
+    },
 ];
 
 const Others = () => {
@@ -20,36 +31,71 @@ const Others = () => {
     const navigate = useNavigate();
 
     const handleLogout = () => {
-        logout(); // Call logout function from AuthContext
-        navigate("/artist/login"); // Redirect user to login page after logout
+        if (window.confirm('Are you sure you want to logout?')) {
+            logout();
+            navigate("/artist/login");
+        }
     };
 
     return (
-        <div className="p-6 bg-white rounded-lg">
-            <div className="space-y-3">
-                {tabs.map((tab, index) => (
-                    <Link
-                        key={index}
-                        to={tab.link}
-                        className="flex items-center justify-between p-4 bg-gray-100 rounded-lg shadow hover:bg-gray-200 transition"
-                    >
-                        <div className="flex items-center gap-3">
-                            <span className="text-gray-600 text-lg">{tab.icon}</span>
-                            <span className="text-gray-800 font-medium">{tab.name}</span>
-                        </div>
-                        <span className="text-gray-500">&gt;</span>
-                    </Link>
-                ))}
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8 px-4 sm:px-6 lg:px-8">
+            <div className="max-w-3xl mx-auto">
+                <h1 className="text-2xl font-bold text-gray-900 mb-6">Settings & More</h1>
+                
+                <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+                    <div className="divide-y divide-gray-200">
+                        {tabs.map((tab, index) => (
+                            <Link
+                                key={index}
+                                to={tab.link}
+                                className="block hover:bg-gray-50 transition-all duration-200 transform hover:scale-[0.995]"
+                            >
+                                <div className="p-6">
+                                    <div className="flex items-center">
+                                        <div className="flex-shrink-0">
+                                            <div className="h-12 w-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                                                <span className="text-xl">{tab.icon}</span>
+                                            </div>
+                                        </div>
+                                        <div className="ml-4 flex-1">
+                                            <h2 className="text-lg font-medium text-gray-900">
+                                                {tab.name}
+                                            </h2>
+                                            <p className="mt-1 text-sm text-gray-500">
+                                                {tab.description}
+                                            </p>
+                                        </div>
+                                        <div className="ml-4">
+                                            <svg className="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                </div>
+                            </Link>
+                        ))}
+                    </div>
+                </div>
+
                 {/* Logout Button */}
                 <button
                     onClick={handleLogout}
-                    className="flex items-center justify-between w-full p-4 bg-gray-100 text-red-600 rounded-lg shadow hover:bg-gray-200 transition"
+                    className="mt-6 w-full bg-white hover:bg-red-50 text-red-600 rounded-xl shadow-sm p-6 flex items-center justify-between transition-all duration-200 transform hover:scale-[0.995]"
                 >
-                    <div className="flex items-center gap-3">
-                        <FaSignOutAlt className="text-lg" />
-                        <span className="font-medium">Logout</span>
+                    <div className="flex items-center">
+                        <div className="h-12 w-12 bg-red-100 rounded-lg flex items-center justify-center">
+                            <FaSignOutAlt className="text-xl" />
+                        </div>
+                        <div className="ml-4">
+                            <h2 className="text-lg font-medium">Logout</h2>
+                            <p className="mt-1 text-sm text-gray-500">
+                                Sign out of your account
+                            </p>
+                        </div>
                     </div>
-                    <span>&gt;</span>
+                    <svg className="h-6 w-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
                 </button>
             </div>
         </div>

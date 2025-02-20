@@ -10,7 +10,9 @@ const {
   unblockArtist,
   viewBalance,
   updateIsVerified,
-  submitVerification
+  submitVerification,
+  getCurrentArtist,
+  deleteImage
 } = require('../controllers/Artist.controller');
 
 const { authMiddleware } = require("../middleware/authmiddleware");
@@ -18,6 +20,7 @@ const { isAdminMiddleware } = require("../middleware/adminmiddleware")
 
 router.post('/', createArtist);
 
+router.get('/me', authMiddleware, getCurrentArtist);
 router.get('/:id', authMiddleware, getArtistById); 
 router.put('/:id', authMiddleware, updateArtist); // Update artist
 router.get('/viewbalance/balance', authMiddleware, viewBalance); // Get artist balance
@@ -29,5 +32,7 @@ router.get('/', authMiddleware, isAdminMiddleware, getAllArtists); // Get all ar
 router.delete('/:id', authMiddleware, isAdminMiddleware, deleteArtist); // Delete artist
 router.put('/:id/block', authMiddleware, isAdminMiddleware, blockArtist); // Block artist
 router.put('/:id/unblock', authMiddleware, isAdminMiddleware, unblockArtist); // Unblock artist
+router.post('/delete-image', authMiddleware, deleteImage);
+// Get current artist profile
 
 module.exports = router;

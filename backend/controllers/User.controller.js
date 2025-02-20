@@ -182,7 +182,7 @@ const getCurrentUser = async (req, res) => {
 const deleteImage = async (req, res) => {
   try {
     const { public_id } = req.body;
-    
+    console.log("public_id",public_id);
     // Call Cloudinary API to delete the image
     const result = await cloudinary.uploader.destroy(public_id);
     
