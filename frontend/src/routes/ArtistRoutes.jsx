@@ -9,8 +9,10 @@ import Services from "../pages/Artist/Services";
 import ViewService from "../pages/Artist/ViewService";
 import Wallet from "../pages/Artist/Wallet";
 import Profile from "../pages/Artist/Profile";
+import Terms from "../pages/Artist/Terms&Condition";
+import PrivacyPolicy from "../pages/Artist/PrivacyPolicy";
+import Others from "../pages/Artist/others";
 
-import Others from "../pages/Artist/Others";
 import Review from "../pages/Artist/Review";
 
 import AddService from "../pages/Artist/AddService";
@@ -38,7 +40,8 @@ const ArtistRoutes = () => {
 
                     <Route path="/more" element={<Others/>} />
                     <Route path="/reviews-ratings" element={<Review/>} />
-
+                    <Route path="/terms&condition" element={<Terms/>} />
+                    <Route path="/privacy-policy" element={<PrivacyPolicy/>} />
 
                     <Route path="/add-service" element={<AddService />} />
 
