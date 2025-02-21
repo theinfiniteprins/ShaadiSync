@@ -208,6 +208,40 @@ const getUserByService = async (req, res) => {
     });
   }
 };
+const getLatestUnlockedLead = async (req, res) => {
+  try {
+    const artistId = req.id;
+
+    // Find the latest unlocked service for the given artist
+    const latestUnlock = await UserUnlockService.findOne()
+      .sort({ createdAt: -1 }) // Get the latest unlock
+      .populate({
+        path: 'serviceId',
+        select: 'name artistId', // Fetch service name and artistId
+      })
+      .populate({
+        path: 'userId',
+        select: 'name email',
+      });
+
+    // Check if unlock exists and belongs to the given artist
+    if (!latestUnlock || !latestUnlock.serviceId || latestUnlock.serviceId.artistId.toString() !== artistId) {
+      return res.status(404).json({ message: 'No unlocked leads found for this artist' });
+    }
+
+    res.status(200).json({
+      serviceId: latestUnlock.serviceId._id, // ✅ Added serviceId
+      service: latestUnlock.serviceId.name,
+      user: latestUnlock.userId.name,
+      userEmail: latestUnlock.userId.email,
+      unlockedAt: latestUnlock.createdAt,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
 
 
 module.exports = {
@@ -215,4 +249,5 @@ module.exports = {
   isServiceUnlocked,
   getUnlockedServices,
   getUserByService,
+  getLatestUnlockedLead,
 };

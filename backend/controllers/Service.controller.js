@@ -276,6 +276,25 @@ const getServicesByCategory = async (req, res) => {
   }
 };
 
+const getLatestServiceByArtist = async (req, res) => {
+  try {
+    const artistId = req.id; // Assuming req.id is the authenticated artist's ID
+
+    // Find the latest service for the given artist, sorted by createdAt in descending order
+    const latestService = await Service.findOne({ artistId })
+      .sort({ createdAt: -1 }) // Get the most recent service
+      .exec();
+
+    if (!latestService) {
+      return res.status(404).json({ message: 'No services found for this artist' });
+    }
+
+    res.status(200).json(latestService);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 module.exports = {
   createService,
   getAllServices,
@@ -287,4 +306,5 @@ module.exports = {
   getAllLiveServices,
   getServicesByCategory,
   updateMaxCharge,
+  getLatestServiceByArtist,
 };
