@@ -142,11 +142,12 @@ const unblockArtist = async (req, res) => {
 };
 
 const viewBalance = async (req, res) => {
-    try {
-      const artist = await Artist.findById(req.params.id).select('balance');
+    try {      
+      const artist = await Artist.findById(req.id).select('balance');
       if (!artist) {
         return res.status(404).json({ message: 'Artist not found' });
       }
+      
       res.status(200).json({ balance: artist.balance });
     } catch (error) {
       res.status(500).json({ error: error.message });
@@ -242,10 +243,45 @@ const submitVerification = async (req, res) => {
 
 }
 
+const getCurrentArtist = async (req, res) => {
+  try {
+    const artist = await Artist.findById(req.id)
+      .select('-password') // Exclude password from the response
+      .select('-resetPasswordToken') // Exclude reset token if you have one
+      .select('-resetPasswordExpires'); // Exclude reset token expiry if you have one
 
+    if (!artist) {
+      return res.status(404).json({ message: 'Artist not found' });
+    }
 
+    res.status(200).json(artist);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
 
+const deleteImage = async (req, res) => {
+  try {
+    const { public_id } = req.body;
+    
+    if (!public_id) {
+      return res.status(400).json({ message: 'Public ID is required' });
+    }
 
+    // Delete from Cloudinary
+    const cloudinary = require('cloudinary').v2;
+    const result = await cloudinary.uploader.destroy(public_id);
+
+    if (result.result === 'ok') {
+      res.status(200).json({ message: 'Image deleted successfully' });
+    } else {
+      throw new Error('Failed to delete image from Cloudinary');
+    }
+  } catch (error) {
+    console.error('Error in deleteImage:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
 
 module.exports = {
   createArtist,
@@ -258,4 +294,6 @@ module.exports = {
   viewBalance,
   updateIsVerified,
   submitVerification,
+  getCurrentArtist,
+  deleteImage,
 };

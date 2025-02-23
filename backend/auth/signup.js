@@ -6,6 +6,7 @@ const OTP = require("../models/Otp.model");
 require("dotenv").config();
 const Artist = require("../models/Artist.model");
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
 const sendOTPBody = zod.object({
     email: zod.string().email(),
@@ -182,53 +183,45 @@ const signup = async (req, res) => {
                     message: "Internal server error while signing up user",
                 });
             }
-        } else if (role === "artist") {
+            return res.status(200).json({
+                success: true,
+                message,
+            });
+        }else if (role === "artist") {
             try {
+                const { email, otp, password, confirmPassword } = req.body;
+        
+                if (password !== confirmPassword) {
+                    return res.status(400).json({ success: false, message: "Passwords do not match" });
+                }
+        
                 const existingArtist = await Artist.findOne({ email });
                 if (existingArtist) {
-                    return res.status(400).json({
-                        success: false,
-                        message: "Email already registered",
-                    });
+                    return res.status(400).json({ success: false, message: "Email already registered" });
                 }
-                const recentOtp = await OTP.findOne({ email })
-                    .sort({ createdAt: -1 })
-                    .limit(1);
-
-                if (!recentOtp) {
-                    return res.status(404).json({
-                        success: false,
-                        message: "OTP not found",
-                    });
-                } else if (otp !== recentOtp.otp) {
-                    return res.status(400).json({
-                        success: false,
-                        message: "Invalid OTP",
-                    });
+        
+                const recentOtp = await OTP.findOne({ email }).sort({ createdAt: -1 }).limit(1);
+                if (!recentOtp || otp !== recentOtp.otp) {
+                    return res.status(400).json({ success: false, message: "Invalid OTP" });
                 }
-
-                await Artist.create({
-                    email,
-                    password: hashedPassword,
-                    mobileNumber: mobileNumber,
-                });
-
-                message = "Artist created successfully";
+        
+                // OTP is valid, mark it as used
                 recentOtp.used = true;
                 await recentOtp.save();
-            } catch (error) {
-                console.error("Error in artist signup:", error);
-                return res.status(500).json({
-                    success: false,
-                    message: "Internal server error while signing up artist",
+                const hashedPassword = await bcrypt.hash(password, 10);
+        
+                const token = jwt.sign({ email, password:hashedPassword }, process.env.JWT_SECRET, { expiresIn: "15m" });
+        
+                return res.status(200).json({
+                    success: true,
+                    message: "Email verified. Now fill the complete profile.",
+                    token, 
                 });
+            } catch (error) {
+                console.error("Error verifying artist email:", error);
+                return res.status(500).json({ success: false, message: "Internal server error" });
             }
         }
-
-        return res.status(200).json({
-            success: true,
-            message,
-        });
     } catch (error) {
         console.error("Error in signup function:", error);
         return res.status(500).json({
@@ -238,7 +231,42 @@ const signup = async (req, res) => {
     }
 };
 
+const createArtistProfile = async (req, res) => {
+    try {
+        const { email, password } = req.artistData;
+        const { name, mobile, artistType, address  } = req.body;
+        console.log(req.body);
+        
+
+        // const existingArtist = await Artist.findOne({ email });
+        // if (existingArtist) {
+        //     return res.status(400).json({ success: false, message: "Email already registered" });
+        // }
+
+        // if (!name || !mobileNumber || !artistType || !address) {
+        //     return res.status(400).json({ success: false, message: "All required fields must be filled" });
+        // }
+
+        // Create artist after complete profile submission
+        await Artist.create({
+            email,
+            password, 
+            name,
+            mobileNumber: mobile,
+            artistType,
+            address,
+        });
+
+        return res.status(200).json({ success: true, message: "Artist profile created successfully" });
+    } catch (error) {
+        console.error("Error creating artist profile:", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
+
 module.exports = {
     sendOTP,
     signup,
+    createArtistProfile,
 };

@@ -42,7 +42,7 @@ export default function Terms() {
       {/* Header */}
       <div className="text-center mb-12">
         <h1 className="text-4xl font-bold text-gray-900">Terms and Conditions</h1>
-        <p className="text-gray-600 mt-3">Last updated: March 15, 2024</p>
+        <p className="text-gray-600 mt-3">Last updated: February 20, 2025</p>
       </div>
 
       {/* Introduction */}

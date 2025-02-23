@@ -93,7 +93,6 @@ export default function CategorywiseServiceList() {
   }, [filters, services]);
 
   const handleServiceClick = (serviceId) => {
-    console.log("Service clicked:", serviceId);
     navigate(`/services/${serviceId}`);
   };
 

@@ -1,6 +1,8 @@
 const Service = require('../models/Service.model');
 const Artist = require('../models/Artist.model');
 const ArtistType = require('../models/ArtistType.model');
+const UserUnlockService = require('../models/UserUnlockService.model');
+const mongoose = require('mongoose');
 
 // 1. Create a new Service
 const createService = async (req, res) => {
@@ -33,7 +35,7 @@ const createService = async (req, res) => {
 // 2. Get all Services
 const getAllServices = async (req, res) => {
   try {
-    const services = await Service.find()
+    const services = await Service.find({isLive: true})
       .populate('artistId', 'name email address artistType') // Populate artist details
       .exec();
     res.status(200).json(services);
@@ -80,11 +82,35 @@ const updateService = async (req, res) => {
 // 5. Delete a Service
 const deleteService = async (req, res) => {
   try {
-    const deletedService = await Service.findByIdAndDelete(req.params.id).exec();
-    if (!deletedService) {
-      return res.status(404).json({ message: 'Service not found' });
+    // Start a session for transaction
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
+    try {
+      // Delete all UserUnlockService records for this service
+      await UserUnlockService.deleteMany({ serviceId: req.params.id }).session(session);
+
+      // Delete the service
+      const deletedService = await Service.findByIdAndDelete(req.params.id).session(session);
+      
+      if (!deletedService) {
+        await session.abortTransaction();
+        return res.status(404).json({ message: 'Service not found' });
+      }
+
+      // If everything is successful, commit the transaction
+      await session.commitTransaction();
+      res.status(200).json({ 
+        message: 'Service and related records deleted successfully',
+        deletedService 
+      });
+    } catch (error) {
+      // If there's an error, abort the transaction
+      await session.abortTransaction();
+      throw error;
+    } finally {
+      session.endSession();
     }
-    res.status(200).json({ message: 'Service deleted successfully' });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -93,7 +119,7 @@ const deleteService = async (req, res) => {
 // 6. Get all Services for a specific Artist
 const getServicesByArtist = async (req, res) => {
   try {
-    const artistId = req.params.artistId;
+    const artistId = req.id;
 
     // Check if the artist exists
     const artist = await Artist.findById(artistId);
@@ -102,10 +128,16 @@ const getServicesByArtist = async (req, res) => {
     }
 
     // Get all services for the artist
-    const services = await Service.find({ artistId }).exec();
+    const services = await Service.find({ artistId })
+      .sort({ createdAt: -1 }) // Sort by newest first
+      .exec();
+
     res.status(200).json(services);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ 
+      message: 'Failed to fetch artist services',
+      error: error.message 
+    });
   }
 };
 
@@ -119,7 +151,9 @@ const toggleServiceLiveStatus = async (req, res) => {
     }
 
     const artist = service.artistId; // Get the artist associated with the service
-
+    if(!artist._id.equals(req.id)){
+      return res.status(403).json({message: "You are not authorized to toggle this service"});
+    }
     if (!artist) {
       return res.status(404).json({ message: 'Artist not found for this service' });
     }
