@@ -5,9 +5,14 @@ import { FaStar } from 'react-icons/fa';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import config from './../../configs/config';
 import { toast } from 'react-hot-toast';
+import LeadsOverviewChart from '../../components/LeadsOverviewChats';
+import QuickStats from '../../components/QuickStats';
+import VerificationPrompt from '../../components/VerificationPrompt';
+import VerificationPendingPrompt from '../../components/VerificationPendingPrompt';
 
 const Dashboard = () => {
     const [services, setServices] = useState([]);
+    const [liveservices, setLiveServices] = useState([]);
     const [latestService, setLatestService] = useState(null);
     const [latestLead, setLatestLead] = useState(null);
     const [LatestReview, setLatestReview] = useState(null);
@@ -16,8 +21,9 @@ const Dashboard = () => {
     const [artist, setArtist] = useState(null);
     const [averageRating, setAverageRating] = useState(0);
     const [totalReviews, setTotalReviews] = useState(0);
+    const [leadsData, setLeadsData] = useState([]);
     const navigate = useNavigate();
-    console.log(LatestReview);
+    console.log(artist);
     
 
     const timeAgo = (timestamp) => {
@@ -33,16 +39,6 @@ const Dashboard = () => {
         const diffInDays = Math.floor(diffInHours / 24);
         return `${diffInDays} days ago`;
     };
-
-    const earningsData = [
-        { month: 'Jan', earnings: 4000 },
-        { month: 'Feb', earnings: 3000 },
-        { month: 'Mar', earnings: 5000 },
-        { month: 'Apr', earnings: 7000 },
-        { month: 'May', earnings: 6000 },
-        { month: 'Jun', earnings: 8000 }
-    ];
-
     useEffect(() => {
         const token = localStorage.getItem('artistToken');
 
@@ -53,7 +49,9 @@ const Dashboard = () => {
                     `${config.baseUrl}/api/services/artist/getbyid`,
                     { headers: { Authorization: `Bearer ${token}` } }
                 );
-                setServices(response.data);
+                setServices(response.data)
+                const liveServices = response.data.filter(service => service.isLive );
+                setLiveServices(liveServices);
             } catch (err) {
                 setError('Failed to fetch services');
                 console.error(err);
@@ -124,11 +122,34 @@ const Dashboard = () => {
             }
         };
 
+        const fetchLeadsData = async () => {
+            try {
+                const response = await axios.get(
+                    `${config.baseUrl}/api/user-unlock-service/artist/getLeadsGraph`,
+                    { headers: { Authorization: `Bearer ${token}` } }
+                );
+
+                // Transform API data to match chart structure
+                const formattedData = response.data.map(item => ({
+                    month: item.month,
+                    leads: item.totalLeads
+                }));
+                
+
+                setLeadsData(formattedData);
+            } catch (err) {
+                console.error("Error fetching leads data:", err);
+                toast.error("Failed to fetch leads data");
+            }
+        };
+
+        
         fetchServices();
         fetchArtistProfile();
         fetchLatestService();
         fetchLatestLead();
         fetchLatestReview();
+        fetchLeadsData();
     }, []);
 
     useEffect(() => {
@@ -147,6 +168,15 @@ const Dashboard = () => {
             fetchRatings();
         }
     }, [artist]);
+
+    if (artist && artist.verificationStatus === 'pending' && !artist.isVerified) {
+        return <VerificationPendingPrompt />;
+    }
+
+    if (artist && !artist.isVerified) {
+        return <VerificationPrompt />;
+    }
+
 
     return (
         <div className="p-6 bg-gray-50 min-h-screen">
@@ -170,32 +200,10 @@ const Dashboard = () => {
             </div>
 
             {/* Quick Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                <div className="p-6 bg-white rounded-lg shadow-md">
-                    <h2 className="text-lg font-semibold">Live Services</h2>
-                    <p className="text-blue-600 text-2xl font-bold">{services.length}</p>
-                </div>
-                <div className="p-6 bg-white rounded-lg shadow-md">
-                    <h2 className="text-lg font-semibold">Total Unlocks Today</h2>
-                    <p className="text-blue-600 text-2xl font-bold">12</p>
-                </div>
-                <div className="p-6 bg-white rounded-lg shadow-md">
-                    <h2 className="text-lg font-semibold">Total Earnings</h2>
-                    <p className="text-blue-600 text-2xl font-bold">₹5000</p>
-                </div>
-            </div>
+            <QuickStats services={liveservices} />
 
             {/* Analytics Section */}
-            <div className="bg-white p-6 rounded-lg shadow-md mb-6">
-                <h2 className="text-xl font-bold text-blue-600 mb-4">Earnings Overview</h2>
-                <BarChart width={600} height={300} data={earningsData}>
-                    <XAxis dataKey="month" />
-                    <YAxis />
-                    <Tooltip />
-                    <CartesianGrid stroke="#eee" strokeDasharray="5 5" />
-                    <Bar dataKey="earnings" fill="#3b82f6" />
-                </BarChart>
-            </div>
+           <LeadsOverviewChart data={leadsData}/>
 
             {/* Recent Activity */}
             <div className="bg-white p-6 rounded-lg shadow-md mb-6">

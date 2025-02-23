@@ -47,6 +47,10 @@ const artistSchema = new Schema(
       type: Boolean,
       default: false, // Indicates if the artist is verified
     },
+    verificationStatus: {
+      type: String,
+      enum: ['pending', 'confirmed', 'rejected'],
+    },
     balance: {
       type: Number,
       default: 0, // Artist's wallet balance

@@ -31,6 +31,7 @@ const createArtist = async (req, res) => {
       profilePic,
       description,
       certificates,
+      verificationStatus: undefined, // Initially not set
     });
 
     const savedArtist = await newArtist.save();
@@ -156,21 +157,25 @@ const viewBalance = async (req, res) => {
 
   const updateIsVerified = async (req, res) => {
     try {
-      isVerified = true;
-  
-      if (typeof isVerified !== 'boolean') {
-        return res.status(400).json({ message: 'isVerified must be a boolean value' });
-      }
-  
-      const updatedArtist = await Artist.findByIdAndUpdate(req.params.id, { isVerified }, { new: true }).select('-password');
+      const isVerified = true;
+      const verificationStatus = "confirmed"; // Mark as confirmed
+
+      const updatedArtist = await Artist.findByIdAndUpdate(
+        req.params.id, 
+        { isVerified, verificationStatus }, 
+        { new: true }
+      ).select('-password');
+
       if (!updatedArtist) {
         return res.status(404).json({ message: 'Artist not found' });
       }
-      res.status(200).json({ message: 'isVerified status updated successfully', updatedArtist });
+
+      res.status(200).json({ message: 'Artist verified successfully', updatedArtist });
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
-  };
+};
+
 
   const verificationbody = zod.object({
     aadharCardNumber: zod.string().regex(/^\d{12}$/, 'Aadhar card number must be a 12-digit number'),
@@ -184,64 +189,62 @@ const viewBalance = async (req, res) => {
     path: ['confirmAccountNumber'],
   });
 
-const submitVerification = async (req, res) => {
-  try {
-
-    const validatedData = verificationbody.parse(req.body);
-
-    const { 
-      aadharCardNumber, 
-      accountNumber, 
-      ifscCode, 
-      bankDocument, 
-      aadharCardFile 
-    } = validatedData;
-
-    const { artistId } = req.params;
-
-    // Find and update the artist
-    const updatedArtist = await Artist.findByIdAndUpdate(
-      artistId,
-      {
-        verificationDocuments: {
-          bankDocument,
-          aadharCardFile,
+  const submitVerification = async (req, res) => {
+    try {
+      const validatedData = verificationbody.parse(req.body);
+  
+      const { 
+        aadharCardNumber, 
+        accountNumber, 
+        ifscCode, 
+        bankDocument, 
+        aadharCardFile 
+      } = validatedData;
+  
+      const { artistId } = req.params;
+  
+      // Find and update the artist
+      const updatedArtist = await Artist.findByIdAndUpdate(
+        artistId,
+        {
+          verificationDocuments: {
+            bankDocument,
+            aadharCardFile,
+          },
+          bankDetails: {
+            accountNumber,
+            ifscCode,
+          },
+          aadharCardNumber,
+          verificationStatus: "pending", // Mark as pending after submission
         },
-        bankDetails: {
-          accountNumber,
-          ifscCode,
-        },
-        aadharCardNumber,
-        isVerified: false, // Initially marked as pending verification
-      },
-      { new: true }
-    );
-
-    // Check if artist was found
-    if (!updatedArtist) {
-      return res.status(404).json({ error: 'Artist not found.' });
-    }
-
-    res.status(200).json({
-      message: 'Verification details submitted successfully. Awaiting approval.',
-      artist: updatedArtist,
-    });
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({
-        error: 'Validation error',
-        details: error.errors.map((err) => ({
-          path: err.path,
-          message: err.message,
-        })),
+        { new: true }
+      );
+  
+      // Check if artist was found
+      if (!updatedArtist) {
+        return res.status(404).json({ error: 'Artist not found.' });
+      }
+  
+      res.status(200).json({
+        message: 'Verification details submitted successfully. Awaiting approval.',
+        artist: updatedArtist,
       });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({
+          error: 'Validation error',
+          details: error.errors.map((err) => ({
+            path: err.path,
+            message: err.message,
+          })),
+        });
+      }
+  
+      console.error(error);
+      res.status(500).json({ error: 'An error occurred while submitting verification details.' });
     }
-
-    console.error(error);
-    res.status(500).json({ error: 'An error occurred while submitting verification details.' });
-  }
-
-}
+  };
 
 const getCurrentArtist = async (req, res) => {
   try {
