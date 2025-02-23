@@ -23,10 +23,12 @@ router.get('/getBalance',authMiddleware, viewBalance); // Get user by ID
 
 router.put('/:id', authMiddleware, updateUser); // Update user
 
-router.get('/', authMiddleware, isAdminMiddleware, getAllUsers); // Get all users
-router.delete('/:id', authMiddleware, isAdminMiddleware, deleteUser); // Delete user
-router.put('/:id/block', authMiddleware, isAdminMiddleware, blockUser); // Block user
-router.put('/:id/unblock', authMiddleware, isAdminMiddleware, unblockUser); // Unblock user
+// add authMiddleware, isAdminMiddleware, in getAllUsers,deleteUser
+router.get('/',  getAllUsers); // Get all users
+router.delete('/:id', deleteUser); // Delete user
+//add authMiddleware, isAdminMiddleware, in below both put
+router.put('/:id/block',  blockUser); // Block user
+router.put('/:id/unblock', unblockUser); // Unblock user
 router.post('/delete-image', authMiddleware, deleteImage);
 
 module.exports = router;

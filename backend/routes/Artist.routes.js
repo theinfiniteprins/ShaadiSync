@@ -33,6 +33,5 @@ router.delete('/:id', authMiddleware, isAdminMiddleware, deleteArtist); // Delet
 router.put('/:id/block', authMiddleware, isAdminMiddleware, blockArtist); // Block artist
 router.put('/:id/unblock', authMiddleware, isAdminMiddleware, unblockArtist); // Unblock artist
 router.post('/delete-image', authMiddleware, deleteImage);
-// Get current artist profile
 
 module.exports = router;
