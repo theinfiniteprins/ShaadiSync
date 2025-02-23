@@ -148,6 +148,33 @@ const getTotalDebitedAmount = async (req, res) => {
   }
 };
 
+const getArtistSpendingSummary = async (req, res) => {
+  try {
+    const artistId = new mongoose.Types.ObjectId(req.id);
+    const now = new Date();
+
+    const timeFrames = {
+      today: new Date(now.setHours(0, 0, 0, 0)),
+      lastWeek: new Date(now.setDate(now.getDate() - 7)),
+      lastMonth: new Date(now.setMonth(now.getMonth() - 1)),
+      lastYear: new Date(now.setFullYear(now.getFullYear() - 1))
+    };
+
+    const results = await Promise.all(Object.entries(timeFrames).map(async ([key, date]) => {
+      const total = await ArtistTransaction.aggregate([
+        { $match: { artistId, type: 'debit', createdAt: { $gte: date } } },
+        { $group: { _id: null, total: { $sum: "$amount" } } }
+      ]);
+      return { [key]: total.length > 0 ? total[0].total : 0 };
+    }));
+
+    const summary = results.reduce((acc, val) => ({ ...acc, ...val }), {});
+    res.status(200).json(summary);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 
 
 
@@ -157,5 +184,6 @@ module.exports = {
   getTransactionsByArtist,
   getTransactionById,
   deleteTransaction,
-  getTotalDebitedAmount
+  getTotalDebitedAmount,
+  getArtistSpendingSummary
 };

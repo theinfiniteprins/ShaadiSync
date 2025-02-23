@@ -241,6 +241,97 @@ const getLatestUnlockedLead = async (req, res) => {
   }
 };
 
+const getMonthlyLeadsByArtist = async (req, res) => {
+  try {
+    const  artistId  = req.id;
+    
+    if (!artistId.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({ message: "Invalid artist ID" });
+    }
+
+    const fiveMonthsAgo = new Date();
+    fiveMonthsAgo.setMonth(fiveMonthsAgo.getMonth() - 4); // Get data from the last 5 months
+
+    const leads = await UserUnlockService.aggregate([
+      {
+        $lookup: {
+          from: "services",
+          localField: "serviceId",
+          foreignField: "_id",
+          as: "service",
+        },
+      },
+      { $unwind: "$service" },
+      { $match: { "service.artistId": new mongoose.Types.ObjectId(artistId), createdAt: { $gte: fiveMonthsAgo } } },
+      {
+        $group: {
+          _id: { year: { $year: "$createdAt" }, month: { $month: "$createdAt" } },
+          totalLeads: { $sum: 1 },
+        },
+      },
+      { $sort: { "_id.year": -1, "_id.month": -1 } },
+    ]);
+
+    // Format the data to ensure all last 5 months are included
+    const result = [];
+    for (let i = 4; i >= 0; i--) {
+      const date = new Date();
+      date.setMonth(date.getMonth() - i);
+      const year = date.getFullYear();
+      const month = date.getMonth() + 1;
+
+      const leadData = leads.find((l) => l._id.year === year && l._id.month === month);
+      result.push({ year, month, totalLeads: leadData ? leadData.totalLeads : 0 });
+    }
+
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const getUnlockStatsByArtist = async (req, res) => {
+  try {
+    const artistId = req.id;
+    const now = new Date();
+    const startOfDay = new Date(now.setHours(0, 0, 0, 0));
+    const startOfWeek = new Date();
+    startOfWeek.setDate(now.getDate() - 7);
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const startOfYear = new Date(now.getFullYear(), 0, 1);
+
+    const timeFilters = [
+      { label: "today", date: startOfDay },
+      { label: "lastWeek", date: startOfWeek },
+      { label: "lastMonth", date: startOfMonth },
+      { label: "lastYear", date: startOfYear },
+    ];
+
+    const results = {};
+
+    for (const filter of timeFilters) {
+      const count = await UserUnlockService.aggregate([
+        {
+          $lookup: {
+            from: "services",
+            localField: "serviceId",
+            foreignField: "_id",
+            as: "service",
+          },
+        },
+        { $unwind: "$service" },
+        { $match: { "service.artistId": new mongoose.Types.ObjectId(artistId), createdAt: { $gte: filter.date } } },
+        { $count: "total" },
+      ]);
+
+      results[filter.label] = count.length > 0 ? count[0].total : 0;
+    }
+
+    res.status(200).json(results);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
 
 
 
@@ -250,4 +341,6 @@ module.exports = {
   getUnlockedServices,
   getUserByService,
   getLatestUnlockedLead,
+  getMonthlyLeadsByArtist,
+  getUnlockStatsByArtist,
 };
