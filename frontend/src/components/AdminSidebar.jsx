@@ -19,6 +19,9 @@ const AdminSidebar = () => {
         <li className="p-2 rounded-md cursor-pointer flex items-center">
            <Link to="/admin/user-transactions">User Transactions</Link>
         </li>
+        <li className="p-2 rounded-md cursor-pointer flex items-center">
+         <Link to="/admin/artist-transactions">Artist Transactions</Link>
+         </li>
       </ul>
     </aside>
   );

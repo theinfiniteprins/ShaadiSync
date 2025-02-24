@@ -64,10 +64,7 @@ const createTransaction = async (req, res) => {
 
 const getAllTransactions = async (req, res) => {
   try {
-    const transactions = await ArtistTransaction.find()
-      .populate('artistId', 'name email')
-      .populate('unlockId') // Include unlock details
-      .exec();
+    const transactions = await ArtistTransaction.find();
     res.status(200).json(transactions);
   } catch (error) {
     res.status(500).json({ error: error.message });
