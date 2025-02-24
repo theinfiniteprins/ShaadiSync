@@ -56,7 +56,12 @@ export default function AllUsers() {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${config.baseUrl}/api/users/`);
+      const token = localStorage.getItem('token'); // Assuming the token is stored in localStorage
+      const response = await fetch(`${config.baseUrl}/api/users/`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
       if (!response.ok) {
         throw new Error('Failed to fetch users');
       }

@@ -6,11 +6,25 @@ import Footer from "../../components/Footer";
 import config from "../../configs/config";
 import Loading from "../error/loading"; // Import Loading component
 import Error from "../error/Error"; // Import Error component
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+
+
+
 
 const Dashboard = () => {
   const [artistTypes, setArtistTypes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
+  const {user} = useAuth();
+
+  useEffect(() => {
+      if (user && user.isAdmin) 
+        navigate('/admin');
+      else 
+        navigate('/');
+    }, [user]);
 
   useEffect(() => {
     const fetchArtistTypes = async () => {
