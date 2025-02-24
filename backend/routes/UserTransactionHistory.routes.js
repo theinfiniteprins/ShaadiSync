@@ -4,6 +4,7 @@ const {
     createTransaction,
     getTransactionHistory,
     getTransactionById,
+    getAllTransactions,
     deleteTransaction,
 } = require('../controllers/UserTransactionHistory.controller');
 
@@ -12,6 +13,8 @@ const {isAdminMiddleware} = require("../middleware/adminmiddleware")
 
 router.post('/', authMiddleware, createTransaction); // Create user transaction
 router.get('/getHistory', authMiddleware, getTransactionHistory); // Get all user transactions
+router.get('/AllTransactions', authMiddleware, isAdminMiddleware, getAllTransactions); // Get all user transactions
+
 router.get('/:id',authMiddleware,  getTransactionById); // Get user transaction by ID
 
 //router.delete('/:id', deleteTransaction); // Delete user transaction (No one should be able to delete transactions)
