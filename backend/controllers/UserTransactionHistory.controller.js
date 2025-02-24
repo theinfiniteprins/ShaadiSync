@@ -52,8 +52,6 @@ const createTransaction = async (req, res) => {
 
 const getTransactionHistory = async (req, res) => {
   try {
-
-
     // Validate User
     const user = await User.findById(req.id);
     if (!user) {
@@ -62,6 +60,25 @@ const getTransactionHistory = async (req, res) => {
 
     // Retrieve Transactions
     const transactions = await UserTransactionHistory.find({ userId: req.id })
+      .populate('unlockId') // Populate UnlockId details
+      .sort({ createdAt: -1 });
+
+    res.status(200).json(transactions);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const getAllTransactions = async (req, res) => {
+  try {
+    // Validate User
+    const user = await User.findById(req.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Retrieve Transactions
+    const transactions = await UserTransactionHistory.find()
       .populate('unlockId') // Populate UnlockId details
       .sort({ createdAt: -1 });
 
@@ -108,6 +125,7 @@ const deleteTransaction = async (req, res) => {
 
 module.exports = {
   createTransaction,
+  getAllTransactions,
   getTransactionHistory,
   getTransactionById,
   deleteTransaction,
