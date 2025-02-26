@@ -80,7 +80,8 @@ const Wallet = () => {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                amount: paymentAmount // This will be in rupees
+                amount: paymentAmount,
+                paymentType: 'syncCoins' // Add payment type
             })
         });
 
@@ -95,7 +96,7 @@ const Wallet = () => {
         
     } catch (error) {
         console.error('Payment error:', error);
-        // You might want to show an error message to the user here
+        // TODO: Add error toast notification here
     }
   };
 
