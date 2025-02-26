@@ -11,6 +11,8 @@ const userTransactionHistoryRoutes = require("./routes/UserTransactionHistory.ro
 const userUnlockServiceRoutes = require("./routes/UserUnlockService.routes");
 const authRoutes = require("./routes/Auth.routes");
 const Admin = require("./routes/Admin.routes")
+const Payment = require("./routes/Payment.routes");
+const paymentController = require("./controllers/Payment.controller");
 
 const app = express();
 const cors = require('cors');
@@ -23,7 +25,13 @@ app.use(cors({
 }));
 
 // Middleware for JSON parsing
-app.use(express.json());
+app.use((req, res, next) => {
+  if (req.originalUrl === '/api/payment/webhook') {
+    next();
+  } else {
+    express.json()(req, res, next);
+  }
+});
 
 // Test endpoint
 app.get('/', (req, res) => {
@@ -41,6 +49,7 @@ app.use("/api/user-transaction-history", userTransactionHistoryRoutes);
 app.use("/api/user-unlock-service", userUnlockServiceRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/admin",Admin);
+app.use("/api/payment",Payment);
 
 // Connect to the database
 connectDB();

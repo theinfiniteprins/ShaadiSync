@@ -60,10 +60,42 @@ const Wallet = () => {
     fetchTransactions();
   }, []);
 
-  const handleAddCoins = () => {
-    if (amount > 0) {
-      setSyncCoins(syncCoins + amount);
-      setAmount(0);
+  const handleAddCoins = async () => {
+    if (amount <= 0) return;
+    
+    try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            console.error('No token found');
+            return;
+        }
+
+        // Calculate actual amount (each SyncCoin costs ₹10)
+        const paymentAmount = amount * 10;
+
+        const response = await fetch(`${config.baseUrl}/api/payment/create-checkout-session`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                amount: paymentAmount // This will be in rupees
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to create checkout session');
+        }
+
+        const { url } = await response.json();
+        
+        // Redirect to Stripe checkout
+        window.location.href = url;
+        
+    } catch (error) {
+        console.error('Payment error:', error);
+        // You might want to show an error message to the user here
     }
   };
 
