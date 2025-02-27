@@ -14,6 +14,7 @@ const Dashboard = () => {
     userGrowthData: []
   });
 
+  const [artistTypeData, setArtistTypeData] = useState([]);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
   const [snackbar, setSnackbar] = useState({
@@ -22,12 +23,23 @@ const Dashboard = () => {
     severity: 'info'
   });
 
+  // Get token from localStorage
+  const token = localStorage.getItem('token');
+
+  // Configure axios headers with token
+  const axiosConfig = {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    }
+  };
+
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      // Fetch all data in parallel with proper error handling
+      // Fetch all data in parallel with proper error handling and token
       const [
         usersResponse, 
         artistsResponse, 
@@ -35,33 +47,14 @@ const Dashboard = () => {
         userTransactionsResponse,
         artistTransactionsResponse
       ] = await Promise.all([
-        axios.get(`${config.baseUrl}/api/users`).catch(error => {
-          throw new Error('Failed to fetch users data');
-        }),
-        axios.get(`${config.baseUrl}/api/artists`).catch(error => {
-          throw new Error('Failed to fetch artists data');
-        }),
-        axios.get(`${config.baseUrl}/api/services`).catch(error => {
-          throw new Error('Failed to fetch services data');
-        }),
-        axios.get(`${config.baseUrl}/api/user-transaction-history/getHistory`).catch(error => {
-          throw new Error('Failed to fetch user transactions');
-        }),
-        axios.get(`${config.baseUrl}/api/artist-transactions/total-debited-amount/amount`).catch(error => {
-          throw new Error('Failed to fetch artist transactions');
-        })
+        axios.get(`${config.baseUrl}/api/users`, axiosConfig),
+        axios.get(`${config.baseUrl}/api/artists`, axiosConfig),
+        axios.get(`${config.baseUrl}/api/services`, axiosConfig),
+        axios.get(`${config.baseUrl}/api/user-transaction-history/AllTransactions`, axiosConfig),
+        axios.get(`${config.baseUrl}/api/artist-transactions`, axiosConfig)
       ]);
 
-      // Validate responses
-      if (!userTransactionsResponse.data || !Array.isArray(userTransactionsResponse.data)) {
-        throw new Error('Invalid user transactions data received');
-      }
-
-      if (!artistTransactionsResponse.data || !artistTransactionsResponse.data.totalDebitedAmount) {
-        throw new Error('Invalid artist transactions data received');
-      }
-
-      // Calculate total user debited amount with validation
+      // Get user Debited amount (updated validation)
       const userDebitedAmount = userTransactionsResponse.data
         .filter(transaction => transaction && transaction.transactionType === 'debit')
         .reduce((sum, transaction) => {
@@ -69,11 +62,13 @@ const Dashboard = () => {
           return sum + (isNaN(amount) ? 0 : amount);
         }, 0);
 
-      // Get artist debited amount with validation
-      const artistDebitedAmount = parseFloat(artistTransactionsResponse.data.totalDebitedAmount) || 0;
-      if (isNaN(artistDebitedAmount)) {
-        throw new Error('Invalid artist debited amount received');
-      }
+      // Get artist debited amount
+      const artistDebitedAmount = artistTransactionsResponse.data
+        .filter(transaction => transaction && transaction.type === 'debit')
+        .reduce((sum, transaction) => {
+          const amount = parseFloat(transaction.amount);
+          return sum + (isNaN(amount) ? 0 : amount);
+        }, 0);
 
       // Calculate total earnings
       const totalEarnings = userDebitedAmount + artistDebitedAmount;
@@ -140,34 +135,90 @@ const Dashboard = () => {
         userGrowthData: cumulativeGrowthData
       });
 
-      setSnackbar({
-        open: true,
-        message: 'Dashboard data updated successfully',
-        severity: 'success'
-      });
-
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
-      setError(error.message || 'An error occurred while fetching dashboard data');
-      setSnackbar({
-        open: true,
-        message: error.message || 'Failed to fetch dashboard data',
-        severity: 'error'
-      });
+      handleError(error);
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchDashboardData();
-  }, []);
+  // Get artist distribution by type
+  const fetchArtistDistribution = async () => {
+    try {
+      // Fetch artist types with token
+      const artistTypesResponse = await axios.get(`${config.baseUrl}/api/artist-types`, axiosConfig);
+      console.log('Artist Types Response:', artistTypesResponse.data);
+      
+      // Create an object to store counts for each artist type
+      const artistTypeCounts = {};
+      
+      // Initialize counts for each artist type to 0
+      artistTypesResponse.data.forEach(type => {
+        artistTypeCounts[type._id] = {
+          name: type.type,
+          count: 0
+        };
+      });
+
+      // Fetch all artists with token
+      const artistsResponse = await axios.get(`${config.baseUrl}/api/artists`, axiosConfig);
+      console.log('Artists Response:', artistsResponse.data);
+
+      // Count artists for each type
+      artistsResponse.data.forEach(artist => {
+        if (artist && artist.artistType && artistTypeCounts[artist.artistType._id]) {
+          artistTypeCounts[artist.artistType._id].count += 1;
+        }
+      });
+
+      // Convert to format needed for pie chart
+      const chartData = Object.values(artistTypeCounts)
+        .filter(type => type.count > 0)
+        .map(type => ({
+          name: type.name,
+          value: type.count
+        }));
+
+      console.log('Chart Data:', chartData);
+      setArtistTypeData(chartData);
+
+    } catch (error) {
+      console.error('Error fetching artist distribution:', error);
+      handleError(error);
+    }
+  };
+
+  // Enhanced error handling function
+  const handleError = (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('token');
+      window.location.href = '/login';
+      return;
+    }
+    
+    setError(error.message || 'An error occurred');
+    setSnackbar({
+      open: true,
+      message: error.response?.data?.message || error.message || 'An error occurred',
+      severity: 'error'
+    });
+  };
 
   // Handle snackbar close
   const handleSnackbarClose = (event, reason) => {
     if (reason === 'clickaway') return;
     setSnackbar(prev => ({ ...prev, open: false }));
   };
+
+  useEffect(() => {
+    if (!token) {
+      window.location.href = '/login';
+      return;
+    }
+    fetchDashboardData();
+    fetchArtistDistribution();
+  }, []);
 
   if (loading) {
     return (
@@ -176,15 +227,6 @@ const Dashboard = () => {
       </Box>
     );
   }
-
-  const serviceCategoryData = [
-    { name: 'Photographer', value: 35 },
-    { name: 'Mahendi', value: 25 },
-    { name: 'DJ', value: 20 },
-    { name: 'Pandit', value: 15 },
-    { name: 'Decorator', value: 30 },
-    { name: 'Makeup', value: 25 },
-  ];
 
   const COLORS = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEEAD', '#D4A5A5'];
 
@@ -328,35 +370,26 @@ const Dashboard = () => {
 
       {/* Charts */}
       <Grid container spacing={2}>
+        {/* Line Chart */}
         <Grid item xs={12} md={8}>
-          <Card sx={{ 
-            boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-            height: '100%' 
-          }}>
+          <Card sx={{ boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
             <CardContent>
               <Typography variant="h6" sx={{ mb: 2, fontWeight: 600, color: '#2C3E50' }}>
-                User Growth
+                User Growth Over Time
               </Typography>
               <ResponsiveContainer width="100%" height={350}>
                 <LineChart data={statsData.userGrowthData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
-                  <XAxis dataKey="month" stroke="#666" />
-                  <YAxis stroke="#666" />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: '#fff',
-                      border: 'none',
-                      borderRadius: '8px',
-                      boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                    }}
-                  />
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis />
+                  <Tooltip />
                   <Legend />
                   <Line 
                     type="monotone" 
                     dataKey="users" 
                     stroke="#3498db" 
-                    strokeWidth={3}
-                    dot={{ stroke: '#3498db', strokeWidth: 2, r: 4 }}
+                    strokeWidth={2}
+                    dot={{ r: 4 }}
                     activeDot={{ r: 6 }}
                   />
                 </LineChart>
@@ -365,6 +398,7 @@ const Dashboard = () => {
           </Card>
         </Grid>
 
+        {/* Pie Chart */}
         <Grid item xs={12} md={4}>
           <Card sx={{ 
             boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
@@ -372,12 +406,12 @@ const Dashboard = () => {
           }}>
             <CardContent>
               <Typography variant="h6" sx={{ mb: 2, fontWeight: 600, color: '#2C3E50' }}>
-                Services by Category
+                Artists by Category
               </Typography>
               <ResponsiveContainer width="100%" height={350}>
                 <PieChart>
                   <Pie
-                    data={serviceCategoryData}
+                    data={artistTypeData}
                     cx="50%"
                     cy="50%"
                     innerRadius={60}
@@ -385,9 +419,9 @@ const Dashboard = () => {
                     fill="#8884d8"
                     paddingAngle={5}
                     dataKey="value"
-                    label={({ name, value }) => `${name} (${value})`}
+                    label={({ name, value }) => `${name}: ${value}`}
                   >
-                    {serviceCategoryData.map((entry, index) => (
+                    {artistTypeData.map((entry, index) => (
                       <Cell 
                         key={`cell-${index}`} 
                         fill={COLORS[index % COLORS.length]}
@@ -395,6 +429,7 @@ const Dashboard = () => {
                     ))}
                   </Pie>
                   <Tooltip 
+                    formatter={(value, name) => [`${value} Artists`, name]}
                     contentStyle={{ 
                       backgroundColor: '#fff',
                       border: 'none',
@@ -402,6 +437,7 @@ const Dashboard = () => {
                       boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
                     }}
                   />
+                  <Legend />
                 </PieChart>
               </ResponsiveContainer>
             </CardContent>
