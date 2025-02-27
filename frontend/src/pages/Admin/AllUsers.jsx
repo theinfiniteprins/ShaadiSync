@@ -89,7 +89,7 @@ export default function AllUsers() {
       if (response.status === 200) {
         setSnackbar({
           open: true,
-          message: `User successfully ${currentStatus ? 'unblocked' : 'blocked'}`,
+          message: `User successfully ${currentStatus ? 'blocked' : 'unblocked'}`,
           severity: 'success'
         });
         fetchUsers(); // Refresh the list
@@ -277,7 +277,7 @@ export default function AllUsers() {
                 <TableCell sx={{ fontWeight: 'bold', width: '25%' }}>User Details</TableCell>
                 <TableCell sx={{ fontWeight: 'bold', width: '20%' }}>Mobile Number</TableCell>
                 <TableCell sx={{ fontWeight: 'bold', width: '25%' }}>Address</TableCell>
-                <TableCell sx={{ fontWeight: 'bold', width: '15%' }}>Status</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', width: '15%' }}>is Blocked</TableCell>
                 <TableCell sx={{ fontWeight: 'bold', width: '15%' }}>Actions</TableCell>
               </TableRow>
             </TableHead>
@@ -369,7 +369,7 @@ export default function AllUsers() {
                             color="primary"
                           />
                           <Typography color={user.isBlocked ? "error" : "success"}>
-                            {user.isBlocked ? "Blocked" : "Active"}
+                            {user.isBlocked ? "Unblocked" : "Blocked"}
                           </Typography>
                         </Box>
                       </TableCell>

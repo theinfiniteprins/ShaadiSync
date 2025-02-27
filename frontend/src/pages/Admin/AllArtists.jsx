@@ -321,7 +321,7 @@ export default function AllArtists() {
                 <TableCell sx={{ fontWeight: 'bold' }}>Artist Type</TableCell>
                 <TableCell sx={{ fontWeight: 'bold' }}>Contact Info</TableCell>
                 <TableCell sx={{ fontWeight: 'bold' }}>Address</TableCell>
-                <TableCell sx={{ fontWeight: 'bold' }}>Status</TableCell>
+                <TableCell sx={{ fontWeight: 'bold' }}>is Blocked</TableCell>
                 <TableCell sx={{ fontWeight: 'bold' }}>Actions</TableCell>
               </TableRow>
             </TableHead>
@@ -428,12 +428,12 @@ export default function AllArtists() {
                     <TableCell>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                           <Switch
-                            checked={!artist.isBlocked}
+                            checked={artist.isBlocked}
                             onChange={() => handleBlockToggle(artist._id, artist.isBlocked)}
                             color="primary"
                           />
                           <Typography color={artist.isBlocked ? "error" : "success"}>
-                            {artist.isBlocked ? "Blocked" : "Active"}
+                            {artist.isBlocked ? "Blocked" : "Unblocked"}
                           </Typography>
                         </Box>
                       </TableCell>

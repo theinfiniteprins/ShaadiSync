@@ -225,10 +225,10 @@ const updateMaxCharge = async (artistId, session = null) => {
 
 const getAllLiveServices = async (req, res) => {
   try {
-    const liveServices = await Service.find({ isLive: true })
-      .populate('artistId', 'name email address') // Populate artist details
+    const services = await Service.find({isLive: true})
+      .populate('artistId', 'name email address artistType') // Populate artist details
       .exec();
-    res.status(200).json({services: liveServices});
+    res.status(200).json(services);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
