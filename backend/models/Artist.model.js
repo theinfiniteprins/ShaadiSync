@@ -45,7 +45,7 @@ const artistSchema = new Schema(
     },
     isVerified: {
       type: Boolean,
-      default: false, // Indicates if the artist is verified
+      default: true, // Indicates if the artist is verified
     },
     verificationStatus: {
       type: String,
