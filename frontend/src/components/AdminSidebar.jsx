@@ -1,9 +1,18 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { FaSignOutAlt } from "react-icons/fa";
 
 const AdminSidebar = () => {
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    // Clear admin token and other admin-related data
+    localStorage.removeItem('token');
+    navigate('/');
+  };
+
   return (
-    <aside className="w-64 bg-white fixed ounded-lg p-6 flex flex-col m-4">
-      <ul className="space-y-4 shadow-md p-4 rounded-3xl border border-gray-200 ">
+    <aside className="w-64 bg-white fixed rounded-lg p-6 flex flex-col m-4">
+      <ul className="space-y-4 shadow-md p-4 rounded-3xl border border-gray-200">
         <li className="p-2 rounded-md cursor-pointer flex items-center">
            <Link to="/admin">Home</Link>
         </li>
@@ -20,8 +29,16 @@ const AdminSidebar = () => {
            <Link to="/admin/user-transactions">User Transactions</Link>
         </li>
         <li className="p-2 rounded-md cursor-pointer flex items-center">
-         <Link to="/admin/artist-transactions">Artist Transactions</Link>
-         </li>
+           <Link to="/admin/artist-transactions">Artist Transactions</Link>
+        </li>
+        <li className="p-2 rounded-md cursor-pointer flex items-center">
+          <button 
+            onClick={handleLogout}
+            className="flex items-center gap-2 w-full"
+          >
+            <span>Logout</span>
+          </button>
+        </li>
       </ul>
     </aside>
   );

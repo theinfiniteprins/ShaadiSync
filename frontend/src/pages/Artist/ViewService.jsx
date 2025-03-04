@@ -14,7 +14,8 @@ import {
   FaArrowLeft,
   FaEdit,
   FaSave,
-  FaTimes
+  FaTimes,
+  FaExclamationTriangle
 } from "react-icons/fa";
 
 // Import slick carousel CSS
@@ -168,6 +169,57 @@ export default function ViewService() {
     prevArrow: <PrevArrow />
   };
 
+  const renderEditButtons = () => {
+    if (isEditing) {
+      return (
+        <div className="flex gap-2">
+          <button
+            onClick={handleSave}
+            className="flex items-center px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+          >
+            <FaSave className="mr-2" />
+            Save Changes
+          </button>
+          <button
+            onClick={() => {
+              setIsEditing(false);
+              setEditedService(service);
+            }}
+            className="flex items-center px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+          >
+            <FaTimes className="mr-2" />
+            Cancel
+          </button>
+        </div>
+      );
+    }
+  
+    return (
+      <>
+        <button
+          onClick={() => service.isLive ? null : setIsEditing(true)}
+          className={`flex items-center px-4 py-2 rounded-lg transition-colors ${
+            service.isLive 
+              ? 'bg-gray-400 cursor-not-allowed' 
+              : 'bg-blue-500 hover:bg-blue-600 text-white'
+          }`}
+          disabled={service.isLive}
+          title={service.isLive ? "Turn off live status to edit" : "Edit service"}
+        >
+          <FaEdit className="mr-2" />
+          Edit Service
+        </button>
+        <button
+          onClick={handleDelete}
+          className="flex items-center px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+        >
+          <FaTimes className="mr-2" />
+          Delete Service
+        </button>
+      </>
+    );
+  };
+
   if (loading) return <Loading />;
   if (error) return <Error message={error} onRetry={() => window.location.reload()} />;
   if (!service) return null;
@@ -197,46 +249,20 @@ export default function ViewService() {
           </button>
 
           <div className="flex gap-2">
-            {!isEditing ? (
-              <>
-                <button
-                  onClick={() => setIsEditing(true)}
-                  className="flex items-center px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-                >
-                  <FaEdit className="mr-2" />
-                  Edit Service
-                </button>
-                <button
-                  onClick={handleDelete}
-                  className="flex items-center px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
-                >
-                  <FaTimes className="mr-2" />
-                  Delete Service
-                </button>
-              </>
-            ) : (
-              <div className="flex gap-2">
-                <button
-                  onClick={handleSave}
-                  className="flex items-center px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
-                >
-                  <FaSave className="mr-2" />
-                  Save Changes
-                </button>
-                <button
-                  onClick={() => {
-                    setIsEditing(false);
-                    setEditedService(service);
-                  }}
-                  className="flex items-center px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
-                >
-                  <FaTimes className="mr-2" />
-                  Cancel
-                </button>
-              </div>
-            )}
+            {renderEditButtons()}
           </div>
         </div>
+
+        {service?.isLive && (
+          <div className="mb-4 p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded">
+            <div className="flex items-center">
+              <FaExclamationTriangle className="text-yellow-400 mr-2" />
+              <p className="text-sm text-yellow-700">
+                This service is currently live. To make edits, please turn off the live status first.
+              </p>
+            </div>
+          </div>
+        )}
 
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
