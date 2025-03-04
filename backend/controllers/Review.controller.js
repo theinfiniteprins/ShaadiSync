@@ -129,9 +129,11 @@ const getAverageRatingByArtist = async (req, res) => {
 
 const getReviewsByArtistToken = async (req, res) => {
   try {
-    const  artistId  = req.id;
+    const artistId = req.id;
 
-    const reviews = await Review.find({ artistId: artistId }).populate("userId", "name email");
+    const reviews = await Review.find({ artistId: artistId })
+      .populate("userId", "name email")
+      .sort({ createdAt: -1 }); // Sort by createdAt in descending order
 
     if (reviews.length === 0) {
       return res.status(404).json({ message: "No reviews found for this artist." });

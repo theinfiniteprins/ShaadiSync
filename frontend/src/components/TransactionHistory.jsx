@@ -80,7 +80,7 @@ const TransactionHistory = ({ transactions }) => {
                                     : "text-red-600"
                             }`}>
                                 <span className="text-lg font-bold">
-                                    {tx.transactionType === "credit" ? "+" : "-"}
+                                    {tx.transactionType === "credit" ? "+" : ""}
                                     {tx.syncCoin}
                                 </span>
                                 <span className="text-sm ml-1 font-medium">

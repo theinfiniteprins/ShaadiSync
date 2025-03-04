@@ -70,10 +70,10 @@ const LeadsByService = () => {
           <div className="flex items-center justify-between">
             <div className="flex-1">
               <h1 className="text-2xl font-bold text-gray-900 mb-2">
-                {serviceData?.serviceId?.title || "Service Details"}
+                {serviceData?.serviceId?.title ?? "Service Details"}
               </h1>
               <p className="text-gray-600 max-w-2xl">
-                {serviceData?.serviceId?.description}
+                {serviceData?.serviceId?.description ?? "No description available"}
               </p>
             </div>
             <div className="bg-gradient-to-r from-[#155dfc]/10 to-[#155dfc]/5 p-4 rounded-2xl">
@@ -82,7 +82,7 @@ const LeadsByService = () => {
                 <div>
                   <p className="text-sm text-gray-600">Total Unlocks</p>
                   <p className="text-2xl font-bold text-[#155dfc]">
-                    {serviceData?.unlockedBy?.length || 0}
+                    {serviceData?.unlockedBy ? serviceData.unlockedBy.length : 0}
                   </p>
                 </div>
               </div>
@@ -111,7 +111,7 @@ const LeadsByService = () => {
           <div className="grid gap-4">
             {serviceData.unlockedBy.map((unlock) => (
               <div 
-                key={unlock._id}
+                key={unlock?._id ?? Math.random()} // Fallback key
                 className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-all duration-200 border border-gray-100"
               >
                 <div className="flex items-center justify-between flex-wrap gap-4">
@@ -121,14 +121,14 @@ const LeadsByService = () => {
                     </div>
                     <div>
                       <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                        {unlock.userId.name}
+                        {unlock?.userId?.name ?? "Unknown User"}
                       </h3>
                       <div className="flex flex-wrap items-center gap-4 text-gray-600">
                         <span className="flex items-center bg-gray-50 px-3 py-1 rounded-full">
                           <FaEnvelope className="mr-2 text-[#155dfc]" />
-                          {unlock.userId.email}
+                          {unlock?.userId?.email ?? "No Email"}
                         </span>
-                        {unlock.userId.phone && (
+                        {unlock?.userId?.phone && (
                           <span className="flex items-center bg-gray-50 px-3 py-1 rounded-full">
                             <FaPhone className="mr-2 text-[#155dfc]" />
                             {unlock.userId.phone}
@@ -139,11 +139,13 @@ const LeadsByService = () => {
                   </div>
                   <div className="text-sm text-gray-500 bg-gray-50 px-3 py-1 rounded-full flex items-center">
                     <FaCalendar className="mr-2 text-[#155dfc]" />
-                    {new Date(unlock.createdAt).toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'short',
-                      day: 'numeric'
-                    })}
+                    {unlock?.createdAt
+                      ? new Date(unlock.createdAt).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric'
+                        })
+                      : "Unknown Date"}
                   </div>
                 </div>
               </div>

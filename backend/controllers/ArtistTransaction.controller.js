@@ -80,12 +80,13 @@ const getTransactionsByArtist = async (req, res) => {
       return res.status(404).json({ message: 'Artist not found' });
     }
 
-    const transactions = await ArtistTransaction.find({ artistId });
+    const transactions = await ArtistTransaction.find({ artistId }).sort({ _id: -1 }); // Reverse order
     res.status(200).json(transactions);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
+
 
 const getTransactionById = async (req, res) => {
   try {
@@ -136,14 +137,16 @@ const getTotalDebitedAmount = async (req, res) => {
     const artistId = new mongoose.Types.ObjectId(req.id); // Convert to ObjectId
 
     const totalDebited = await ArtistTransaction.aggregate([
-      { $match: { artistId: artistId, type: "debit" } }, // Match by ObjectId
+      { $match: { artistId: artistId, type: "debit", amount: { $gte: 0 } } }, // Exclude negative amounts
       { $group: { _id: null, total: { $sum: "$amount" } } }
     ]);
+
     res.status(200).json({ totalDebited: totalDebited.length > 0 ? totalDebited[0].total : 0 });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
+
 
 const getArtistSpendingSummary = async (req, res) => {
   try {
@@ -159,7 +162,7 @@ const getArtistSpendingSummary = async (req, res) => {
 
     const results = await Promise.all(Object.entries(timeFrames).map(async ([key, date]) => {
       const total = await ArtistTransaction.aggregate([
-        { $match: { artistId, type: 'debit', createdAt: { $gte: date } } },
+        { $match: { artistId, type: 'debit', amount: { $gte: 0 }, createdAt: { $gte: date } } }, // Exclude negative amounts
         { $group: { _id: null, total: { $sum: "$amount" } } }
       ]);
       return { [key]: total.length > 0 ? total[0].total : 0 };
@@ -171,6 +174,7 @@ const getArtistSpendingSummary = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
 
 
 
