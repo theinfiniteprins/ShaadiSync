@@ -131,7 +131,7 @@ export default function SignUp() {
       }
 
       // Redirect to login page on successful signup
-      navigate('/');
+      navigate('/login');
     } catch (error) {
       setErrors(prev => ({
         ...prev,
