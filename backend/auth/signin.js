@@ -42,6 +42,12 @@ const signin = async (req, res) => {
                         message: "Incorrect password",
                     });
                 }
+                if(user.isBlocked){
+                    return res.status(401).json({
+                        success: false,
+                        message: "User is blocked",
+                    });
+                }
 
                 
                 const token = jwt.sign({ userId: user._id,role: 'user' }, process.env.JWT_SECRET);
@@ -73,7 +79,14 @@ const signin = async (req, res) => {
                         success: false,
                         message: "Incorrect password",
                     });
-                }                
+                }   
+                if(artist.isBlocked){
+                    return res.status(401).json({
+                        success: false,
+                        message: "Artist is blocked",
+                    });
+                }       
+                      
                 const token = jwt.sign({ artistId: artist._id, role: 'artist' }, process.env.JWT_SECRET);
                 return res.status(200).json({
                     success: true,

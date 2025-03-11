@@ -39,7 +39,7 @@ export default function FilterSection({ onFilterChange }) {
           <option value="50000">Up to ₹50,000</option>
         </select>
 
-        {/* Rating Filter */}
+        {/* Rating Filter
         <select
           className="border p-2 rounded-md focus:outline-none focus:ring-2"
           value={filters.rating}
@@ -51,17 +51,17 @@ export default function FilterSection({ onFilterChange }) {
           <option value="3">⭐⭐⭐ 3 Stars</option>
           <option value="4">⭐⭐⭐⭐ 4 Stars</option>
           <option value="5">⭐⭐⭐⭐⭐ 5 Stars</option>
-        </select>
+        </select> */}
 
         {/* Shortlisted Filter */}
-        <button
+        {/* <button
           className={`px-4 py-2 rounded-md transition ${
             filters.shortlisted ? "bg-pink-400 text-white" : "bg-gray-300 text-gray-700"
           }`}
           onClick={() => handleChange("shortlisted", !filters.shortlisted)}
         >
           {filters.shortlisted ? "Shortlisted ✔" : "Shortlisted"}
-        </button>
+        </button> */}
       </div>
 
       {/* Right Side - Clear Filters Button */}

@@ -89,7 +89,7 @@ export default function AllUsers() {
       if (response.status === 200) {
         setSnackbar({
           open: true,
-          message: `User successfully ${currentStatus ? 'blocked' : 'unblocked'}`,
+          message: `User successfully ${currentStatus ? 'unblocked' : 'blocked'}`,
           severity: 'success'
         });
         fetchUsers(); // Refresh the list
@@ -364,12 +364,12 @@ export default function AllUsers() {
                       <TableCell>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                           <Switch
-                            checked={!user.isBlocked}
+                            checked={user.isBlocked}
                             onChange={() => handleBlockToggle(user._id, user.isBlocked)}
                             color="primary"
                           />
                           <Typography color={user.isBlocked ? "error" : "success"}>
-                            {user.isBlocked ? "Unblocked" : "Blocked"}
+                            {user.isBlocked ? "Blocked" : "Unblocked"}
                           </Typography>
                         </Box>
                       </TableCell>
