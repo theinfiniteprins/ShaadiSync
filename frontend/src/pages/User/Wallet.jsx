@@ -100,6 +100,22 @@ const Wallet = () => {
     }
   };
 
+  const handlePurchase = async () => {
+    const loadingToast = toast.loading('Processing payment...', toastConfig.loading);
+    try {
+      // ...existing payment logic...
+      toast.success('Payment successful! Coins added to wallet', {
+        id: loadingToast,
+        ...toastConfig.success
+      });
+    } catch (error) {
+      toast.error('Payment failed', {
+        id: loadingToast,
+        ...toastConfig.error
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header Section */}

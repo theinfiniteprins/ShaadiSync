@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { FaCalendar, FaPowerOff } from 'react-icons/fa';
 import axios from 'axios';
 import config from '../configs/config';
+import { toast } from 'react-hot-toast'; // Add this import
 
 const ArtistServiceCard = ({ service }) => {
   const navigate = useNavigate();
@@ -25,8 +26,49 @@ const ArtistServiceCard = ({ service }) => {
       );
 
       setIsLive(prevState => !prevState);
+      
+      // Success toast message
+      toast.success(
+        `Service ${!isLive ? 'activated' : 'deactivated'} successfully`, 
+        {
+          duration: 3000,
+          icon: !isLive ? '🟢' : '🔴',
+          style: {
+            background: !isLive ? '#10B981' : '#6B7280',
+            color: 'white',
+            padding: '16px',
+            borderRadius: '10px',
+          }
+        }
+      );
+
     } catch (error) {
       console.error('Failed to toggle service:', error);
+      if (error.response?.status === 403 && 
+          error.response?.data?.message === "Service cannot be made live. Artist's balance is less than 10% of the service price.") {
+        toast.error(error.response.data.message, {
+          duration: 4000,
+          icon: '⚠️',
+          style: {
+            background: '#EF4444',
+            color: 'white',
+            padding: '16px',
+            borderRadius: '10px',
+          }
+        });
+      } else {
+        // Generic error toast
+        toast.error('Failed to update service status', {
+          duration: 4000,
+          icon: '❌',
+          style: {
+            background: '#EF4444',
+            color: 'white',
+            padding: '16px',
+            borderRadius: '10px',
+          }
+        });
+      }
     } finally {
       setTimeout(() => {
         setIsToggling(false);

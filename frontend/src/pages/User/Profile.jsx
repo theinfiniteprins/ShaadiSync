@@ -206,6 +206,22 @@ export default function Profile() {
     }
   };
 
+  const handleProfileUpdate = async () => {
+    const loadingToast = toast.loading('Updating profile...', toastConfig.loading);
+    try {
+      // ...existing update logic...
+      toast.success('Profile updated successfully', {
+        id: loadingToast,
+        ...toastConfig.success
+      });
+    } catch (error) {
+      toast.error('Failed to update profile', {
+        id: loadingToast,
+        ...toastConfig.error
+      });
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex justify-center items-center bg-gradient-to-br from-pink-50 to-purple-50">
