@@ -64,7 +64,7 @@ const Dashboard = () => {
 
       // Get artist debited amount
       const artistDebitedAmount = artistTransactionsResponse.data
-        .filter(transaction => transaction && transaction.type === 'debit')
+        .filter(transaction => transaction && transaction.type === 'debit' && transaction.amount>0)
         .reduce((sum, transaction) => {
           const amount = parseFloat(transaction.amount);
           return sum + (isNaN(amount) ? 0 : amount);
