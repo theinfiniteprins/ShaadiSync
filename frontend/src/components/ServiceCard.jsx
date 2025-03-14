@@ -31,7 +31,7 @@ export default function ServiceCard({ service, onClick }) {
 
         {/* View Service Button */}
         <button 
-          // onClick={() => navigate(`/services/${service._id}`)}
+           onClick={() => navigate(`/services/${service._id}`)}
           className="w-full bg-pink-500 text-white py-2 rounded-lg text-sm hover:bg-pink-600 transition-colors"
         >
           View Service

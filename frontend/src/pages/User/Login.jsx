@@ -24,9 +24,40 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
+  const toastConfig = {
+    success: {
+      duration: 3000,
+      icon: '✅',
+      style: {
+        background: '#10B981',
+        color: 'white',
+        padding: '16px',
+        borderRadius: '10px',
+      }
+    },
+    error: {
+      duration: 4000,
+      icon: '❌',
+      style: {
+        background: '#EF4444',
+        color: 'white',
+        padding: '16px',
+        borderRadius: '10px',
+      }
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validate form data
+    if (!formData.email || !formData.password) {
+      toast.error('Please fill in all fields', toastConfig.error);
+      return;
+    }
+
     setLoading(true);
+    const loadingToast = toast.loading('Signing in...');
     
     try {
       const response = await fetch(`${config.baseUrl}/api/auth/signin`, {
@@ -45,13 +76,20 @@ export default function Login() {
 
       if (data.success && data.token) {
         login(data.token);
-        toast.success('Login successful!');
+        toast.dismiss(loadingToast);
+        toast.success('Welcome back! 👋', toastConfig.success);
         navigate('/');
       } else {
         throw new Error('Invalid response from server');
       }
     } catch (error) {
-      toast.error(error.message || 'Login failed');
+      toast.dismiss(loadingToast);
+      toast.error(
+        error.message === 'Failed to fetch' 
+          ? 'Unable to connect to server' 
+          : error.message || 'Login failed',
+        toastConfig.error
+      );
     } finally {
       setLoading(false);
     }

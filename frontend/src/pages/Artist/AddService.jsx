@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { FaUpload, FaArrowLeft, FaTrash } from 'react-icons/fa';
 import config from '../../configs/config';
+import { toast } from 'react-hot-toast';
 
 const AddService = () => {
   const navigate = useNavigate();
@@ -74,17 +75,36 @@ const AddService = () => {
     setLoading(true);
     setError('');
 
+    // Show loading toast
+    const loadingToast = toast.loading('Creating your service...', {
+      style: {
+        background: '#fff',
+        color: '#333',
+        padding: '16px',
+        borderRadius: '10px',
+      }
+    });
+
     try {
       const token = localStorage.getItem('artistToken');
       
-      // Upload images to Cloudinary first
       setUploadingImages(true);
+      // Show uploading toast
+      toast.loading('Uploading images...', {
+        id: loadingToast,
+        style: {
+          background: '#fff',
+          color: '#333',
+          padding: '16px',
+          borderRadius: '10px',
+        }
+      });
+
       const uploadedUrls = await Promise.all(
         selectedImages.map(image => uploadImageToCloudinary(image))
       );
       setUploadingImages(false);
 
-      // Create service with uploaded image URLs
       const serviceData = {
         ...formData,
         photos: uploadedUrls
@@ -101,8 +121,31 @@ const AddService = () => {
         }
       );
 
+      // Success toast
+      toast.success('Service created successfully! 🎉', {
+        id: loadingToast,
+        duration: 3000,
+        style: {
+          background: '#10B981',
+          color: 'white',
+          padding: '16px',
+          borderRadius: '10px',
+        }
+      });
+
       navigate('/artist/services');
     } catch (err) {
+      // Error toast
+      toast.error(err.response?.data?.message || 'Failed to create service', {
+        id: loadingToast,
+        duration: 4000,
+        style: {
+          background: '#EF4444',
+          color: 'white',
+          padding: '16px',
+          borderRadius: '10px',
+        }
+      });
       setError(err.response?.data?.message || 'Failed to create service');
     } finally {
       setLoading(false);

@@ -5,6 +5,7 @@ import Slider from "react-slick";
 import config from "../../configs/config";
 import Loading from "../error/loading";
 import Error from "../error/Error";
+import { toast } from 'react-hot-toast';
 import {
   FaMapMarkerAlt,
   FaRupeeSign,
@@ -21,6 +22,35 @@ import {
 // Import slick carousel CSS
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
+
+const toastConfig = {
+  success: {
+    duration: 3000,
+    style: {
+      background: '#10B981',
+      color: 'white',
+      padding: '16px',
+      borderRadius: '10px',
+    }
+  },
+  error: {
+    duration: 4000,
+    style: {
+      background: '#EF4444',
+      color: 'white',
+      padding: '16px',
+      borderRadius: '10px',
+    }
+  },
+  loading: {
+    style: {
+      background: '#fff',
+      color: '#333',
+      padding: '16px',
+      borderRadius: '10px',
+    }
+  }
+};
 
 export default function ViewService() {
   const [service, setService] = useState(null);
@@ -67,6 +97,8 @@ export default function ViewService() {
   const handleSave = async () => {
     try {
       setLoading(true);
+      const loadingId = toast.loading('Saving changes...', toastConfig.loading);
+      
       const token = localStorage.getItem("artistToken");
       await axios.put(
         `${config.baseUrl}/api/services/${id}`,
@@ -75,10 +107,14 @@ export default function ViewService() {
           headers: { Authorization: `Bearer ${token}` }
         }
       );
+      
       setService(editedService);
       setIsEditing(false);
+      toast.dismiss(loadingId);
+      toast.success('Service updated successfully', toastConfig.success);
     } catch (error) {
       console.error('Error updating service:', error);
+      toast.error('Failed to update service', toastConfig.error);
     } finally {
       setLoading(false);
     }
@@ -121,23 +157,22 @@ export default function ViewService() {
     if (window.confirm('Are you sure you want to delete this service?')) {
       try {
         setLoading(true);
+        const loadingId = toast.loading('Deleting service...', toastConfig.loading);
+        
         const token = localStorage.getItem("artistToken");
-
-        // First delete all images
         await deleteImages(service.photos);
-
-        // Then delete the service
         await axios.delete(
           `${config.baseUrl}/api/services/${id}`,
-          {
-            headers: { Authorization: `Bearer ${token}` }
-          }
+          { headers: { Authorization: `Bearer ${token}` } }
         );
-        
+
+        toast.dismiss(loadingId);
+        toast.success('Service deleted successfully', toastConfig.success);
         navigate('/artist/services');
       } catch (error) {
         console.error('Error deleting service:', error);
-        setError(error.message || 'Failed to delete service. Please try again later.');
+        toast.error('Failed to delete service', toastConfig.error);
+        setError(error.message || 'Failed to delete service');
       } finally {
         setLoading(false);
       }

@@ -39,6 +39,7 @@ export default function ViewService() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [averageRating, setAverageRating] = useState(0);
   const [totalReviews, setTotalReviews] = useState(0);
+  const [insufficientCoins, setInsufficientCoins] = useState(false);
   console.log(service);
 
 
@@ -118,33 +119,52 @@ export default function ViewService() {
   }, [service]);
 
   const handleUnlock = async () => {
-    if (!user) {
-      navigate('/login', {
-        state: {
-          redirectTo: `/service/${id}`,
-          message: "Please login to unlock artist details"
-        }
-      });
-      return;
-    }
-
+    const loadingToast = toast.loading('Unlocking service...', toastConfig.loading);
     try {
-      const token = localStorage.getItem("token");
-      await axios.post(
-        `${config.baseUrl}/api/user-unlock-service/unlock`,
-        { serviceId: id },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      // After successful unlock, fetch artist details
-      const artistResponse = await axios.get(
-        `${config.baseUrl}/api/artists/${service.artistId._id}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setArtist(artistResponse.data);
-      setIsUnlocked(true);
-    } catch (err) {
-      console.error('Error unlocking service:', err);
+      if (!user) {
+        navigate('/login', {
+          state: {
+            redirectTo: `/service/${id}`,
+            message: "Please login to unlock artist details"
+          }
+        });
+        return;
+      }
+  
+      // Check if user has enough SyncCoins
+      if (user.SyncCoin <= 0) {
+        setInsufficientCoins(true);
+        setTimeout(() => setInsufficientCoins(false), 3000); // Hide after 3 seconds
+        return;
+      }
+  
+      try {
+        const token = localStorage.getItem("token");
+        await axios.post(
+          `${config.baseUrl}/api/user-unlock-service/unlock`,
+          { serviceId: id },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+  
+        // After successful unlock, fetch artist details
+        const artistResponse = await axios.get(
+          `${config.baseUrl}/api/artists/${service.artistId._id}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        setArtist(artistResponse.data);
+        setIsUnlocked(true);
+      } catch (err) {
+        console.error('Error unlocking service:', err);
+      }
+      toast.success('Service unlocked successfully', {
+        id: loadingToast,
+        ...toastConfig.success
+      });
+    } catch (error) {
+      toast.error('Failed to unlock service', {
+        id: loadingToast,
+        ...toastConfig.error
+      });
     }
   };
 
@@ -235,16 +255,38 @@ export default function ViewService() {
               <div className="text-center transform transition-all duration-300 hover:scale-105">
                 <div className="bg-white p-6 rounded-2xl shadow-lg">
                   <FaLock className="text-4xl text-pink-500 mx-auto mb-4" />
-                  <h3 className="text-xl font-bold text-gray-800 mb-2">Unlock Artist Details</h3>
-                  <p className="text-gray-600 mb-4">Get access to contact information and more</p>
-                  <button
-                    onClick={handleUnlock}
-                    className="bg-pink-500 text-white px-8 py-3 rounded-xl font-semibold 
-                             hover:bg-pink-600 transform transition-all duration-300 
-                             hover:shadow-lg active:scale-95"
-                  >
-                    Unlock Now
-                  </button>
+                  <h3 className="text-xl font-bold text-gray-800 mb-2">
+                    {insufficientCoins ? "Insufficient SyncCoins" : "Unlock Artist Details"}
+                  </h3>
+                  <p className="text-gray-600 mb-4">
+                    {insufficientCoins 
+                      ? "You need SyncCoins to unlock artist details. Please recharge your wallet."
+                      : "Get access to contact information and more"}
+                  </p>
+                  {insufficientCoins ? (
+                    <button
+                      onClick={() => navigate('/wallet')}
+                      className="bg-pink-500 text-white px-8 py-3 rounded-xl font-semibold 
+                               hover:bg-pink-600 transform transition-all duration-300 
+                               hover:shadow-lg active:scale-95"
+                    >
+                      Recharge Wallet
+                    </button>
+                  ) : (
+                    <button
+                      onClick={handleUnlock}
+                      className="bg-pink-500 text-white px-8 py-3 rounded-xl font-semibold 
+                               hover:bg-pink-600 transform transition-all duration-300 
+                               hover:shadow-lg active:scale-95"
+                    >
+                      Unlock Now
+                    </button>
+                  )}
+                  {user && (
+                    <div className="mt-2 text-sm text-gray-500">
+                      Your Balance: {user.SyncCoin} SyncCoins
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

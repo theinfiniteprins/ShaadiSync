@@ -57,17 +57,20 @@ const ArtistTransactions = () => {
                 }
             });
 
-            // Calculate statistics
-            const totalEarnings = filteredTransactions.reduce((acc, curr) => acc + curr.amount, 0);
-            const totalDebits = filteredTransactions.filter(t => t.type === 'debit').length;
-            const totalCredits = filteredTransactions.filter(t => t.type === 'credit').length;
+            // Sort transactions in LIFO order
+            const sortedTransactions = filteredTransactions.sort((a, b) => moment(b.createdAt) - moment(a.createdAt));
 
-            setTransactions(filteredTransactions);
+            // Calculate statistics
+            const totalEarnings = sortedTransactions.reduce((acc, curr) => acc + curr.amount, 0);
+            const totalDebits = sortedTransactions.filter(t => t.type === 'debit').length;
+            const totalCredits = sortedTransactions.filter(t => t.type === 'credit').length;
+
+            setTransactions(sortedTransactions);
             setStatistics({
                 totalEarnings,
                 totalDebits,
                 totalCredits,
-                totalTransactions: filteredTransactions.length
+                totalTransactions: sortedTransactions.length
             });
         } catch (error) {
             console.error('Error details:', error);
