@@ -45,7 +45,7 @@ const signin = async (req, res) => {
                 if(user.isBlocked){
                     return res.status(401).json({
                         success: false,
-                        message: "User is blocked",
+                        message: "Your account is blocked",
                     });
                 }
 
@@ -65,7 +65,7 @@ const signin = async (req, res) => {
             }
         } else if (role === "artist") {
             try {
-                const artist = await Artist.findOne({ email });
+                const artist = await Artist.findOne({ email }).select('+isBlocked');;
 
                 if (!artist) {
                     return res.status(404).json({
@@ -83,7 +83,7 @@ const signin = async (req, res) => {
                 if(artist.isBlocked){
                     return res.status(401).json({
                         success: false,
-                        message: "Artist is blocked",
+                        message: "Your Account is blocked",
                     });
                 }       
                       
