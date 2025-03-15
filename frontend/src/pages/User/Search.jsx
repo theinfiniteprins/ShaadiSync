@@ -23,7 +23,7 @@ const Search = () => {
 
         // Fetch services
         const servicesResponse = await axios.get(
-          `${config.baseUrl}/api/services`,
+          `${config.baseUrl}/api/services/live`,
           { headers }
         );
         

@@ -11,7 +11,7 @@ import Wallet from "../pages/Artist/Wallet";
 import Profile from "../pages/Artist/Profile";
 import Terms from "../pages/Artist/Terms&Condition";
 import PrivacyPolicy from "../pages/Artist/PrivacyPolicy";
-import Others from "../pages/Artist/others";
+import Others from "../pages/Artist/Others";
 
 import Review from "../pages/Artist/Review";
 
