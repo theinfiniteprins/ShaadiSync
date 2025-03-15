@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { FaUser } from 'react-icons/fa';
 import config from '../../configs/config';
-import Loading from '../error/loading';
+import Loading from '../error/loader.jsx';
 import ArtistServiceCard from '../../components/ArtistServiceCard';
 
 const Services = () => {

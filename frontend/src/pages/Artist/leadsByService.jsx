@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { FaUser, FaCalendar, FaEnvelope, FaPhone, FaArrowLeft, FaUsers } from 'react-icons/fa';
 import config from '../../configs/config';
-import Loading from '../error/loading';
+import Loading from '../error/loader.jsx';
 
 const LeadsByService = () => {
   const { serviceId } = useParams();

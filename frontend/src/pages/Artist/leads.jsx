@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { FaUser, FaCalendar, FaUsers } from 'react-icons/fa';
 import config from '../../configs/config';
-import Loading from '../error/loading';
+import Loading from '../error/loader.jsx';
 
 // Add CSS for hiding scrollbar
 const scrollbarHiddenStyle = {

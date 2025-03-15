@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import config from '../../configs/config';
 import { useAuth } from '../../context/AuthContext';
-import Loading from '../error/loading';
+import Loading from '../error/loader.jsx';
 import Error from '../error/Error';
 import ServiceCard from '../../components/ServiceCard';
 
