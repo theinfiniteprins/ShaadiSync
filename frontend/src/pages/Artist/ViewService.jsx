@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import Slider from "react-slick";
 import config from "../../configs/config";
-import Loading from "../error/loading";
+import Loading from "../error/loader.jsx";
 import Error from "../error/Error";
 import { toast } from 'react-hot-toast';
 import {

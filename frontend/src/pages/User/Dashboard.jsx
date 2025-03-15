@@ -4,7 +4,7 @@ import SearchBar from "../../components/SearchBar";
 import CategorywiseArtist from "../../components/CategorywiseArtist";
 import Footer from "../../components/Footer";
 import config from "../../configs/config";
-import Loading from "../error/loading"; // Import Loading component
+import Loading from "../error/loader.jsx"; // Import Loading component
 import Error from "../error/Error"; // Import Error component
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
