@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import ServiceCard from "../../components/ServiceCard";
 import config from "../../configs/config";
-import Loading from "../error/loading";
+import Loading from "../error/loader.jsx";
 import Error from "../error/Error";
 import FilterSection from "../../components/FilterSection";
 

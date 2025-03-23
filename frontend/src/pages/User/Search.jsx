@@ -3,7 +3,7 @@ import axios from "axios";
 import { FaSearch } from "react-icons/fa";
 import config from "../../configs/config";
 import ServiceCard from "../../components/ServiceCard";
-import Loading from "../error/loading";
+import Loading from "../error/loader.jsx";
 
 const Search = () => {
   const [services, setServices] = useState([]);
@@ -70,7 +70,8 @@ const Search = () => {
     }
   };
 
-  if (loading) return <Loading />;
+  // if (loading) return <Loading />;
+  if (loading) return Loading
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
