@@ -1,5 +1,4 @@
 import { Link, useNavigate } from "react-router-dom";
-import { FaSignOutAlt } from "react-icons/fa";
 
 const AdminSidebar = () => {
   const navigate = useNavigate();

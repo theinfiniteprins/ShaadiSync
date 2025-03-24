@@ -1,9 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import ArtistCategoryCard from './ArtistCategoryCard';  
-import config from '../configs/config';
 import { useNavigate } from 'react-router-dom';
-import Loading from '../pages/error/loading';
-import Error from '../pages/error/Error';
 
 const styles = `
   .hide-scrollbar {
