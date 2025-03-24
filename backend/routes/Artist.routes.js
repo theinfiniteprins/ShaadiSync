@@ -12,7 +12,8 @@ const {
   updateIsVerified,
   submitVerification,
   getCurrentArtist,
-  deleteImage
+  deleteImage,
+  changePassword
 } = require('../controllers/Artist.controller');
 
 const { authMiddleware } = require("../middleware/authmiddleware");
@@ -22,6 +23,7 @@ router.post('/', createArtist);
 
 router.get('/me', authMiddleware, getCurrentArtist);
 router.get('/:id', authMiddleware, getArtistById); 
+router.put('/change-password', authMiddleware, changePassword);
 router.put('/:id', authMiddleware, updateArtist); // Update artist
 router.get('/viewbalance/balance', authMiddleware, viewBalance); // Get artist balance
 router.put('/:id/submit-verify', authMiddleware, submitVerification); // Unblock artist
@@ -33,5 +35,6 @@ router.delete('/:id', authMiddleware, isAdminMiddleware, deleteArtist); // Delet
 router.put('/:id/block', authMiddleware, isAdminMiddleware, blockArtist); // Block artist
 router.put('/:id/unblock', authMiddleware, isAdminMiddleware, unblockArtist); // Unblock artist
 router.post('/delete-image', authMiddleware, deleteImage);
+router.put('/change-password', authMiddleware, changePassword);
 
 module.exports = router;

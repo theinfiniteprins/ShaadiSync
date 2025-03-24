@@ -1,7 +1,7 @@
 const Artist = require('../models/Artist.model'); // Replace with the actual path to your Artist model
 const ArtistType = require('../models/ArtistType.model'); // Replace with the actual path to your ArtistType model
 const zod = require("zod");
-
+const bcrypt = require('bcrypt');
 
 // 1. Create a new Artist
 const createArtist = async (req, res) => {
@@ -286,6 +286,49 @@ const deleteImage = async (req, res) => {
   }
 };
 
+const changePassword = async (req, res) => {
+  try {
+    const { oldPassword, newPassword } = req.body;
+    const artistId = req.id;
+
+    const artist = await Artist.findById(artistId);
+    if (!artist) {
+      return res.status(404).json({
+        success: false,
+        message: 'Artist not found'
+      });
+    }
+
+    // Verify old password
+    const isMatch = await bcrypt.compare(oldPassword, artist.password);
+    if (!isMatch) {
+      return res.status(401).json({
+        success: false,
+        message: 'Current password is incorrect'
+      });
+    }
+
+    // Hash new password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    // Update password
+    artist.password = hashedPassword;
+    await artist.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Password updated successfully'
+    });
+  } catch (error) {
+    console.error('Error changing password:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to change password'
+    });
+  }
+};
+
 module.exports = {
   createArtist,
   getAllArtists,
@@ -299,4 +342,5 @@ module.exports = {
   submitVerification,
   getCurrentArtist,
   deleteImage,
+  changePassword,
 };

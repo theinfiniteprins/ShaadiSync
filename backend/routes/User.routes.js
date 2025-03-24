@@ -11,6 +11,7 @@ const {
   getCurrentUser,
   deleteImage,
   viewBalance,
+  changePassword,
 } = require('../controllers/User.controller');
 
 const {authMiddleware} = require("../middleware/authmiddleware");
@@ -20,6 +21,7 @@ router.post('/', createUser); // Create new user
 router.get('/me', authMiddleware, getCurrentUser);
 router.get('/getuserbyid/:id',authMiddleware, getUserById); // Get user by ID
 router.get('/getBalance',authMiddleware, viewBalance); // Get user by ID
+router.put('/change-password', authMiddleware, changePassword);
 
 router.put('/:id', authMiddleware, updateUser); // Update user
 

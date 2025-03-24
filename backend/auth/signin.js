@@ -20,7 +20,7 @@ const signin = async (req, res) => {
         if (!parsed.success) {
             return res.status(400).json({
                 success: false,
-                message: "Invalid inputs. Check email, password, or role.",
+                message: "Invalid user. Check email, password.",
             });
         }
 

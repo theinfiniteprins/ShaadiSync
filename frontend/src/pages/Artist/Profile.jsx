@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
 import config from '../../configs/config';
-import { FaUser, FaPhone, FaMapMarkerAlt, FaEnvelope, FaCamera, FaEdit, FaPalette, FaBriefcase } from 'react-icons/fa';
+import { FaUser, FaPhone, FaMapMarkerAlt, FaEnvelope, FaCamera, FaEdit, FaPalette, FaBriefcase, FaLock } from 'react-icons/fa';
 
 export default function ArtistProfile() {
   const { token } = useAuth();
@@ -24,6 +24,17 @@ export default function ArtistProfile() {
     isVerified: false
   });
   const [artistTypes, setArtistTypes] = useState({});
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [passwordData, setPasswordData] = useState({
+    oldPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [showPasswords, setShowPasswords] = useState({
+    old: false,
+    new: false,
+    confirm: false
+  });
 
   useEffect(() => {
     const storedToken = localStorage.getItem('artistToken');
@@ -233,6 +244,62 @@ export default function ArtistProfile() {
     }
   };
 
+  const handlePasswordChange = async (e) => {
+    e.preventDefault();
+    
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      toast.error('New passwords do not match');
+      return;
+    }
+  
+    const loadingToast = toast.loading('Updating password...', {
+      style: {
+        background: '#fff',
+        color: '#333',
+        padding: '16px',
+        borderRadius: '10px',
+      }
+    });
+  
+    try {
+      const storedToken = localStorage.getItem('artistToken');
+      await axios.put(
+        `${config.baseUrl}/api/artists/change-password`,
+        {
+          oldPassword: passwordData.oldPassword,
+          newPassword: passwordData.newPassword
+        },
+        {
+          headers: { Authorization: `Bearer ${storedToken}` }
+        }
+      );
+  
+      toast.success('Password updated successfully', {
+        id: loadingToast,
+        duration: 3000,
+        style: {
+          background: '#10B981',
+          color: 'white',
+          padding: '16px',
+          borderRadius: '10px',
+        }
+      });
+      setShowPasswordModal(false);
+      setPasswordData({ oldPassword: '', newPassword: '', confirmPassword: '' });
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to update password', {
+        id: loadingToast,
+        duration: 4000,
+        style: {
+          background: '#EF4444',
+          color: 'white',
+          padding: '16px',
+          borderRadius: '10px',
+        }
+      });
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex justify-center items-center bg-gradient-to-br from-blue-50 to-indigo-50">
@@ -309,13 +376,22 @@ export default function ArtistProfile() {
                 </div>
 
                 {!isEditing && (
-                  <button
-                    onClick={() => setIsEditing(true)}
-                    className="mt-4 flex items-center justify-center px-4 py-2 bg-white text-blue-600 rounded-lg hover:bg-gray-50 transition-colors duration-200"
-                  >
-                    <FaEdit className="mr-2" />
-                    Edit Profile
-                  </button>
+                  <div className="flex flex-col gap-2 mt-4">
+                    <button
+                      onClick={() => setIsEditing(true)}
+                      className="flex items-center justify-center px-4 py-2 bg-white text-blue-600 rounded-lg hover:bg-gray-50 transition-colors duration-200"
+                    >
+                      <FaEdit className="mr-2" />
+                      Edit Profile
+                    </button>
+                    <button
+                      onClick={() => setShowPasswordModal(true)}
+                      className="flex items-center justify-center px-4 py-2 bg-white text-blue-600 rounded-lg hover:bg-gray-50 transition-colors duration-200"
+                    >
+                      <FaLock className="mr-2" />
+                      Change Password
+                    </button>
+                  </div>
                 )}
               </div>
             </div>
@@ -432,6 +508,115 @@ export default function ArtistProfile() {
           </div>
         </div>
       </div>
+      {showPasswordModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl p-8 max-w-md w-full mx-4">
+            <h2 className="text-2xl font-bold text-gray-800 mb-6">Change Password</h2>
+            <form onSubmit={handlePasswordChange} className="space-y-4">
+              {/* Current Password */}
+              <div className="space-y-2">
+                <label className="flex items-center text-sm font-medium text-gray-700">
+                  <FaLock className="h-4 w-4 text-gray-400 mr-2" />
+                  Current Password
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPasswords.old ? "text" : "password"}
+                    value={passwordData.oldPassword}
+                    onChange={(e) => setPasswordData(prev => ({
+                      ...prev,
+                      oldPassword: e.target.value
+                    }))}
+                    className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-400 focus:border-blue-400"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPasswords(prev => ({ ...prev, old: !prev.old }))}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
+                  >
+                    {showPasswords.old ? "Hide" : "Show"}
+                  </button>
+                </div>
+              </div>
+
+              {/* New Password */}
+              <div className="space-y-2">
+                <label className="flex items-center text-sm font-medium text-gray-700">
+                  <FaLock className="h-4 w-4 text-gray-400 mr-2" />
+                  New Password
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPasswords.new ? "text" : "password"}
+                    value={passwordData.newPassword}
+                    onChange={(e) => setPasswordData(prev => ({
+                      ...prev,
+                      newPassword: e.target.value
+                    }))}
+                    className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-400 focus:border-blue-400"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPasswords(prev => ({ ...prev, new: !prev.new }))}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
+                  >
+                    {showPasswords.new ? "Hide" : "Show"}
+                  </button>
+                </div>
+              </div>
+
+              {/* Confirm Password */}
+              <div className="space-y-2">
+                <label className="flex items-center text-sm font-medium text-gray-700">
+                  <FaLock className="h-4 w-4 text-gray-400 mr-2" />
+                  Confirm New Password
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPasswords.confirm ? "text" : "password"}
+                    value={passwordData.confirmPassword}
+                    onChange={(e) => setPasswordData(prev => ({
+                      ...prev,
+                      confirmPassword: e.target.value
+                    }))}
+                    className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-400 focus:border-blue-400"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPasswords(prev => ({ ...prev, confirm: !prev.confirm }))}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
+                  >
+                    {showPasswords.confirm ? "Hide" : "Show"}
+                  </button>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex justify-end space-x-4 pt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowPasswordModal(false);
+                    setPasswordData({ oldPassword: '', newPassword: '', confirmPassword: '' });
+                  }}
+                  className="px-6 py-2.5 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-all duration-200"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200"
+                >
+                  Update Password
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

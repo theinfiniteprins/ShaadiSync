@@ -1,6 +1,7 @@
 const User = require('../models/User.model');
 const cloudinary = require('cloudinary').v2;
 const config = require('../configs/config');
+const bcrypt = require('bcrypt');
 
 // Configure cloudinary
 cloudinary.config({
@@ -203,6 +204,49 @@ const viewBalance = async (req, res) => {
   }
 };
 
+const changePassword = async (req, res) => {
+  try {
+    const { oldPassword, newPassword } = req.body;
+    const userId = req.id;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Verify old password
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
+    if (!isMatch) {
+      return res.status(401).json({
+        success: false,
+        message: 'Current password is incorrect'
+      });
+    }
+
+    // Hash new password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    // Update password
+    user.password = hashedPassword;
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Password updated successfully'
+    });
+  } catch (error) {
+    console.error('Error changing password:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to change password'
+    });
+  }
+};
+
 module.exports = {
   createUser,
   getAllUsers,
@@ -214,4 +258,5 @@ module.exports = {
   getCurrentUser,
   deleteImage,
   viewBalance,
+  changePassword,
 };
