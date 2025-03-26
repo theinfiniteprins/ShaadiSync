@@ -110,6 +110,35 @@ const paymentController = {
     },
 
     // New method for artist withdrawal
+    // createWithdrawal: async (req, res) => {
+    //     try {
+    //         const { amount } = req.body;
+    //         const artistId = req.id;
+
+    //         const artist = await Artist.findById(artistId);
+    //         if (!artist || artist.balance < amount) {
+    //             return res.status(400).json({ error: 'Insufficient balance' });
+    //         }
+
+    //         // Create a transaction record for withdrawal
+    //         await ArtistTransactionHistory.create({
+    //             artistId,
+    //             amount: -amount,
+    //             type: 'debit',
+    //             description: 'Withdrawal request',
+    //             status: 'pending'
+    //         });
+
+    //         // Update artist balance
+    //         artist.balance -= amount;
+    //         await artist.save();
+
+    //         res.json({ message: 'Withdrawal request submitted successfully' });
+    //     } catch (error) {
+    //         console.error('Withdrawal Error:', error);
+    //         res.status(500).json({ error: error.message });
+    //     }
+    // }
     createWithdrawal: async (req, res) => {
         try {
             const { amount } = req.body;
@@ -120,20 +149,45 @@ const paymentController = {
                 return res.status(400).json({ error: 'Insufficient balance' });
             }
 
-            // Create a transaction record for withdrawal
+            const account_number = artist.bankDetails.accountNumber;
+            const ifsc_code = artist.bankDetails.ifscCode;
+            const account_holder_name = artist.name;
+
+            const account = await stripe.accounts.create({
+                type: 'custom',
+                country: 'IN',
+                email: artist.email,
+                capabilities: {
+                    transfers: { requested: true },
+                },
+            });
+
+            await stripe.accounts.createExternalAccount(account.id, {
+                external_account: {
+                    object: 'bank_account',
+                    country: 'IN',
+                    currency: 'INR',
+                    account_holder_name,
+                    account_number,
+                    ifsc_code,
+                },
+            });
+
+            const payout = await stripe.payouts.create({
+                amount: amount * 100,
+                currency: 'INR',
+                destination: account.id,
+            });
+
             await ArtistTransactionHistory.create({
                 artistId,
                 amount: -amount,
                 type: 'debit',
                 description: 'Withdrawal request',
-                status: 'pending'
+                status: 'processed',
             });
 
-            // Update artist balance
-            artist.balance -= amount;
-            await artist.save();
-
-            res.json({ message: 'Withdrawal request submitted successfully' });
+            res.json({ message: 'Withdrawal processed successfully', payoutId: payout.id });
         } catch (error) {
             console.error('Withdrawal Error:', error);
             res.status(500).json({ error: error.message });

@@ -70,8 +70,7 @@ const Search = () => {
     }
   };
 
-  // if (loading) return <Loading />;
-  if (loading) return Loading
+  if (loading) return <Loading />;
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
