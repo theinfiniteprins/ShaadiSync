@@ -16,6 +16,7 @@ import Others from "../pages/Artist/Others";
 import Review from "../pages/Artist/Review";
 
 import AddService from "../pages/Artist/AddService";
+import ArtistVerification from "../pages/Artist/ArtistVerification";
 
 
 // Private Route component
@@ -44,6 +45,7 @@ const ArtistRoutes = () => {
                     <Route path="/privacy-policy" element={<PrivacyPolicy/>} />
 
                     <Route path="/add-service" element={<AddService />} />
+                    <Route path="/verify" element={<ArtistVerification />} />   
 
                 </Route>
             </Route>

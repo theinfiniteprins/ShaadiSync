@@ -6,6 +6,7 @@ import AllArtists from "../pages/Admin/AllArtists";
 import UserTransactionHistory from "../pages/Admin/UserTransactions";
 import AllServices from "../pages/Admin/AllServices";
 import ArtistTransaction from "../pages/Admin/ArtistTransactions";
+import Verification from "../pages/Admin/Verification";
 
 
 const AdminRoutes = () => {
@@ -19,6 +20,7 @@ const AdminRoutes = () => {
                 <Route path="/services" element={<AllServices />} />
                 <Route path="/user-transactions" element={<UserTransactionHistory />} />
                 <Route path="/artist-transactions" element = {<ArtistTransaction />} />
+                <Route path="/artist-verification" element={<Verification/>} />
                 
             </Route>
         </Routes>

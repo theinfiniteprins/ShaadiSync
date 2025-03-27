@@ -31,6 +31,9 @@ const AdminSidebar = () => {
            <Link to="/admin/artist-transactions">Artist Transactions</Link>
         </li>
         <li className="p-2 rounded-md cursor-pointer flex items-center">
+           <Link to="/admin/artist-verification">Artist Verification</Link>
+        </li>
+        <li className="p-2 rounded-md cursor-pointer flex items-center">
           <button 
             onClick={handleLogout}
             className="flex items-center gap-2 w-full"

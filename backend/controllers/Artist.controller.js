@@ -177,74 +177,93 @@ const viewBalance = async (req, res) => {
 };
 
 
-  const verificationbody = zod.object({
-    aadharCardNumber: zod.string().regex(/^\d{12}$/, 'Aadhar card number must be a 12-digit number'),
-    accountNumber: zod.string().regex(/^\d{9,18}$/, 'Account number must be between 9 and 18 digits'),
-    confirmAccountNumber: zod.string().regex(/^\d{9,18}$/, 'Confirmation account number must be between 9 and 18 digits'),
-    ifscCode: zod.string().regex(/^[A-Z]{4}0[A-Z0-9]{6}$/, 'IFSC code must be valid'),
-    bankDocument: zod.string().url('Bank document must be a valid URL'),
-    aadharCardFile: zod.string().url('Aadhar card file must be a valid URL'),
-  }).refine(data => data.accountNumber === data.confirmAccountNumber, {
-    message: 'Account number and confirmation account number must match',
-    path: ['confirmAccountNumber'],
-  });
+const submitVerification = async (req, res) => {
+  try {
+    const { 
+      aadharCardNumber, 
+      bankDetails,
+      verificationDocuments 
+    } = req.body;
+    
 
-  const submitVerification = async (req, res) => {
-    try {
-      const validatedData = verificationbody.parse(req.body);
-  
-      const { 
-        aadharCardNumber, 
-        accountNumber, 
-        ifscCode, 
-        bankDocument, 
-        aadharCardFile 
-      } = validatedData;
-  
-      const { artistId } = req.params;
-  
-      // Find and update the artist
-      const updatedArtist = await Artist.findByIdAndUpdate(
-        artistId,
-        {
-          verificationDocuments: {
-            bankDocument,
-            aadharCardFile,
-          },
-          bankDetails: {
-            accountNumber,
-            ifscCode,
-          },
-          aadharCardNumber,
-          verificationStatus: "pending", // Mark as pending after submission
-        },
-        { new: true }
-      );
-  
-      // Check if artist was found
-      if (!updatedArtist) {
-        return res.status(404).json({ error: 'Artist not found.' });
-      }
-  
-      res.status(200).json({
-        message: 'Verification details submitted successfully. Awaiting approval.',
-        artist: updatedArtist,
+    // Validate required fields
+    if (!aadharCardNumber || !bankDetails || !verificationDocuments) {
+      return res.status(400).json({ 
+        error: 'Missing required fields' 
       });
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({
-          error: 'Validation error',
-          details: error.errors.map((err) => ({
-            path: err.path,
-            message: err.message,
-          })),
-        });
-      }
-  
-      console.error(error);
-      res.status(500).json({ error: 'An error occurred while submitting verification details.' });
     }
-  };
+
+    // Validate bank details
+    if (!bankDetails.accountNumber || !bankDetails.ifscCode) {
+      return res.status(400).json({ 
+        error: 'Bank account number and IFSC code are required' 
+      });
+    }
+
+    // Validate document URLs
+    if (!verificationDocuments.bankDocument || !verificationDocuments.aadharCardFile) {
+      return res.status(400).json({ 
+        error: 'Both bank document and Aadhar card document are required' 
+      });
+    }
+
+    // Find and update the artist
+    const updatedArtist = await Artist.findByIdAndUpdate(
+      req.id, // Using req.id directly as it contains the artist ID
+      {
+        verificationDocuments: {
+          bankDocument: verificationDocuments.bankDocument,
+          aadharCardFile: verificationDocuments.aadharCardFile,
+        },
+        bankDetails: {
+          accountNumber: bankDetails.accountNumber,
+          ifscCode: bankDetails.ifscCode,
+        },
+        aadharCardNumber,
+        verificationStatus: "pending", // Mark as pending after submission
+        isVerified: false, // Ensure verified status is false until approved
+      },
+      { 
+        new: true,
+        runValidators: true // Run model validators
+      }
+    );
+
+    if (!updatedArtist) {
+      return res.status(404).json({ 
+        error: 'Artist not found' 
+      });
+    }
+
+    // Send success response
+    res.status(200).json({
+      success: true,
+      message: 'Verification details submitted successfully. Awaiting approval.',
+      artist: {
+        id: updatedArtist._id,
+        verificationStatus: updatedArtist.verificationStatus,
+        isVerified: updatedArtist.isVerified
+      }
+    });
+
+  } catch (error) {
+    console.error('Verification submission error:', error);
+
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({
+        error: 'Validation error',
+        details: error.errors.map(err => ({
+          path: err.path,
+          message: err.message,
+        }))
+      });
+    }
+
+    res.status(500).json({ 
+      error: 'An error occurred while submitting verification details' 
+    });
+  }
+};
 
 const getCurrentArtist = async (req, res) => {
   try {
@@ -329,6 +348,97 @@ const changePassword = async (req, res) => {
   }
 };
 
+const getPendingVerifications = async (req, res) => {
+  try {
+    console.log('Fetching pending verifications');
+    const pendingArtists = await Artist.find({ verificationStatus: "pending" })
+      .select('-password -resetPasswordToken -resetPasswordExpires')
+      .populate('artistType', 'type');
+
+    if (!pendingArtists.length) {
+      return res.status(200).json({
+        success: true,
+        message: 'No pending verifications found',
+        artists: []
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      count: pendingArtists.length,
+      artists: pendingArtists
+    });
+
+  } catch (error) {
+    console.error('Error fetching pending verifications:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch pending verifications'
+    });
+  }
+};
+
+const handleVerification = async (req, res) => {
+  try {
+    const { artistId } = req.params;
+    const { status } = req.body;
+
+    if (!['approved', 'rejected'].includes(status)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid status. Must be either "approved" or "rejected"'
+      });
+    }
+
+    const artist = await Artist.findById(artistId);
+
+    if (!artist) {
+      return res.status(404).json({
+        success: false,
+        error: 'Artist not found'
+      });
+    }
+
+    // Update verification status
+    const updates = {
+      verificationStatus: status,
+      isVerified: status === 'approved'
+    };
+
+    // If rejected, clear verification documents
+    if (status === 'rejected') {
+      updates.verificationDocuments = {
+        bankDocument: null,
+        aadharCardFile: null
+      };
+      updates.bankDetails = {
+        accountNumber: null,
+        ifscCode: null
+      };
+      updates.aadharCardNumber = null;
+    }
+
+    const updatedArtist = await Artist.findByIdAndUpdate(
+      artistId,
+      updates,
+      { new: true }
+    ).select('-password -resetPasswordToken -resetPasswordExpires');
+
+    res.status(200).json({
+      success: true,
+      message: `Artist verification ${status} successfully`,
+      artist: updatedArtist
+    });
+
+  } catch (error) {
+    console.error('Error handling verification:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to process verification'
+    });
+  }
+};
+
 module.exports = {
   createArtist,
   getAllArtists,
@@ -343,4 +453,6 @@ module.exports = {
   getCurrentArtist,
   deleteImage,
   changePassword,
+  getPendingVerifications,
+  handleVerification
 };
