@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Upload, AlertCircle } from 'lucide-react';
 import config from '../../configs/config';
 import axios from 'axios';
+import { toast } from 'react-hot-toast';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_FORMATS = ['.pdf', '.jpg', '.jpeg', '.png'];
@@ -26,6 +27,7 @@ const ArtistVerification = () => {
     bankDocument: '',
     aadharCardFile: ''
   });
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -56,31 +58,104 @@ const ArtistVerification = () => {
     return '';
   };
 
-  const handleFileChange = (e) => {
-    const { name } = e.target;
-    
-    // Generate random URLs for demonstration
-    const dummyUrls = {
-      bankDocument: `https://dummybank.com/doc-${Date.now()}.pdf`,
-      aadharCardFile: `https://dummyaadhar.com/card-${Date.now()}.pdf`
-    };
-
-    setFormData(prev => ({
-      ...prev,
-      verificationDocuments: {
-        ...prev.verificationDocuments,
-        [name]: dummyUrls[name]
+  const uploadImageToCloudinary = async (file) => {
+    try {
+      setUploadingImage(true);
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('upload_preset', config.UPLOAD_PRESET_VERIFICATION);
+      formData.append('cloud_name', config.CLOUD_NAME);
+  
+      const response = await fetch(
+        `https://api.cloudinary.com/v1_1/${config.CLOUD_NAME}/image/upload`,
+        {
+          method: 'POST',
+          body: formData,
+        }
+      );
+  
+      const data = await response.json();
+      if (data.secure_url) {
+        return data.secure_url;
+      } else {
+        throw new Error('Failed to upload image');
       }
-    }));
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      throw error;
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  const handleFileChange = async (e) => {
+    const { name } = e.target;
+    const file = e.target.files[0];
+    
+    if (!file) return;
+  
+    try {
+      // Validate file size
+      if (file.size > MAX_FILE_SIZE) {
+        setFileErrors(prev => ({
+          ...prev,
+          [name]: 'File size must be less than 5MB'
+        }));
+        return;
+      }
+  
+      // Validate file type
+      const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
+      if (!ALLOWED_FORMATS.includes(fileExtension)) {
+        setFileErrors(prev => ({
+          ...prev,
+          [name]: 'Invalid file format. Allowed formats: PDF, JPG, PNG'
+        }));
+        return;
+      }
+  
+      // Upload to Cloudinary
+      const imageUrl = await uploadImageToCloudinary(file);
+  
+      // Update form data with new URL
+      setFormData(prev => ({
+        ...prev,
+        verificationDocuments: {
+          ...prev.verificationDocuments,
+          [name]: imageUrl
+        }
+      }));
+  
+      // Clear any previous errors
+      setFileErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+  
+      toast.success(`${name === 'bankDocument' ? 'Bank document' : 'Aadhar card'} uploaded successfully`);
+  
+    } catch (error) {
+      console.error('Error handling file:', error);
+      setFileErrors(prev => ({
+        ...prev,
+        [name]: 'Failed to upload file'
+      }));
+      toast.error(`Failed to upload ${name === 'bankDocument' ? 'bank document' : 'Aadhar card'}`);
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
-
+  
     try {
-      console.log(formData);
+      // Validate if both documents are uploaded
+      if (!formData.verificationDocuments.bankDocument || 
+          !formData.verificationDocuments.aadharCardFile) {
+        throw new Error('Please upload both bank document and Aadhar card');
+      }
+  
       const token = localStorage.getItem('artistToken');
       
       const response = await axios.put(
@@ -93,12 +168,15 @@ const ArtistVerification = () => {
           }
         }
       );
-
+  
       if (response.status === 200) {
+        toast.success('Verification documents submitted successfully');
         navigate('/artist');
       }
     } catch (err) {
-      setError(err.response?.data?.error || 'Verification submission failed');
+      const errorMessage = err.response?.data?.error || err.message || 'Verification submission failed';
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
