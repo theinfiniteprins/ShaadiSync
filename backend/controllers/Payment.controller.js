@@ -3,6 +3,8 @@ const User = require('../models/User.model');
 const Artist = require('../models/Artist.model');
 const UserTransactionHistory = require('../models/UserTransactionHistory.model');
 const ArtistTransactionHistory = require('../models/ArtistTransaction.model');
+const mongoose = require('mongoose');
+const Service = require('../models/Service.model');
 require("dotenv").config();
 
 const paymentController = {
@@ -109,34 +111,82 @@ const paymentController = {
         res.json({ received: true });
     },
 
-    // New method for artist withdrawal
     createWithdrawal: async (req, res) => {
+        const session = await mongoose.startSession();
+        session.startTransaction();
+
         try {
             const { amount } = req.body;
             const artistId = req.id;
 
-            const artist = await Artist.findById(artistId);
+            const artist = await Artist.findById(artistId).session(session);
             if (!artist || artist.balance < amount) {
                 return res.status(400).json({ error: 'Insufficient balance' });
             }
 
-            // Create a transaction record for withdrawal
-            await ArtistTransactionHistory.create({
+            // Update artist balance first
+            artist.balance -= amount;
+            await artist.save({ session });
+
+            // Create withdrawal transaction record
+            await ArtistTransactionHistory.create([{
                 artistId,
                 amount: -amount,
                 type: 'debit',
                 description: 'Withdrawal request',
                 status: 'pending'
+            }], { session });
+
+            // Check all live services
+            const liveServices = await Service.find({ 
+                artistId, 
+                isLive: true 
+            }).session(session);
+
+            const deactivatedServices = [];
+            let maxServicePrice = 0;
+
+            // Check each service and update status
+            for (const service of liveServices) {
+                const requiredBalance = service.price * 0.1;
+                if (artist.balance < requiredBalance) {
+                    service.isLive = false;
+                    await service.save({ session });
+                    deactivatedServices.push({
+                        id: service._id,
+                        name: service.name,
+                        price: service.price
+                    });
+                } else {
+                    maxServicePrice = Math.max(maxServicePrice, service.price);
+                }
+            }
+
+            // Update artist's maxCharge
+            artist.maxCharge = maxServicePrice;
+            await artist.save({ session });
+
+            await session.commitTransaction();
+
+            // Prepare response message
+            let message = 'Withdrawal request submitted successfully';
+            if (deactivatedServices.length > 0) {
+                message += `. ${deactivatedServices.length} service(s) have been deactivated due to insufficient balance.`;
+            }
+
+            res.json({ 
+                message,
+                deactivatedServices,
+                updatedBalance: artist.balance,
+                newMaxCharge: maxServicePrice
             });
 
-            // Update artist balance
-            artist.balance -= amount;
-            await artist.save();
-
-            res.json({ message: 'Withdrawal request submitted successfully' });
         } catch (error) {
+            await session.abortTransaction();
             console.error('Withdrawal Error:', error);
             res.status(500).json({ error: error.message });
+        } finally {
+            session.endSession();
         }
     }
 };

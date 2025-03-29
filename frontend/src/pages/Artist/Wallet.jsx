@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { FaPlus, FaWallet, FaArrowDown, FaHistory, FaArrowUp, FaChevronLeft, FaChevronRight, FaSpinner, FaPalette, FaBrush } from 'react-icons/fa';
 import config from './../../configs/config';
+import toast from 'react-hot-toast';
 
 const Wallet = () => {
     const [balance, setBalance] = useState(0);
@@ -11,56 +12,38 @@ const Wallet = () => {
     const [loading, setLoading] = useState(true); // Added loading state
     const transactionsPerPage = 5;
 
+    const fetchData = async () => {
+        setLoading(true);
+        try {
+            const token = localStorage.getItem("artistToken");
+            await Promise.all([
+                // Fetch balance
+                fetch(`${config.baseUrl}/api/artists/viewbalance/balance`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                }).then(res => res.json())
+                    .then(data => setBalance(data?.balance || 0)),
+                
+                // Fetch total spend
+                fetch(`${config.baseUrl}/api/artist-transactions/total-debited-amount/amount`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                }).then(res => res.json())
+                    .then(data => setTotalSpend(data?.totalDebited || 0)),
+                
+                // Fetch transactions
+                fetch(`${config.baseUrl}/api/artist-transactions/artist/myTransaction`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                }).then(res => res.json())
+                    .then(data => setTransactions(data || []))
+            ]);
+        } catch (error) {
+            console.error("Error fetching data:", error);
+            toast.error("Failed to update wallet information");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
-        const token = localStorage.getItem("artistToken");
-
-        const fetchBalance = async () => {
-            try {
-                const response = await fetch(`${config.baseUrl}/api/artists/viewbalance/balance`, {
-                    method: "GET",
-                    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }
-                });
-                const data = await response.json();
-                setBalance(data?.balance || 0);
-            } catch (error) {
-                console.error("Error fetching balance:", error);
-                setBalance(0);
-            }
-        };
-
-        const fetchTotalSpend = async () => {
-            try {
-                const response = await fetch(`${config.baseUrl}/api/artist-transactions/total-debited-amount/amount`, {
-                    method: "GET",
-                    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }
-                });
-                const data = await response.json();
-                setTotalSpend(data?.totalDebited || 0);
-            } catch (error) {
-                console.error("Error fetching total spend:", error);
-                setTotalSpend(0);
-            }
-        };
-
-        const fetchTransactions = async () => {
-            try {
-                const response = await fetch(`${config.baseUrl}/api/artist-transactions/artist/myTransaction`, {
-                    method: "GET",
-                    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }
-                });
-                const data = await response.json();
-                setTransactions(data || []);
-            } catch (error) {
-                console.error("Error fetching transactions:", error);
-            }
-        };
-
-        const fetchData = async () => {
-            setLoading(true); // Set loading to true while fetching
-            await Promise.all([fetchBalance(), fetchTotalSpend(), fetchTransactions()]);
-            setLoading(false); // Set loading to false after fetching is done
-        };
-
         fetchData();
     }, []);
 
@@ -122,10 +105,12 @@ const Wallet = () => {
     const handleWithdraw = async () => {
         if (!amount || amount <= 0 || amount > balance) return;
 
+        const loadingToast = toast.loading('Processing withdrawal...');
+
         try {
             const token = localStorage.getItem('artistToken');
             if (!token) {
-                console.error('No token found');
+                toast.error('Authentication required', { id: loadingToast });
                 return;
             }
 
@@ -145,21 +130,21 @@ const Wallet = () => {
                 throw new Error('Failed to process withdrawal');
             }
 
-            const data = await response.json();
+            await response.json();
             
             // Close modal and reset form
             setShowWithdrawModal(false);
             setAmount('');
             setPaymentMethod('bank');
 
-            // Refresh wallet data
-            fetchData();
+            // Refresh wallet data immediately
+            await fetchData();
 
-            // TODO: Add success notification here
+            toast.success('Withdrawal processed successfully', { id: loadingToast });
             
         } catch (error) {
             console.error('Withdrawal error:', error);
-            // TODO: Add error notification here
+            toast.error(error.message || 'Failed to process withdrawal', { id: loadingToast });
         }
     };
 
