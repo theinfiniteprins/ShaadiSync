@@ -30,8 +30,9 @@ router.get('/:id', authMiddleware, getArtistById);
 router.put('/change-password', authMiddleware, changePassword);
 router.put('/:id', authMiddleware, updateArtist); // Update artist
 router.get('/viewbalance/balance', authMiddleware, viewBalance); // Get artist balance
-router.put('/submit-verify/kaan', authMiddleware, submitVerification); // Unblock artist
+// router.put('/submit-verify/kaan', authMiddleware, submitVerification); // Unblock artist
 
+router.post('/verification/submit', authMiddleware, submitVerification);
 
 router.put('/:id/verify', authMiddleware,isAdminMiddleware, updateIsVerified); // Update artist verification status
 router.get('/', authMiddleware, isAdminMiddleware, getAllArtists); // Get all artists
