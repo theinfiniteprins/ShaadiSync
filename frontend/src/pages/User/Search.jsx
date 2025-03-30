@@ -47,30 +47,62 @@ const Search = () => {
     fetchData();
   }, []);
 
+  // Add getMatchScore as a component function
+  const getMatchScore = (service, searchWords) => {
+    const artist = service.artistId;
+    if (!artist) return 0;
+
+    const artistType = artistTypes.find(type => type._id === artist.artistType);
+    const artistTypeName = artistType?.type?.toLowerCase() || '';
+    const artistCity = artist.address?.toLowerCase() || '';
+
+    let typeMatchCount = 0;
+    let cityMatchCount = 0;
+
+    searchWords.forEach(word => {
+      if (artistTypeName.includes(word)) typeMatchCount++;
+      if (artistCity.includes(word)) cityMatchCount++;
+    });
+
+    // Return score based on matches:
+    // 3 - Both type and city match
+    // 2 - Only type matches
+    // 1 - Only city matches
+    // 0 - No matches
+    if (typeMatchCount > 0 && cityMatchCount > 0) return 3;
+    if (typeMatchCount > 0) return 2;
+    if (cityMatchCount > 0) return 1;
+    return 0;
+  };
+
+  // Update handleSearchChange to use the moved function
   const handleSearchChange = (e) => {
     const value = e.target.value;
     setSearchTerm(value);
     
     if (!value.trim()) {
       setFilteredServices([]);
-    } else {
-      const term = value.toLowerCase();
-      const filtered = services.filter(service => {
-        const artist = service.artistId;
-        if (!artist) return false;
-
-        const cityMatch = artist.address?.toLowerCase().includes(term);
-        const artistType = artistTypes.find(type => type._id === artist.artistType);
-        const typeMatch = artistType?.type?.toLowerCase().includes(term);
-        
-        return cityMatch || typeMatch;
-      });
-      
-      setFilteredServices(filtered);
+      return;
     }
+
+    const searchWords = value.toLowerCase().split(' ').filter(word => 
+      !['in', 'at', 'the', 'for', 'of', 'and', 'or'].includes(word)
+    );
+
+    const filtered = services
+      .map(service => ({
+        service,
+        score: getMatchScore(service, searchWords)
+      }))
+      .filter(item => item.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .map(item => item.service);
+
+    setFilteredServices(filtered);
   };
 
-  if (loading) return <Loading />;
+  // if (loading) return <Loading />;
+  if (loading) return Loading
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -96,29 +128,95 @@ const Search = () => {
                 className="pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-pink-500 focus:border-pink-500 text-lg"
               />
             </div>
+            {/* Add search examples */}
+            <p className="mt-2 text-sm text-gray-500 text-center">
+              Try searching like "Mehendi artist in Nadiad" or "Photographer Mumbai"
+            </p>
           </div>
         </div>
 
-        {/* Results Section */}
-        {searchTerm && (
+        {/* Results Section with categories */}
+        {searchTerm && filteredServices.length > 0 && (
           <div>
             <h3 className="text-xl font-semibold text-gray-900 mb-4">
               {filteredServices.length} Services Found
             </h3>
             
-            {error ? (
-              <div className="text-center text-red-500 py-8">{error}</div>
-            ) : filteredServices.length === 0 ? (
-              <div className="text-center text-gray-500 py-8">
-                No services found matching your criteria
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredServices.map((service) => (
-                  <ServiceCard key={service._id} service={service} />
-                ))}
-              </div>
-            )}
+            {/* Group results by match type */}
+            <div className="space-y-8">
+              {/* Exact matches (both city and type) */}
+              {searchTerm && filteredServices.filter(service => 
+                getMatchScore(service, searchTerm.toLowerCase().split(' ').filter(word => 
+                  !['in', 'at', 'the', 'for', 'of', 'and', 'or'].includes(word)
+                )) === 3
+              ).length > 0 && (
+                <div>
+                  <h4 className="text-lg font-medium text-gray-700 mb-4">
+                    Exact Matches
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {filteredServices
+                      .filter(service => getMatchScore(service, searchTerm.toLowerCase().split(' ').filter(word => 
+                        !['in', 'at', 'the', 'for', 'of', 'and', 'or'].includes(word)
+                      )) === 3)
+                      .map(service => (
+                        <ServiceCard key={service._id} service={service} />
+                      ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Type matches */}
+              {searchTerm && filteredServices.filter(service => 
+                getMatchScore(service, searchTerm.toLowerCase().split(' ').filter(word => 
+                  !['in', 'at', 'the', 'for', 'of', 'and', 'or'].includes(word)
+                )) === 2
+              ).length > 0 && (
+                <div>
+                  <h4 className="text-lg font-medium text-gray-700 mb-4">
+                    Artist Type Matches
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {filteredServices
+                      .filter(service => getMatchScore(service, searchTerm.toLowerCase().split(' ').filter(word => 
+                        !['in', 'at', 'the', 'for', 'of', 'and', 'or'].includes(word)
+                      )) === 2)
+                      .map(service => (
+                        <ServiceCard key={service._id} service={service} />
+                      ))}
+                  </div>
+                </div>
+              )}
+
+              {/* City matches */}
+              {searchTerm && filteredServices.filter(service => 
+                getMatchScore(service, searchTerm.toLowerCase().split(' ').filter(word => 
+                  !['in', 'at', 'the', 'for', 'of', 'and', 'or'].includes(word)
+                )) === 1
+              ).length > 0 && (
+                <div>
+                  <h4 className="text-lg font-medium text-gray-700 mb-4">
+                    Location Matches
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {filteredServices
+                      .filter(service => getMatchScore(service, searchTerm.toLowerCase().split(' ').filter(word => 
+                        !['in', 'at', 'the', 'for', 'of', 'and', 'or'].includes(word)
+                      )) === 1)
+                      .map(service => (
+                        <ServiceCard key={service._id} service={service} />
+                      ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+        
+        {/* No results message */}
+        {searchTerm && filteredServices.length === 0 && (
+          <div className="text-center text-gray-500 py-8">
+            No services found matching your criteria
           </div>
         )}
       </div>

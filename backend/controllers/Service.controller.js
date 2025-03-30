@@ -173,7 +173,7 @@ const toggleServiceLiveStatus = async (req, res) => {
 
       if (artist.balance < tenPercentOfPrice) {
         return res.status(403).json({
-          message: `Service cannot be made live. Artist's balance is less than 10% of the service price.`,
+          message: `Service cannot be made live. Your balance is less than 10% of the service price.`,
         });
       }
 

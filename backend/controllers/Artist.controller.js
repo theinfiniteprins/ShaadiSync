@@ -20,6 +20,7 @@ const createArtist = async (req, res) => {
       return res.status(400).json({ message: 'Invalid Artist Type' });
     }
 
+    const defaultProfilePic = "https://img.freepik.com/premium-vector/default-avatar-profile-icon-social-media-user-image-gray-avatar-icon-blank-profile-silhouette-vector-illustration_561158-3407.jpg?w=360";
 
     const newArtist = new Artist({
       email,
@@ -28,7 +29,7 @@ const createArtist = async (req, res) => {
       mobileNumber,
       artistType,
       address,
-      profilePic,
+      profilePic: profilePic || defaultProfilePic,
       description,
       certificates,
       verificationStatus: undefined, // Initially not set
@@ -179,88 +180,31 @@ const viewBalance = async (req, res) => {
 
 const submitVerification = async (req, res) => {
   try {
-    const { 
-      aadharCardNumber, 
-      bankDetails,
-      verificationDocuments 
-    } = req.body;
+    const artistId = req.id;
+    const { aadharCardNumber, bankDetails, verificationDocuments } = req.body;
+
+    const artist = await Artist.findById(artistId);
+    if (!artist) {
+      return res.status(404).json({ message: 'Artist not found' });
+    }
+
+    // Update artist verification details
+    artist.aadharCardNumber = aadharCardNumber;
+    artist.bankDetails = bankDetails;
+    artist.verificationDocuments = verificationDocuments;
+    artist.verificationStatus = 'pending';
     
+    await artist.save();
 
-    // Validate required fields
-    if (!aadharCardNumber || !bankDetails || !verificationDocuments) {
-      return res.status(400).json({ 
-        error: 'Missing required fields' 
-      });
-    }
-
-    // Validate bank details
-    if (!bankDetails.accountNumber || !bankDetails.ifscCode) {
-      return res.status(400).json({ 
-        error: 'Bank account number and IFSC code are required' 
-      });
-    }
-
-    // Validate document URLs
-    if (!verificationDocuments.bankDocument || !verificationDocuments.aadharCardFile) {
-      return res.status(400).json({ 
-        error: 'Both bank document and Aadhar card document are required' 
-      });
-    }
-
-    // Find and update the artist
-    const updatedArtist = await Artist.findByIdAndUpdate(
-      req.id, // Using req.id directly as it contains the artist ID
-      {
-        verificationDocuments: {
-          bankDocument: verificationDocuments.bankDocument,
-          aadharCardFile: verificationDocuments.aadharCardFile,
-        },
-        bankDetails: {
-          accountNumber: bankDetails.accountNumber,
-          ifscCode: bankDetails.ifscCode,
-        },
-        aadharCardNumber,
-        verificationStatus: "pending", // Mark as pending after submission
-        isVerified: false, // Ensure verified status is false until approved
-      },
-      { 
-        new: true,
-        runValidators: true // Run model validators
-      }
-    );
-
-    if (!updatedArtist) {
-      return res.status(404).json({ 
-        error: 'Artist not found' 
-      });
-    }
-
-    // Send success response
-    res.status(200).json({
-      success: true,
-      message: 'Verification details submitted successfully. Awaiting approval.',
-      artist: {
-        id: updatedArtist._id,
-        verificationStatus: updatedArtist.verificationStatus,
-        isVerified: updatedArtist.isVerified
-      }
+    res.status(200).json({ 
+      message: 'Verification details submitted successfully',
+      verificationStatus: 'pending'
     });
-
   } catch (error) {
     console.error('Verification submission error:', error);
-
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({
-        error: 'Validation error',
-        details: error.errors.map(err => ({
-          path: err.path,
-          message: err.message,
-        }))
-      });
-    }
-
     res.status(500).json({ 
-      error: 'An error occurred while submitting verification details' 
+      message: 'Failed to submit verification details',
+      error: error.message 
     });
   }
 };

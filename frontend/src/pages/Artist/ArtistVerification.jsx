@@ -8,6 +8,30 @@ import { toast } from 'react-hot-toast';
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_FORMATS = ['.pdf', '.jpg', '.jpeg', '.png'];
 
+const FilePreview = ({ url, type }) => {
+  if (!url) return null;
+
+  return (
+    <div className="mt-2 p-2 bg-gray-50 rounded-md">
+      <div className="flex items-center space-x-2">
+        <Upload className="h-4 w-4 text-gray-400" />
+        <span className="text-sm text-gray-600">
+          {type} uploaded successfully
+        </span>
+      </div>
+      {url.match(/\.(jpg|jpeg|png)$/i) && (
+        <div className="mt-2">
+          <img 
+            src={url} 
+            alt={type}
+            className="h-20 w-auto object-cover rounded"
+          />
+        </div>
+      )}
+    </div>
+  );
+};
+
 const ArtistVerification = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -17,8 +41,8 @@ const ArtistVerification = () => {
       ifscCode: '',
     },
     verificationDocuments: {
-      bankDocument: 'https://example.com/dummy-bank-doc.pdf',  // dummy URL
-      aadharCardFile: 'https://example.com/dummy-aadhar.pdf',  // dummy URL
+      bankDocument: '',  // Remove dummy URL
+      aadharCardFile: '', // Remove dummy URL
     },
   });
   const [loading, setLoading] = useState(false);
@@ -58,6 +82,7 @@ const ArtistVerification = () => {
     return '';
   };
 
+<<<<<<< HEAD
   const uploadImageToCloudinary = async (file) => {
     try {
       setUploadingImage(true);
@@ -68,11 +93,36 @@ const ArtistVerification = () => {
   
       const response = await fetch(
         `https://api.cloudinary.com/v1_1/${config.CLOUD_NAME}/image/upload`,
+=======
+  const handleFileChange = async (e) => {
+    const { name, files } = e.target;
+    if (!files || !files[0]) return;
+  
+    const file = files[0];
+    const error = validateFile(file, name);
+    if (error) {
+      setFileErrors(prev => ({ ...prev, [name]: error }));
+      return;
+    }
+  
+    const loadingToast = toast.loading('Uploading document...');
+    setLoading(true);
+  
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('upload_preset', config.UPLOAD_PRESET_DOCUMENT);
+      formData.append('cloud_name', config.CLOUD_NAME);
+  
+      const response = await fetch(
+        `https://api.cloudinary.com/v1_1/${config.CLOUD_NAME}/auto/upload`, // Changed to auto/upload
+>>>>>>> 969d2bff0c3277a24824925f470c856501e9b18b
         {
           method: 'POST',
           body: formData,
         }
       );
+<<<<<<< HEAD
   
       const data = await response.json();
       if (data.secure_url) {
@@ -118,10 +168,20 @@ const ArtistVerification = () => {
       const imageUrl = await uploadImageToCloudinary(file);
   
       // Update form data with new URL
+=======
+
+      const data = await response.json();
+
+      if (!response.ok || !data.secure_url) {
+        throw new Error(data.message || 'Failed to upload file');
+      }
+
+>>>>>>> 969d2bff0c3277a24824925f470c856501e9b18b
       setFormData(prev => ({
         ...prev,
         verificationDocuments: {
           ...prev.verificationDocuments,
+<<<<<<< HEAD
           [name]: imageUrl
         }
       }));
@@ -141,11 +201,38 @@ const ArtistVerification = () => {
         [name]: 'Failed to upload file'
       }));
       toast.error(`Failed to upload ${name === 'bankDocument' ? 'bank document' : 'Aadhar card'}`);
+=======
+          [name]: data.secure_url
+        }
+      }));
+
+      // Log the updated state to verify
+      console.log('Document uploaded:', data.secure_url);
+      
+      setFileErrors(prev => ({ ...prev, [name]: '' }));
+      toast.success('Document uploaded successfully', {
+        id: loadingToast,
+        duration: 2000
+      });
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast.error('Failed to upload document. Please try again.', {
+        id: loadingToast,
+        duration: 2000
+      });
+      setFileErrors(prev => ({
+        ...prev,
+        [name]: 'Failed to upload document. Please try again.'
+      }));
+    } finally {
+      setLoading(false);
+>>>>>>> 969d2bff0c3277a24824925f470c856501e9b18b
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+<<<<<<< HEAD
     setLoading(true);
     setError('');
   
@@ -156,11 +243,38 @@ const ArtistVerification = () => {
         throw new Error('Please upload both bank document and Aadhar card');
       }
   
+=======
+    const loadingToast = toast.loading('Submitting verification...');
+  
+    try {
+>>>>>>> 969d2bff0c3277a24824925f470c856501e9b18b
       const token = localStorage.getItem('artistToken');
       
-      const response = await axios.put(
-        `${config.baseUrl}/api/artists/submit-verify/kaan`,
-        formData,
+      // Validate documents
+      if (!formData.verificationDocuments.bankDocument || 
+          !formData.verificationDocuments.aadharCardFile) {
+        throw new Error('Please upload all required documents');
+      }
+
+      // Format verification data
+      const verificationData = {
+        aadharCardNumber: formData.aadharCardNumber,
+        bankDetails: {
+          accountNumber: formData.bankDetails.accountNumber,
+          ifscCode: formData.bankDetails.ifscCode
+        },
+        verificationDocuments: {
+          aadharCardFile: formData.verificationDocuments.aadharCardFile,
+          bankDocument: formData.verificationDocuments.bankDocument
+        }
+      };
+
+      // Log the data being sent
+      console.log('Submitting verification data:', verificationData);
+  
+      const response = await axios.post(
+        `${config.baseUrl}/api/artists/verification/submit`,
+        verificationData,
         {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -170,6 +284,7 @@ const ArtistVerification = () => {
       );
   
       if (response.status === 200) {
+<<<<<<< HEAD
         toast.success('Verification documents submitted successfully');
         navigate('/artist');
       }
@@ -179,8 +294,24 @@ const ArtistVerification = () => {
       toast.error(errorMessage);
     } finally {
       setLoading(false);
+=======
+        toast.success('Verification submitted successfully', {
+          id: loadingToast,
+          duration: 3000
+        });
+        navigate('/artist/profile');
+      }
+    } catch (err) {
+      console.error('Verification submission error:', err);
+      const errorMessage = err.response?.data?.message || err.message || 'Verification submission failed';
+      toast.error(errorMessage, {
+        id: loadingToast,
+        duration: 4000
+      });
+      setError(errorMessage);
+>>>>>>> 969d2bff0c3277a24824925f470c856501e9b18b
     }
-  };
+};
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -221,6 +352,7 @@ const ArtistVerification = () => {
                   <div className="relative">
                     <div className="flex items-center justify-center w-full">
                       <label className={`w-full h-32 flex flex-col items-center justify-center rounded-lg border-2 border-dashed cursor-pointer
+                        ${loading ? 'opacity-50 cursor-not-allowed' : ''}
                         ${fileErrors.aadharCardFile ? 'border-red-300 bg-red-50' : 'border-gray-300 bg-gray-50 hover:bg-gray-100'}`}>
                         <div className="flex flex-col items-center justify-center pt-5 pb-6">
                           <Upload className="h-10 w-10 text-gray-400 mb-2" />
@@ -238,6 +370,7 @@ const ArtistVerification = () => {
                           className="hidden"
                           accept={ALLOWED_FORMATS.join(',')}
                           required
+                          disabled={loading}
                         />
                       </label>
                     </div>
@@ -247,6 +380,10 @@ const ArtistVerification = () => {
                         {fileErrors.aadharCardFile}
                       </p>
                     )}
+                    <FilePreview 
+                      url={formData.verificationDocuments.aadharCardFile} 
+                      type="Aadhar Card"
+                    />
                   </div>
                 </div>
               </div>
@@ -321,6 +458,10 @@ const ArtistVerification = () => {
                         {fileErrors.bankDocument}
                       </p>
                     )}
+                    <FilePreview 
+                      url={formData.verificationDocuments.bankDocument} 
+                      type="Bank Document"
+                    />
                   </div>
                 </div>
               </div>
