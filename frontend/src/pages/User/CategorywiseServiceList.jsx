@@ -6,7 +6,6 @@ import config from "../../configs/config";
 import Loading from "../error/loader.jsx";
 import Error from "../error/Error";
 import FilterSection from "../../components/FilterSection";
-import { useAuth } from '../../context/AuthContext';
 
 const CategoryInfo = ({ artistType, totalServices }) => {
   return (
@@ -30,7 +29,6 @@ export default function CategorywiseServiceList() {
   const { categoryId, location } = useParams();
   const navigate = useNavigate();
   const [filters, setFilters] = useState({ budget: "", rating: "", shortlisted: false });
-  const { user } = useAuth();
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -38,48 +36,44 @@ export default function CategorywiseServiceList() {
     const fetchServices = async () => {
       try {
         setLoading(true);
-        let response;
-        
-        if (categoryId === 'all') {
-          // Fetch all services
-          response = await axios.get(`${config.baseUrl}/api/services/live`);
-          console.log(response.data);
-          setArtistType('All Services');
-          const filtered = location
-          ? response.data.filter(service => 
-              service.artistId?.address?.toLowerCase().includes(location.toLowerCase())
-            )
-          : response.data;
-
-        // Set services state
-        setServices(Array.isArray(filtered) ? filtered : []);
-        setFilteredServices(Array.isArray(filtered) ? filtered : []);
-        } else {
-          // Fetch category specific services
-          response = await axios.get(`${config.baseUrl}/api/services/category/${categoryId}`);
-          setArtistType(response.data.artistType?.type || '');
-          const filtered = location
-          ? response.data.services.filter(service => 
-              service.artistId?.address?.toLowerCase().includes(location.toLowerCase())
-            )
+        const response = await axios.get(`${config.baseUrl}/api/services/category/${categoryId}`);
+        setArtistType(response.data.artistType?.type || "");
+        const filtered = location
+          ? response.data.services.filter(service => service.artistId?.address?.toLowerCase().includes(location.toLowerCase()))
           : response.data.services;
-
-        // Set services state
         setServices(Array.isArray(filtered) ? filtered : []);
         setFilteredServices(Array.isArray(filtered) ? filtered : []);
-        }
-
-        // Handle filtering by location
-       
+        setLoading(false);
       } catch (err) {
-        console.error('Error fetching services:', err);
-        setError('Failed to load services. Please try again later.');
-      } finally {
+        console.error("Error fetching services:", err);
+        setError("Failed to load services. Please try again later.");
         setLoading(false);
       }
     };
 
-    fetchServices();
+    const fetchAllServices = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get(`${config.baseUrl}/api/services/live`);
+        setArtistType("All Services");
+        const filtered = location
+          ? response.data.services.filter(service => service.artistId?.address?.toLowerCase().includes(location.toLowerCase()))
+          : response.data.services;
+        setServices(Array.isArray(filtered) ? filtered : []);
+        setFilteredServices(Array.isArray(filtered) ? filtered : []);
+        setLoading(false);
+      } catch (err) {
+        console.error("Error fetching services:", err);
+        setError("Failed to load services. Please try again later.");
+        setLoading(false);
+      }
+    };
+
+    if (categoryId === "all") {
+      fetchAllServices();
+    } else {
+      fetchServices();
+    }
   }, [categoryId, location]);
 
   useEffect(() => {
@@ -99,13 +93,6 @@ export default function CategorywiseServiceList() {
   }, [filters, services]);
 
   const handleServiceClick = (serviceId) => {
-    if (!user) {
-      const callbackUrl = encodeURIComponent(`/services/${serviceId}`);
-      navigate(`/login?callback=${callbackUrl}`);
-      return;
-    }
-    
-    // If authenticated, proceed to service details
     navigate(`/services/${serviceId}`);
   };
 

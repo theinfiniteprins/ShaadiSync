@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import config from '../../configs/config';
 import { toast } from 'react-hot-toast';
@@ -7,8 +7,6 @@ import { toast } from 'react-hot-toast';
 export default function Login() {
   const navigate = useNavigate();
   const { login } = useAuth();
-  const [searchParams] = useSearchParams();
-  const callbackUrl = searchParams.get('callback');
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -80,12 +78,7 @@ export default function Login() {
         login(data.token);
         toast.dismiss(loadingToast);
         toast.success('Welcome back! 👋', toastConfig.success);
-        
-        if (callbackUrl) {
-          navigate(decodeURIComponent(callbackUrl));
-        } else {
-          navigate('/');
-        }
+        navigate('/');
       } else {
         throw new Error('Invalid response from server');
       }
