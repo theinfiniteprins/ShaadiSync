@@ -51,7 +51,6 @@ const ArtistVerification = () => {
     bankDocument: '',
     aadharCardFile: ''
   });
-  const [uploadingImage, setUploadingImage] = useState(false);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -82,18 +81,6 @@ const ArtistVerification = () => {
     return '';
   };
 
-<<<<<<< HEAD
-  const uploadImageToCloudinary = async (file) => {
-    try {
-      setUploadingImage(true);
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('upload_preset', config.UPLOAD_PRESET_VERIFICATION);
-      formData.append('cloud_name', config.CLOUD_NAME);
-  
-      const response = await fetch(
-        `https://api.cloudinary.com/v1_1/${config.CLOUD_NAME}/image/upload`,
-=======
   const handleFileChange = async (e) => {
     const { name, files } = e.target;
     if (!files || !files[0]) return;
@@ -116,59 +103,11 @@ const ArtistVerification = () => {
   
       const response = await fetch(
         `https://api.cloudinary.com/v1_1/${config.CLOUD_NAME}/auto/upload`, // Changed to auto/upload
->>>>>>> 969d2bff0c3277a24824925f470c856501e9b18b
         {
           method: 'POST',
           body: formData,
         }
       );
-<<<<<<< HEAD
-  
-      const data = await response.json();
-      if (data.secure_url) {
-        return data.secure_url;
-      } else {
-        throw new Error('Failed to upload image');
-      }
-    } catch (error) {
-      console.error('Error uploading image:', error);
-      throw error;
-    } finally {
-      setUploadingImage(false);
-    }
-  };
-
-  const handleFileChange = async (e) => {
-    const { name } = e.target;
-    const file = e.target.files[0];
-    
-    if (!file) return;
-  
-    try {
-      // Validate file size
-      if (file.size > MAX_FILE_SIZE) {
-        setFileErrors(prev => ({
-          ...prev,
-          [name]: 'File size must be less than 5MB'
-        }));
-        return;
-      }
-  
-      // Validate file type
-      const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
-      if (!ALLOWED_FORMATS.includes(fileExtension)) {
-        setFileErrors(prev => ({
-          ...prev,
-          [name]: 'Invalid file format. Allowed formats: PDF, JPG, PNG'
-        }));
-        return;
-      }
-  
-      // Upload to Cloudinary
-      const imageUrl = await uploadImageToCloudinary(file);
-  
-      // Update form data with new URL
-=======
 
       const data = await response.json();
 
@@ -176,32 +115,10 @@ const ArtistVerification = () => {
         throw new Error(data.message || 'Failed to upload file');
       }
 
->>>>>>> 969d2bff0c3277a24824925f470c856501e9b18b
       setFormData(prev => ({
         ...prev,
         verificationDocuments: {
           ...prev.verificationDocuments,
-<<<<<<< HEAD
-          [name]: imageUrl
-        }
-      }));
-  
-      // Clear any previous errors
-      setFileErrors(prev => ({
-        ...prev,
-        [name]: ''
-      }));
-  
-      toast.success(`${name === 'bankDocument' ? 'Bank document' : 'Aadhar card'} uploaded successfully`);
-  
-    } catch (error) {
-      console.error('Error handling file:', error);
-      setFileErrors(prev => ({
-        ...prev,
-        [name]: 'Failed to upload file'
-      }));
-      toast.error(`Failed to upload ${name === 'bankDocument' ? 'bank document' : 'Aadhar card'}`);
-=======
           [name]: data.secure_url
         }
       }));
@@ -226,28 +143,14 @@ const ArtistVerification = () => {
       }));
     } finally {
       setLoading(false);
->>>>>>> 969d2bff0c3277a24824925f470c856501e9b18b
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-<<<<<<< HEAD
-    setLoading(true);
-    setError('');
-  
-    try {
-      // Validate if both documents are uploaded
-      if (!formData.verificationDocuments.bankDocument || 
-          !formData.verificationDocuments.aadharCardFile) {
-        throw new Error('Please upload both bank document and Aadhar card');
-      }
-  
-=======
     const loadingToast = toast.loading('Submitting verification...');
   
     try {
->>>>>>> 969d2bff0c3277a24824925f470c856501e9b18b
       const token = localStorage.getItem('artistToken');
       
       // Validate documents
@@ -284,17 +187,6 @@ const ArtistVerification = () => {
       );
   
       if (response.status === 200) {
-<<<<<<< HEAD
-        toast.success('Verification documents submitted successfully');
-        navigate('/artist');
-      }
-    } catch (err) {
-      const errorMessage = err.response?.data?.error || err.message || 'Verification submission failed';
-      setError(errorMessage);
-      toast.error(errorMessage);
-    } finally {
-      setLoading(false);
-=======
         toast.success('Verification submitted successfully', {
           id: loadingToast,
           duration: 3000
@@ -309,7 +201,6 @@ const ArtistVerification = () => {
         duration: 4000
       });
       setError(errorMessage);
->>>>>>> 969d2bff0c3277a24824925f470c856501e9b18b
     }
 };
 
