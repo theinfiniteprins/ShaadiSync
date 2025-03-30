@@ -294,7 +294,6 @@ const changePassword = async (req, res) => {
 
 const getPendingVerifications = async (req, res) => {
   try {
-    console.log('Fetching pending verifications');
     const pendingArtists = await Artist.find({ verificationStatus: "pending" })
       .select('-password -resetPasswordToken -resetPasswordExpires')
       .populate('artistType', 'type');
