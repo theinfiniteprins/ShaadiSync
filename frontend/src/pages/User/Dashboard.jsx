@@ -8,9 +8,7 @@ import Loading from "../error/loader.jsx"; // Import Loading component
 import Error from "../error/Error"; // Import Error component
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-
-
-
+import Cookies from 'js-cookie'; // Add js-cookie import
 
 const Dashboard = () => {
   const [artistTypes, setArtistTypes] = useState([]);
@@ -47,6 +45,39 @@ const Dashboard = () => {
 
     fetchArtistTypes();
   }, []);
+
+  useEffect(() => {
+    // Get user's location
+    const getUserLocation = () => {
+      if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const { latitude, longitude } = position.coords;
+            
+            // Store coordinates in cookies for 7 days
+            Cookies.set('userLat', latitude, { expires: 7 });
+            Cookies.set('userLng', longitude, { expires: 7 });
+          },
+          (error) => {
+            console.error("Error getting location:", error);
+            // // Set default coordinates (you can set your city's coordinates)
+            // Cookies.set('userLat', '23.0225', { expires: 7 }); // Default latitude
+            // Cookies.set('userLng', '72.5714', { expires: 7 }); // Default longitude
+          },
+          {
+            enableHighAccuracy: true,
+            timeout: 5000,
+            maximumAge: 0
+          }
+        );
+      }
+    };
+
+    getUserLocation();
+  }, []);
+
+  const userLat = Cookies.get('userLat');
+  const userLng = Cookies.get('userLng');
 
   if (loading) {
     return <Loading />;

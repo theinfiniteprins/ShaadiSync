@@ -7,6 +7,7 @@ require("dotenv").config();
 const Artist = require("../models/Artist.model");
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const { getCoordinatesFromNominatim} = require("../controllers/Artist.controller");
 
 const sendOTPBody = zod.object({
     email: zod.string().email(),
@@ -235,8 +236,7 @@ const createArtistProfile = async (req, res) => {
     try {
         const { email, password } = req.artistData;
         const { name, mobile, artistType, address  } = req.body;
-        console.log(req.body);
-        
+        console.log("hii");
 
         // const existingArtist = await Artist.findOne({ email });
         // if (existingArtist) {
@@ -246,16 +246,33 @@ const createArtistProfile = async (req, res) => {
         // if (!name || !mobileNumber || !artistType || !address) {
         //     return res.status(400).json({ success: false, message: "All required fields must be filled" });
         // }
+        
+        const locationData = await getCoordinatesFromNominatim(address);
 
-        // Create artist after complete profile submission
-        await Artist.create({
-            email,
-            password, 
-            name,
-            mobileNumber: mobile,
-            artistType,
-            address,
-        });
+        if(locationData){
+            await Artist.create({
+                email,
+                password, 
+                name,
+                mobileNumber: mobile,
+                artistType,
+                address,
+                coordinates: {
+                    type: 'Point',
+                    coordinates: locationData.coordinates // [longitude, latitude]
+                }
+            });
+        }else{
+            await Artist.create({
+                email,
+                password, 
+                name,
+                mobileNumber: mobile,
+                artistType,
+                address,
+            });
+        }
+       
 
         return res.status(200).json({ success: true, message: "Artist profile created successfully" });
     } catch (error) {

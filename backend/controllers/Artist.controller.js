@@ -2,6 +2,8 @@ const Artist = require('../models/Artist.model'); // Replace with the actual pat
 const ArtistType = require('../models/ArtistType.model'); // Replace with the actual path to your ArtistType model
 const zod = require("zod");
 const bcrypt = require('bcrypt');
+const mongoose = require('mongoose');
+const axios = require('axios');
 
 // 1. Create a new Artist
 const createArtist = async (req, res) => {
@@ -382,6 +384,97 @@ const handleVerification = async (req, res) => {
   }
 };
 
+
+
+
+
+
+
+async function getCoordinatesFromNominatim(address) {
+  try {
+    const response = await axios.get('https://nominatim.openstreetmap.org/search', {
+      params: {
+        q: address,
+        format: 'json',
+        limit: 1
+      },
+      headers: {
+        'User-Agent': 'ShadiSync/1.0' 
+      }
+    });
+    if (response.data && response.data.length > 0) {
+      const location = response.data[0];
+      return {
+        city: location.display_name.split(',')[0],
+        coordinates: [parseFloat(location.lon), parseFloat(location.lat)] // GeoJSON format
+      };
+    }
+    return null;
+  } catch (error) {
+    console.error('Error geocoding address with Nominatim:', error.message);
+    return null;
+  }
+}
+
+async function updateArtistsWithCoordinates() {
+  try {
+    // Find all artists without coordinates
+    const artists = await Artist.find({
+      'coordinates': { $exists: false }
+    });
+
+    console.log(`Found ${artists.length} artists without coordinates`);
+
+    for (const artist of artists) {
+      const address = artist.address || '';
+      if (!address) {
+        console.log(`Artist ${artist.name || artist._id} has no address specified`);
+        continue;
+      }
+      const addressParts = artist.address.trim().split(/\s+/);
+      const city = addressParts[addressParts.length - 1];
+      console.log(city);
+
+      console.log(`Processing artist: ${artist.name || artist._id}`);
+
+      // Get coordinates using Google Maps API
+      // const locationData = await getCoordinates(address);
+      
+      // OR use free Nominatim API
+      const locationData = await getCoordinatesFromNominatim(city);
+      console.log(locationData);
+
+      if (locationData) {
+        // Update artist with location data
+        artist.coordinates = {
+          type: 'Point',
+          coordinates: locationData.coordinates // [longitude, latitude]
+        };
+
+        await artist.save();
+        console.log(`Updated ${artist.name || artist._id} with coordinates: [${locationData.coordinates}]`);
+      } else {
+        console.log(`Failed to geocode address for ${artist.name || artist._id}`);
+      }
+
+      // Add delay to avoid hitting rate limits
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+
+    console.log('Finished updating artists with coordinates');
+  } catch (error) {
+    console.error('Error updating artists:', error);
+  }
+}
+
+const addcods = async (req, res) => {
+  try {
+    await updateArtistsWithCoordinates();
+  } catch (error) {
+    console.error('Error in addcods:', error);
+  }
+}
+
 module.exports = {
   createArtist,
   getAllArtists,
@@ -397,5 +490,7 @@ module.exports = {
   deleteImage,
   changePassword,
   getPendingVerifications,
-  handleVerification
+  handleVerification,
+  addcods,
+  getCoordinatesFromNominatim,
 };

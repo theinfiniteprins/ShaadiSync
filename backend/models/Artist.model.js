@@ -31,6 +31,17 @@ const artistSchema = new Schema(
     address: {
       type: String,
     },
+    coordinates: {
+      type: {
+        type: String,
+        enum: ['Point'],
+        default: 'Point'
+      },
+      coordinates: {
+        type: [Number],  
+        index: '2dsphere'
+      }
+    },
     profilePic: {
       type: String, // This can store the URL or file path for the profile picture
     },
@@ -49,7 +60,7 @@ const artistSchema = new Schema(
     },
     verificationStatus: {
       type: String,
-      enum: ['pending', 'confirmed', 'rejected'],
+      enum: ['pending', 'confirmed', 'rejected','approved'],
     },
     balance: {
       type: Number,
