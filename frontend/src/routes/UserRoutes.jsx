@@ -12,6 +12,7 @@ import Privacy from "../pages/User/PrivacyPolicy";
 import ViewService from "../pages/User/ViewService";
 import Wallet from "../pages/User/Wallet";
 import UnlockedService from "../pages/User/UnlockedService";
+import ArtistDetails from "../pages/User/ArtistDetails";
 
 
 
@@ -26,6 +27,7 @@ const UserRoutes = () => {
                 <Route path='/PrivacyPolicy' element={<Privacy />}/>
                 <Route path="/services/:id" element={<ViewService />} />
                 <Route path="/unlocked-services" element={<UnlockedService />} />
+                <Route path="/artist-page/:artistId" element={<ArtistDetails />} />
                 <Route path="/" element={<Dashboard />} />
                 
                 <Route path="/:categoryId/" element={<CategorywiseServiceList />} />
