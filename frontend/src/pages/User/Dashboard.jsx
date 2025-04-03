@@ -122,6 +122,9 @@ const Dashboard = () => {
         
         {/* Category-wise Artists Section */}
         <CategorywiseArtist artistTypes={artistTypes} />
+
+
+
         <NearbyArtists />
         <Footer />
 

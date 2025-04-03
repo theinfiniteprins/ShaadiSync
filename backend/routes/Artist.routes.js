@@ -18,6 +18,7 @@ const {
   handleVerification,
   addcods,
   getNearestArtists,
+  getArtistByArtistId,
 } = require('../controllers/Artist.controller');
 
 const { authMiddleware } = require("../middleware/authmiddleware");
@@ -26,6 +27,7 @@ const { isAdminMiddleware } = require("../middleware/adminmiddleware")
 router.post('/', createArtist);
 router.post('/addcods', addcods); // Add CODS
 router.get('/nearest', getNearestArtists); 
+router.get('/artist/:id',getArtistByArtistId)
 
 router.get('/pending-verifications',authMiddleware,isAdminMiddleware, getPendingVerifications);
 router.put('/verify/:artistId', authMiddleware,isAdminMiddleware, handleVerification);

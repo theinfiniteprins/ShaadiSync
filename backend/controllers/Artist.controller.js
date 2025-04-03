@@ -555,6 +555,41 @@ const getNearestArtists = async (req, res) => {
 };
 
 
+const getArtistByArtistId = async (req, res) => {
+  try {
+    // Only select fields that are used in the ArtistDetails component
+    const artist = await Artist.findById(req.params.id)
+      .populate('artistType', 'type')
+      .select([
+        'name',
+        'profilePic',
+        'artistType',
+        'isVerified',
+        'address',
+        'description'
+      ]);
+
+    if (!artist) {
+      return res.status(404).json({
+        success: false,
+        message: 'Artist not found'
+      });
+    }
+
+    // Return only the necessary fields in a structured response
+    res.status(200).json(artist);
+
+  } catch (error) {
+    console.error('Error fetching artist:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch artist details',
+      error: error.message
+    });
+  }
+};
+
+
 
 
 module.exports = {
@@ -576,4 +611,5 @@ module.exports = {
   addcods,
   getCoordinatesFromNominatim,
   getNearestArtists,
+  getArtistByArtistId,
 };
