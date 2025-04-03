@@ -38,9 +38,8 @@ const artistSchema = new Schema(
         default: 'Point'
       },
       coordinates: {
-        type: [Number],
-        required: true,
-        default: [72.8777, 19.0760] // Default coordinates [longitude, latitude]
+        type: [Number],  
+        index: '2dsphere'
       }
     },
     profilePic: {
@@ -99,9 +98,6 @@ const artistSchema = new Schema(
     timestamps: true, // Automatically add createdAt and updatedAt
   }
 );
-
-// Add 2dsphere index for geospatial queries
-artistSchema.index({ coordinates: '2dsphere' });
 
 const Artist = mongoose.model('Artist', artistSchema);
 

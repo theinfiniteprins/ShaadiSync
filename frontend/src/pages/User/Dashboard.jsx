@@ -9,16 +9,11 @@ import Error from "../error/Error"; // Import Error component
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import Cookies from 'js-cookie'; // Add js-cookie import
-import { Dialog, DialogContent, DialogActions, Button } from '@mui/material';
-import { MapPin } from 'lucide-react';
-import NearbyArtists from '../../components/NearbyArtists';
 
 const Dashboard = () => {
   const [artistTypes, setArtistTypes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [showLocationDialog, setShowLocationDialog] = useState(false); // Change to false initially
-  const [locationError, setLocationError] = useState(null);
   const navigate = useNavigate();
   const {user} = useAuth();
 
@@ -52,44 +47,37 @@ const Dashboard = () => {
   }, []);
 
   useEffect(() => {
-    // Check if user has dismissed the dialog recently
-    const dialogDismissed = Cookies.get('locationDialogDismissed');
-    
-    // Check if coordinates exist in cookies
-    const userLat = Cookies.get('userLat');
-    const userLng = Cookies.get('userLng');
+    // Get user's location
+    const getUserLocation = () => {
+      if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const { latitude, longitude } = position.coords;
+            
+            // Store coordinates in cookies for 7 days
+            Cookies.set('userLat', latitude, { expires: 7 });
+            Cookies.set('userLng', longitude, { expires: 7 });
+          },
+          (error) => {
+            console.error("Error getting location:", error);
+            // // Set default coordinates (you can set your city's coordinates)
+            // Cookies.set('userLat', '23.0225', { expires: 7 }); // Default latitude
+            // Cookies.set('userLng', '72.5714', { expires: 7 }); // Default longitude
+          },
+          {
+            enableHighAccuracy: true,
+            timeout: 5000,
+            maximumAge: 0
+          }
+        );
+      }
+    };
 
-    // Only show dialog if coordinates are not present AND dialog wasn't dismissed recently
-    if ((!userLat || !userLng) && !dialogDismissed) {
-      setShowLocationDialog(true);
-    }
-  }, []); // Empty dependency array - runs once on mount
+    getUserLocation();
+  }, []);
 
-  const handleLocationRequest = () => {
-    if ("geolocation" in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          Cookies.set('userLat', latitude, { expires: 7 });
-          Cookies.set('userLng', longitude, { expires: 7 });
-          setShowLocationDialog(false);
-          // You can add logic here to fetch nearby artists
-        },
-        (error) => {
-          console.error("Error getting location:", error);
-          setLocationError("Could not get your location. Please try again.");
-        }
-      );
-    } else {
-      setLocationError("Location services are not supported by your browser.");
-    }
-  };
-
-  const handleMaybeLater = () => {
-    // Set a cookie that expires in 24 hours
-    Cookies.set('locationDialogDismissed', 'true', { expires: 1 });
-    setShowLocationDialog(false);
-  };
+  const userLat = Cookies.get('userLat');
+  const userLng = Cookies.get('userLng');
 
   if (loading) {
     return <Loading />;
@@ -118,53 +106,10 @@ const Dashboard = () => {
             <SearchBar artistTypes={artistTypes} />
           </div>
         </div>
-        {/* Nearby Artists Section */}
-        
         {/* Category-wise Artists Section */}
         <CategorywiseArtist artistTypes={artistTypes} />
-        <NearbyArtists />
-        <Footer />
+          <Footer />
 
-        {/* Location Permission Dialog */}
-        <Dialog 
-          open={showLocationDialog} 
-          onClose={() => setShowLocationDialog(false)}
-          PaperProps={{
-            className: "rounded-lg p-4"
-          }}
-        >
-          <div className="text-center p-4">
-            <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-pink-100 mb-4">
-              <MapPin className="h-6 w-6 text-pink-600" />
-            </div>
-            <DialogContent>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
-                Find Artists Near You
-              </h3>
-              <p className="text-sm text-gray-500">
-                Allow us to access your location to find the best wedding artists in your area.
-              </p>
-              {locationError && (
-                <p className="text-sm text-red-500 mt-2">{locationError}</p>
-              )}
-            </DialogContent>
-            <DialogActions className="flex justify-center gap-2 mt-4">
-              <Button
-                onClick={handleMaybeLater} // Changed from setShowLocationDialog(false)
-                className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md"
-              >
-                Maybe Later
-              </Button>
-              <Button
-                onClick={handleLocationRequest}
-                className="px-4 py-2 text-white bg-pink-600 hover:bg-pink-700 rounded-md"
-                variant="contained"
-              >
-                Allow Location
-              </Button>
-            </DialogActions>
-          </div>
-        </Dialog>
       </div>
     </div>
   );

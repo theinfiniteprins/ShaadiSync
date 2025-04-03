@@ -11,14 +11,12 @@ const {
   getAllLiveServices,
   getServicesByCategory,
   getLatestServiceByArtist,
-  getServicesByArtistId,
 } = require('../controllers/Service.controller');
 
 const {authMiddleware} = require("../middleware/authmiddleware");
 
 router.get('/live', getAllLiveServices); // Get all services
 router.get('/:id', getServiceById);
-router.get('/artist/:artistId', getServicesByArtistId);
 
 router.post('/', authMiddleware, createService); // Create new service
 router.put('/:id', authMiddleware, updateService); // Update service
