@@ -475,6 +475,88 @@ const addcods = async (req, res) => {
   }
 }
 
+
+
+function calculateDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371; // Earth's radius in kilometers
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * 
+    Math.sin(dLon/2) * Math.sin(dLon/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c;
+}
+
+function toRad(degrees) {
+  return degrees * (Math.PI/180);
+}
+
+const getNearestArtists = async (req, res) => {
+  try {
+    const { longitude, latitude } = req.query;
+
+    // Validate coordinates
+    if (!longitude || !latitude) {
+      return res.status(400).json({
+        success: false,
+        error: 'Longitude and latitude are required'
+      });
+    }
+
+    // Convert coordinates to numbers
+    const coords = [parseFloat(longitude), parseFloat(latitude)];
+
+    // Find nearest artists using MongoDB's geospatial query
+    const nearestArtists = await Artist.find({
+      coordinates: {
+        $near: {
+          $geometry: {
+            type: 'Point',
+            coordinates: coords
+          },
+          $maxDistance: 50000 // 50km radius
+        }
+      },
+      isVerified: true, // Only get verified artists
+      isBlocked: false // Exclude blocked artists
+    })
+    .select('-password -verificationDocuments -bankDetails -aadharCardNumber')
+    .populate('artistType', 'type')
+    .limit(10);
+    // Calculate distance for each artist
+    const artistsWithDistance = nearestArtists.map(artist => {
+      const distance = calculateDistance(
+        coords[1], coords[0],
+        artist.coordinates.coordinates[1],
+        artist.coordinates.coordinates[0]
+      );
+
+      return {
+        ...artist.toObject(),
+        distance: Math.round(distance * 10) / 10 // Round to 1 decimal place
+      };
+    });
+
+    res.status(200).json({
+      success: true,
+      count: artistsWithDistance.length,
+      artists: artistsWithDistance
+    });
+
+  } catch (error) {
+    console.error('Error finding nearest artists:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to find nearest artists'
+    });
+  }
+};
+
+
+
+
 module.exports = {
   createArtist,
   getAllArtists,
@@ -493,4 +575,5 @@ module.exports = {
   handleVerification,
   addcods,
   getCoordinatesFromNominatim,
+  getNearestArtists,
 };
