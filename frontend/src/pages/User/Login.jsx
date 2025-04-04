@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import config from '../../configs/config';
 import { toast } from 'react-hot-toast';
+import GoogleLoginButton from '../../components/GoogleLogin';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -196,6 +197,9 @@ export default function Login() {
               </p>
             </div>
           </form>
+          <div className="mt-6">
+          <GoogleLoginButton />
+        </div>
         </div>
       </div>
     </div>

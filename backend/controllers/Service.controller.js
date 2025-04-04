@@ -121,7 +121,7 @@ const deleteService = async (req, res) => {
 const getServicesByArtist = async (req, res) => {
   try {
     // 1. Get artistId from the correct source (e.g., route params)
-    const artistId = req.params.artistId; // Adjust based on your route structure
+    const artistId = req.id; // Adjust based on your route structure
 
     // 2. Validate if artistId is a valid MongoDB ObjectId
     if (!mongoose.Types.ObjectId.isValid(artistId)) {
@@ -141,7 +141,7 @@ const getServicesByArtist = async (req, res) => {
 
     res.status(200).json(services);
   } catch (error) {
-    res.status(500).json({ 
+    res.status(404).json({ 
       message: 'Failed to fetch artist services',
       error: error.message 
     });

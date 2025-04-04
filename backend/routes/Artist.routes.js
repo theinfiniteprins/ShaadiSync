@@ -22,30 +22,36 @@ const {
 } = require('../controllers/Artist.controller');
 
 const { authMiddleware } = require("../middleware/authmiddleware");
-const { isAdminMiddleware } = require("../middleware/adminmiddleware")
+const { isAdminMiddleware } = require("../middleware/adminmiddleware");
 
-router.post('/', createArtist);
+// Public Routes
+router.post('/', createArtist); // Create artist
 router.post('/addcods', addcods); // Add CODS
-router.get('/nearest', getNearestArtists); 
-router.get('/artist/:id',getArtistByArtistId)
+router.get('/nearest', getNearestArtists); // Get nearest artists
+router.get('/artist/:id', getArtistByArtistId); // Get artist by custom artistId
 
-router.get('/pending-verifications',authMiddleware,isAdminMiddleware, getPendingVerifications);
-router.put('/verify/:artistId', authMiddleware,isAdminMiddleware, handleVerification);
-router.get('/me', authMiddleware, getCurrentArtist);
-router.get('/:id', authMiddleware, getArtistById); 
-router.put('/change-password', authMiddleware, changePassword);
-router.put('/:id', authMiddleware, updateArtist); // Update artist
-router.get('/viewbalance/balance', authMiddleware, viewBalance); // Get artist balance
-// router.put('/submit-verify/kaan', authMiddleware, submitVerification); // Unblock artist
+// Protected Routes (Require Authentication)
+router.use(authMiddleware);
 
-router.post('/verification/submit', authMiddleware, submitVerification);
+router.get('/me', getCurrentArtist); // Get current artist
+router.put('/change-password', changePassword); // Change password
+router.post('/delete-image', deleteImage); // Delete image
+router.get('/viewbalance/balance', viewBalance); // Get artist balance
+router.post('/verification/submit', submitVerification); // Submit verification request
 
-router.put('/:id/verify', authMiddleware,isAdminMiddleware, updateIsVerified); // Update artist verification status
-router.get('/', authMiddleware, isAdminMiddleware, getAllArtists); // Get all artists
-router.delete('/:id', authMiddleware, isAdminMiddleware, deleteArtist); // Delete artist
-router.put('/:id/block', authMiddleware, isAdminMiddleware, blockArtist); // Block artist
-router.put('/:id/unblock', authMiddleware, isAdminMiddleware, unblockArtist); // Unblock artist
-router.post('/delete-image', authMiddleware, deleteImage);
-router.put('/change-password', authMiddleware, changePassword);
+// Admin Protected Routes
+router.use(isAdminMiddleware);
+
+router.get('/pending-verifications', getPendingVerifications); // Get pending verifications
+router.put('/verify/:artistId', handleVerification); // Handle verification
+router.put('/:id/verify', updateIsVerified); // Update artist verification status
+router.get('/', getAllArtists); // Get all artists
+router.delete('/:id', deleteArtist); // Delete artist
+router.put('/:id/block', blockArtist); // Block artist
+router.put('/:id/unblock', unblockArtist); // Unblock artist
+
+// Dynamic Routes (Placed at the Bottom to Prevent Conflicts)
+router.get('/:id', getArtistById); // Get artist by ID
+router.put('/:id', updateArtist); // Update artist
 
 module.exports = router;

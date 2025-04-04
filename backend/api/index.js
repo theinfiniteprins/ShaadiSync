@@ -13,6 +13,7 @@ const authRoutes = require("../routes/Auth.routes");
 const Admin = require("../routes/Admin.routes")
 const Payment = require("../routes/Payment.routes");
 const paymentController = require("../controllers/Payment.controller");
+const passport = require('passport');
 
 const app = express();
 const cors = require('cors');
@@ -23,6 +24,8 @@ app.use(cors({
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true
 }));
+
+app.use(passport.initialize());
 
 // Middleware for JSON parsing
 app.use((req, res, next) => {

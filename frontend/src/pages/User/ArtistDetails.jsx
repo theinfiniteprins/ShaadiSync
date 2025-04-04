@@ -68,11 +68,6 @@ const ArtistDetails = () => {
                 {artist.artistType?.type}
               </span>
               
-              <div className="flex items-center justify-center md:justify-start gap-2 text-gray-600 mb-4">
-                <MapPin className="h-5 w-5" />
-                <span>{artist.address}</span>
-              </div>
-
               {artist.description && (
                 <p className="text-gray-600 max-w-2xl">
                   {artist.description}

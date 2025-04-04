@@ -565,7 +565,6 @@ const getArtistByArtistId = async (req, res) => {
         'profilePic',
         'artistType',
         'isVerified',
-        'address',
         'description'
       ]);
 

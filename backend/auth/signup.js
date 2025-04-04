@@ -14,6 +14,17 @@ const sendOTPBody = zod.object({
     role: zod.enum(["user", "artist"]),
 });
 
+const generateAvatarUrl = (email) => {
+    // Get first part of email (before @)
+    const name = email.split('@')[0];
+    // Convert to title case and replace special chars
+    const formattedName = name
+        .replace(/[^a-zA-Z0-9]/g, '+')
+        .replace(/\+{2,}/g, '+')
+        .trim();
+    return `https://ui-avatars.com/api/?name=${formattedName}&background=0D8ABC&color=fff`;
+};
+
 const sendOTP = async (req, res) => {
     try {
         const parsed = sendOTPBody.safeParse(req.body);
@@ -161,6 +172,7 @@ const signup = async (req, res) => {
                     password : hashedPassword,
                     mobileNumber: mobileNumber,
                     SyncCoin: SyncCoin,
+                    profilePic: generateAvatarUrl(email),
                 });
                 
                 await UserTransactionHistory.create({
@@ -260,7 +272,8 @@ const createArtistProfile = async (req, res) => {
                 coordinates: {
                     type: 'Point',
                     coordinates: locationData.coordinates // [longitude, latitude]
-                }
+                },
+                profilePic: generateAvatarUrl(name)
             });
         }else{
             await Artist.create({
