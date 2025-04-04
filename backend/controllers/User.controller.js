@@ -2,6 +2,10 @@ const User = require('../models/User.model');
 const cloudinary = require('cloudinary').v2;
 const config = require('../configs/config');
 const bcrypt = require('bcrypt');
+const passport = require('passport');
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
+const jwt = require('jsonwebtoken');
+const { OAuth2Client } = require('google-auth-library');
 
 // Configure cloudinary
 cloudinary.config({
@@ -9,6 +13,44 @@ cloudinary.config({
   api_key: config.cloudinary.api_key,
   api_secret: config.cloudinary.api_secret
 });
+
+const client = new OAuth2Client(
+  process.env.GOOGLE_CLIENT_ID,
+  process.env.GOOGLE_CLIENT_SECRET,
+  process.env.GOOGLE_REDIRECT_URI
+);
+
+// Remove or update the passport strategy since we're using auth code flow
+passport.use(
+  new GoogleStrategy(
+    {
+      clientID: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      callbackURL: "/api/auth/google/callback",
+    },
+    async function(accessToken, refreshToken, profile, done) {
+      try {
+        let user = await User.findOne({ googleId: profile.id });
+        
+        if (!user) {
+          user = new User({
+            email: profile.emails[0].value,
+            name: profile.displayName,
+            googleId: profile.id,
+            profilePic: profile.photos[0].value,
+            authProvider: 'google',
+            isEmailVerified: true,
+            SyncCoin: 0
+          });
+          await user.save();
+        }
+        return done(null, user);
+      } catch (error) {
+        return done(error, null);
+      }
+    }
+  )
+);
 
 // 1. Create a new user
 const createUser = async (req, res) => {
@@ -247,6 +289,106 @@ const changePassword = async (req, res) => {
   }
 };
 
+// Add these new controller functions
+
+const googleCallback = async (req, res) => {
+  passport.authenticate('google', { session: false }, async (err, user) => {
+    if (err) {
+      console.log('Google authentication error:', err);
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Authentication failed' 
+      });
+    }
+
+    // Generate JWT token
+   const token = jwt.sign({ userId: user._id,role: 'user' }, process.env.JWT_SECRET);
+
+    res.status(200).json({
+      success: true,
+      token,
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        profilePic: user.profilePic,
+        SyncCoin: user.SyncCoin
+      }
+    });
+  })(req, res);
+};
+
+// Update the Google authentication controller
+const googleAuth = async (req, res) => {
+  try {
+    const { code } = req.body;
+
+    // Exchange auth code for tokens
+    const { tokens } = await client.getToken(code);
+    const ticket = await client.verifyIdToken({
+      idToken: tokens.id_token,
+      audience: process.env.GOOGLE_CLIENT_ID
+    });
+
+    const payload = ticket.getPayload();
+
+    // Check if user exists by email or googleId
+    let user = await User.findOne({
+      $or: [
+        { email: payload.email },
+        { googleId: payload.sub }
+      ]
+    });
+
+    if (!user) {
+      // Create new user with Google credentials
+      user = new User({
+        name: payload.name,
+        email: payload.email,
+        googleId: payload.sub,
+        profilePic: payload.picture,
+        authProvider: 'google',
+        isEmailVerified: true,
+        SyncCoin: 0
+      });
+      await user.save();
+    } else if (!user.googleId) {
+      // If user exists but doesn't have googleId (registered through email)
+      user.googleId = payload.sub;
+      user.authProvider = 'google';
+      user.isEmailVerified = true;
+      if (!user.profilePic) {
+        user.profilePic = payload.picture;
+      }
+      await user.save();
+    }
+
+    // Generate JWT token
+    const token = jwt.sign({ userId: user._id,role: 'user' }, process.env.JWT_SECRET);
+
+    res.status(200).json({
+      success: true,
+      token,
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        profilePic: user.profilePic,
+        SyncCoin: user.SyncCoin,
+        authProvider: user.authProvider,
+        isEmailVerified: user.isEmailVerified
+      }
+    });
+  } catch (error) {
+    console.error('Google auth error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Google authentication failed',
+      error: error.message
+    });
+  }
+};
+
 module.exports = {
   createUser,
   getAllUsers,
@@ -259,4 +401,6 @@ module.exports = {
   deleteImage,
   viewBalance,
   changePassword,
+  googleCallback,
+  googleAuth,
 };

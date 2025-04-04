@@ -13,11 +13,21 @@ const userSchema = new Schema(
     },
     password: {
       type: String,
-      required: true,
+      required: function() {
+        return !this.googleId; // Password only required if not Google auth
+      },
+    },
+    googleId: {
+      type: String,
+      unique: true,
+    },
+    isEmailVerified: {
+      type: Boolean,
+      default: false,
     },
     mobileNumber: {
       type: String,
-      unique: true,
+      sparse: true,
     },
     name: {
       type: String,
@@ -27,7 +37,6 @@ const userSchema = new Schema(
     },
     profilePic: {
       type: String,
-      default: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQMggZhOIH1vXmnv0bCyBu8iEuYQO-Dw1kpp7_v2mwhw_SKksetiK0e4VWUak3pm-v-Moc&usqp=CAU"
     },
     SyncCoin: {
       type: Number,
@@ -41,12 +50,26 @@ const userSchema = new Schema(
       type: Boolean,
       default: undefined,
     },
+    authProvider: {
+      type: String,
+      enum: ['local', 'google'],
+      default: 'local'
+    }
   },
   {
     timestamps: true,
   }
 );
 
+// Add index for Google ID
+
+// Pre-save middleware to set isEmailVerified for Google users
+userSchema.pre('save', function(next) {
+  if (this.googleId && !this.isModified('googleId')) {
+    this.isEmailVerified = true;
+  }
+  next();
+});
 
 const User = mongoose.model('User', userSchema);
 

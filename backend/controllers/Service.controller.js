@@ -117,24 +117,31 @@ const deleteService = async (req, res) => {
 };
 
 // 6. Get all Services for a specific Artist
+
 const getServicesByArtist = async (req, res) => {
   try {
-    const artistId = req.id;
+    // 1. Get artistId from the correct source (e.g., route params)
+    const artistId = req.id; // Adjust based on your route structure
 
-    // Check if the artist exists
+    // 2. Validate if artistId is a valid MongoDB ObjectId
+    if (!mongoose.Types.ObjectId.isValid(artistId)) {
+      return res.status(400).json({ message: 'Invalid artist ID format' });
+    }
+
+    // 3. Check if the artist exists
     const artist = await Artist.findById(artistId);
     if (!artist) {
       return res.status(404).json({ message: 'Artist not found' });
     }
 
-    // Get all services for the artist
+    // 4. Fetch services
     const services = await Service.find({ artistId })
-      .sort({ createdAt: -1 }) // Sort by newest first
+      .sort({ createdAt: -1 })
       .exec();
 
     res.status(200).json(services);
   } catch (error) {
-    res.status(500).json({ 
+    res.status(404).json({ 
       message: 'Failed to fetch artist services',
       error: error.message 
     });
@@ -295,6 +302,44 @@ const getLatestServiceByArtist = async (req, res) => {
   }
 };
 
+
+const getServicesByArtistId = async (req, res) => {
+  try {
+    const { artistId } = req.params;
+
+    // Check if the artist exists
+    const artist = await Artist.findById(artistId);
+    if (!artist) {
+      return res.status(404).json({ 
+        success: false,
+        message: 'Artist not found' 
+      });
+    }
+
+    // Get all live services for the artist
+    const services = await Service.find({ 
+      artistId: artistId,
+      isLive: true 
+    })
+    .populate('artistId', 'name email profilePic address artistType')
+    .sort({ createdAt: -1 }) // Sort by newest first
+    .exec();
+
+    res.status(200).json({
+      success: true,
+      count: services.length,
+      services
+    });
+  } catch (error) {
+    console.error('Error fetching artist services:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to fetch artist services',
+      error: error.message 
+    });
+  }
+};
+
 module.exports = {
   createService,
   getAllServices,
@@ -307,4 +352,5 @@ module.exports = {
   getServicesByCategory,
   updateMaxCharge,
   getLatestServiceByArtist,
+  getServicesByArtistId,
 };

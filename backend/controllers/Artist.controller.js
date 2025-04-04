@@ -2,6 +2,8 @@ const Artist = require('../models/Artist.model'); // Replace with the actual pat
 const ArtistType = require('../models/ArtistType.model'); // Replace with the actual path to your ArtistType model
 const zod = require("zod");
 const bcrypt = require('bcrypt');
+const mongoose = require('mongoose');
+const axios = require('axios');
 
 // 1. Create a new Artist
 const createArtist = async (req, res) => {
@@ -382,6 +384,213 @@ const handleVerification = async (req, res) => {
   }
 };
 
+
+
+
+
+
+
+async function getCoordinatesFromNominatim(address) {
+  try {
+    const response = await axios.get('https://nominatim.openstreetmap.org/search', {
+      params: {
+        q: address,
+        format: 'json',
+        limit: 1
+      },
+      headers: {
+        'User-Agent': 'ShadiSync/1.0' 
+      }
+    });
+    if (response.data && response.data.length > 0) {
+      const location = response.data[0];
+      return {
+        city: location.display_name.split(',')[0],
+        coordinates: [parseFloat(location.lon), parseFloat(location.lat)] // GeoJSON format
+      };
+    }
+    return null;
+  } catch (error) {
+    console.error('Error geocoding address with Nominatim:', error.message);
+    return null;
+  }
+}
+
+async function updateArtistsWithCoordinates() {
+  try {
+    // Find all artists without coordinates
+    const artists = await Artist.find({
+      'coordinates': { $exists: false }
+    });
+
+    console.log(`Found ${artists.length} artists without coordinates`);
+
+    for (const artist of artists) {
+      const address = artist.address || '';
+      if (!address) {
+        console.log(`Artist ${artist.name || artist._id} has no address specified`);
+        continue;
+      }
+      const addressParts = artist.address.trim().split(/\s+/);
+      const city = addressParts[addressParts.length - 1];
+      console.log(city);
+
+      console.log(`Processing artist: ${artist.name || artist._id}`);
+
+      // Get coordinates using Google Maps API
+      // const locationData = await getCoordinates(address);
+      
+      // OR use free Nominatim API
+      const locationData = await getCoordinatesFromNominatim(city);
+      console.log(locationData);
+
+      if (locationData) {
+        // Update artist with location data
+        artist.coordinates = {
+          type: 'Point',
+          coordinates: locationData.coordinates // [longitude, latitude]
+        };
+
+        await artist.save();
+        console.log(`Updated ${artist.name || artist._id} with coordinates: [${locationData.coordinates}]`);
+      } else {
+        console.log(`Failed to geocode address for ${artist.name || artist._id}`);
+      }
+
+      // Add delay to avoid hitting rate limits
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+
+    console.log('Finished updating artists with coordinates');
+  } catch (error) {
+    console.error('Error updating artists:', error);
+  }
+}
+
+const addcods = async (req, res) => {
+  try {
+    await updateArtistsWithCoordinates();
+  } catch (error) {
+    console.error('Error in addcods:', error);
+  }
+}
+
+
+
+function calculateDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371; // Earth's radius in kilometers
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * 
+    Math.sin(dLon/2) * Math.sin(dLon/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c;
+}
+
+function toRad(degrees) {
+  return degrees * (Math.PI/180);
+}
+
+const getNearestArtists = async (req, res) => {
+  try {
+    const { longitude, latitude } = req.query;
+
+    // Validate coordinates
+    if (!longitude || !latitude) {
+      return res.status(400).json({
+        success: false,
+        error: 'Longitude and latitude are required'
+      });
+    }
+
+    // Convert coordinates to numbers
+    const coords = [parseFloat(longitude), parseFloat(latitude)];
+
+    // Find nearest artists using MongoDB's geospatial query
+    const nearestArtists = await Artist.find({
+      coordinates: {
+        $near: {
+          $geometry: {
+            type: 'Point',
+            coordinates: coords
+          },
+          $maxDistance: 50000 // 50km radius
+        }
+      },
+      isVerified: true, // Only get verified artists
+      isBlocked: false // Exclude blocked artists
+    })
+    .select('-password -verificationDocuments -bankDetails -aadharCardNumber')
+    .populate('artistType', 'type')
+    .limit(10);
+    // Calculate distance for each artist
+    const artistsWithDistance = nearestArtists.map(artist => {
+      const distance = calculateDistance(
+        coords[1], coords[0],
+        artist.coordinates.coordinates[1],
+        artist.coordinates.coordinates[0]
+      );
+
+      return {
+        ...artist.toObject(),
+        distance: Math.round(distance * 10) / 10 // Round to 1 decimal place
+      };
+    });
+
+    res.status(200).json({
+      success: true,
+      count: artistsWithDistance.length,
+      artists: artistsWithDistance
+    });
+
+  } catch (error) {
+    console.error('Error finding nearest artists:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to find nearest artists'
+    });
+  }
+};
+
+
+const getArtistByArtistId = async (req, res) => {
+  try {
+    // Only select fields that are used in the ArtistDetails component
+    const artist = await Artist.findById(req.params.id)
+      .populate('artistType', 'type')
+      .select([
+        'name',
+        'profilePic',
+        'artistType',
+        'isVerified',
+        'description'
+      ]);
+
+    if (!artist) {
+      return res.status(404).json({
+        success: false,
+        message: 'Artist not found'
+      });
+    }
+
+    // Return only the necessary fields in a structured response
+    res.status(200).json(artist);
+
+  } catch (error) {
+    console.error('Error fetching artist:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch artist details',
+      error: error.message
+    });
+  }
+};
+
+
+
+
 module.exports = {
   createArtist,
   getAllArtists,
@@ -397,5 +606,9 @@ module.exports = {
   deleteImage,
   changePassword,
   getPendingVerifications,
-  handleVerification
+  handleVerification,
+  addcods,
+  getCoordinatesFromNominatim,
+  getNearestArtists,
+  getArtistByArtistId,
 };

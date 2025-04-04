@@ -7,11 +7,23 @@ require("dotenv").config();
 const Artist = require("../models/Artist.model");
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const { getCoordinatesFromNominatim} = require("../controllers/Artist.controller");
 
 const sendOTPBody = zod.object({
     email: zod.string().email(),
     role: zod.enum(["user", "artist"]),
 });
+
+const generateAvatarUrl = (email) => {
+    // Get first part of email (before @)
+    const name = email.split('@')[0];
+    // Convert to title case and replace special chars
+    const formattedName = name
+        .replace(/[^a-zA-Z0-9]/g, '+')
+        .replace(/\+{2,}/g, '+')
+        .trim();
+    return `https://ui-avatars.com/api/?name=${formattedName}&background=0D8ABC&color=fff`;
+};
 
 const sendOTP = async (req, res) => {
     try {
@@ -160,6 +172,7 @@ const signup = async (req, res) => {
                     password : hashedPassword,
                     mobileNumber: mobileNumber,
                     SyncCoin: SyncCoin,
+                    profilePic: generateAvatarUrl(email),
                 });
                 
                 await UserTransactionHistory.create({
@@ -235,8 +248,7 @@ const createArtistProfile = async (req, res) => {
     try {
         const { email, password } = req.artistData;
         const { name, mobile, artistType, address  } = req.body;
-        console.log(req.body);
-        
+        console.log("hii");
 
         // const existingArtist = await Artist.findOne({ email });
         // if (existingArtist) {
@@ -246,16 +258,34 @@ const createArtistProfile = async (req, res) => {
         // if (!name || !mobileNumber || !artistType || !address) {
         //     return res.status(400).json({ success: false, message: "All required fields must be filled" });
         // }
+        
+        const locationData = await getCoordinatesFromNominatim(address);
 
-        // Create artist after complete profile submission
-        await Artist.create({
-            email,
-            password, 
-            name,
-            mobileNumber: mobile,
-            artistType,
-            address,
-        });
+        if(locationData){
+            await Artist.create({
+                email,
+                password, 
+                name,
+                mobileNumber: mobile,
+                artistType,
+                address,
+                coordinates: {
+                    type: 'Point',
+                    coordinates: locationData.coordinates // [longitude, latitude]
+                },
+                profilePic: generateAvatarUrl(name)
+            });
+        }else{
+            await Artist.create({
+                email,
+                password, 
+                name,
+                mobileNumber: mobile,
+                artistType,
+                address,
+            });
+        }
+       
 
         return res.status(200).json({ success: true, message: "Artist profile created successfully" });
     } catch (error) {

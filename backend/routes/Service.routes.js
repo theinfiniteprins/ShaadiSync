@@ -11,20 +11,28 @@ const {
   getAllLiveServices,
   getServicesByCategory,
   getLatestServiceByArtist,
+  getServicesByArtistId,
 } = require('../controllers/Service.controller');
 
-const {authMiddleware} = require("../middleware/authmiddleware");
+const { authMiddleware } = require("../middleware/authmiddleware");
 
-router.get('/live', getAllLiveServices); // Get all services
-router.get('/:id', getServiceById);
+// Public Routes
+router.get('/live', getAllLiveServices); // Get all live services
+router.get('/category/:category', getServicesByCategory); // Get services by category
+router.get('/artist/getbyid', authMiddleware, getServicesByArtist); // Specific route - must come before /artist/:artistId
+router.get('/artist/latestService', authMiddleware, getLatestServiceByArtist); // Specific route - must come before /artist/:artistId
+router.get('/artist/:artistId', getServicesByArtistId); // Get services by artist ID
 
-router.post('/', authMiddleware, createService); // Create new service
-router.put('/:id', authMiddleware, updateService); // Update service
-router.get('/artist/getbyid',authMiddleware, getServicesByArtist); // Get services by artist
-router.get('/artist/latestService',authMiddleware, getLatestServiceByArtist); // Get services by artist
-router.delete('/:id', authMiddleware, deleteService); // Delete service
-router.get('/', authMiddleware, getAllServices); // Get all services
-router.put('/toggle/:id', authMiddleware, toggleServiceLiveStatus); // Update service
-router.get('/category/:category', getServicesByCategory);
+// Protected Routes (Require Authentication)
+router.use(authMiddleware);
+
+router.post('/', createService); // Create new service
+router.put('/:id', updateService); // Update service
+router.delete('/:id', deleteService); // Delete service
+router.put('/toggle/:id', toggleServiceLiveStatus); // Toggle service live status
+router.get('/', getAllServices); // Get all services (authenticated access)
+
+// Dynamic Route - Must be at the bottom to prevent conflicts
+router.get('/:id', getServiceById); // Get service by ID
 
 module.exports = router;
