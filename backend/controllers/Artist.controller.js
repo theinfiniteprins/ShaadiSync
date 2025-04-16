@@ -333,7 +333,7 @@ const getPendingVerifications = async (req, res) => {
   try {
     const pendingArtists = await Artist.find({ verificationStatus: "pending" })
       .select('-password -resetPasswordToken -resetPasswordExpires')
-      .populate('artistType');
+      .populate('artistType', 'type');
 
     if (!pendingArtists.length) {
       return res.status(200).json({

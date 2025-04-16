@@ -36,6 +36,9 @@ router.get('/artist/:id', getArtistByArtistId); // Get artist by custom artistId
 router.use(authMiddleware);
 
 router.get('/me', getCurrentArtist); // Get current artist
+
+router.get('/pending-verifications', isAdminMiddleware,getPendingVerifications); // Get pending verifications
+
 router.get('/:id', getArtistById); // Get artist by ID
 router.put('/:id', updateArtist); // Update artist
 router.put('/change-password', changePassword); // Change password
@@ -46,7 +49,6 @@ router.post('/verification/submit', submitVerification); // Submit verification 
 // Admin Protected Routes
 router.use(isAdminMiddleware);
 
-router.get('/pending-verifications', getPendingVerifications); // Get pending verifications
 router.put('/verify/:artistId', handleVerification); // Handle verification
 router.put('/:id/verify', updateIsVerified); // Update artist verification status
 router.get('/', getAllArtists); // Get all artists
