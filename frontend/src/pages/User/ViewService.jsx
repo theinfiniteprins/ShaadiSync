@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import toast from "react-hot-toast"; // Add this import
 import Slider from "react-slick";
 import config from "../../configs/config";
 import Loading from "../error/loader.jsx";
@@ -25,6 +26,21 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import ReviewList from "../../components/ReviewList";
 import ReviewForm from "../../components/ReviewForm";
+
+// Add this after imports, before the component
+const toastConfig = {
+  loading: {
+    duration: Infinity,
+  },
+  success: {
+    duration: 3000,
+    position: 'top-center',
+  },
+  error: {
+    duration: 3000,
+    position: 'top-center',
+  },
+};
 
 export default function ViewService() {
   const [service, setService] = useState(null);

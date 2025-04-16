@@ -4,6 +4,7 @@ const zod = require("zod");
 const bcrypt = require('bcrypt');
 const mongoose = require('mongoose');
 const axios = require('axios');
+const Service = require('../models/Service.model');
 
 // 1. Create a new Artist
 const createArtist = async (req, res) => {
@@ -109,13 +110,47 @@ const updateArtist = async (req, res) => {
 // 5. Delete an Artist
 const deleteArtist = async (req, res) => {
   try {
-    const deletedArtist = await Artist.findByIdAndDelete(req.params.id);
-    if (!deletedArtist) {
-      return res.status(404).json({ message: 'Artist not found' });
+    // Start a session for transaction
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
+    try {
+      // Find and delete artist
+      const deletedArtist = await Artist.findById(req.params.id).session(session);
+      
+      if (!deletedArtist) {
+        await session.abortTransaction();
+        return res.status(404).json({ message: 'Artist not found' });
+      }
+
+      // Delete all services associated with the artist
+      await Service.deleteMany({ artistId: req.params.id }).session(session);
+
+      // Delete the artist
+      await deletedArtist.deleteOne();
+
+      // Commit the transaction
+      await session.commitTransaction();
+      
+      res.status(200).json({ 
+        message: 'Artist and associated services deleted successfully'
+      });
+
+    } catch (error) {
+      // If any error occurs, abort transaction
+      await session.abortTransaction();
+      throw error;
+    } finally {
+      // End session
+      session.endSession();
     }
-    res.status(200).json({ message: 'Artist deleted successfully' });
+
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Error deleting artist:', error);
+    res.status(500).json({ 
+      error: error.message,
+      message: 'Failed to delete artist and services' 
+    });
   }
 };
 
@@ -480,7 +515,7 @@ const addcods = async (req, res) => {
 function calculateDistance(lat1, lon1, lat2, lon2) {
   const R = 6371; // Earth's radius in kilometers
   const dLat = toRad(lat2 - lat1);
-  const dLon = toRad(lon2 - lon1);
+  const dLon = toRad(lon1 - lon2);
   const a = 
     Math.sin(dLat/2) * Math.sin(dLat/2) +
     Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * 

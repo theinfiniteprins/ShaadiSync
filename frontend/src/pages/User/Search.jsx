@@ -86,7 +86,7 @@ const Search = () => {
     }
 
     const searchWords = value.toLowerCase().split(' ').filter(word => 
-      !['in', 'at', 'the', 'for', 'of', 'and', 'or'].includes(word)
+      !['in', 'at', 'the', 'for', 'of', 'and', 'or','artist',' '].includes(word)
     );
 
     const filtered = services
@@ -147,7 +147,7 @@ const Search = () => {
               {/* Exact matches (both city and type) */}
               {searchTerm && filteredServices.filter(service => 
                 getMatchScore(service, searchTerm.toLowerCase().split(' ').filter(word => 
-                  !['in', 'at', 'the', 'for', 'of', 'and', 'or'].includes(word)
+                  !['in', 'at', 'the', 'for', 'of', 'and', 'or','artist',' '].includes(word)
                 )) === 3
               ).length > 0 && (
                 <div>
@@ -157,7 +157,7 @@ const Search = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filteredServices
                       .filter(service => getMatchScore(service, searchTerm.toLowerCase().split(' ').filter(word => 
-                        !['in', 'at', 'the', 'for', 'of', 'and', 'or'].includes(word)
+                        !['in', 'at', 'the', 'for', 'of', 'and', 'or','artist',' '].includes(word)
                       )) === 3)
                       .map(service => (
                         <ServiceCard key={service._id} service={service} />
@@ -169,7 +169,7 @@ const Search = () => {
               {/* Type matches */}
               {searchTerm && filteredServices.filter(service => 
                 getMatchScore(service, searchTerm.toLowerCase().split(' ').filter(word => 
-                  !['in', 'at', 'the', 'for', 'of', 'and', 'or'].includes(word)
+                  !['in', 'at', 'the', 'for', 'of', 'and', 'or','artist',' '].includes(word)
                 )) === 2
               ).length > 0 && (
                 <div>
@@ -179,7 +179,7 @@ const Search = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filteredServices
                       .filter(service => getMatchScore(service, searchTerm.toLowerCase().split(' ').filter(word => 
-                        !['in', 'at', 'the', 'for', 'of', 'and', 'or'].includes(word)
+                        !['in', 'at', 'the', 'for', 'of', 'and', 'or','artist',' '].includes(word)
                       )) === 2)
                       .map(service => (
                         <ServiceCard key={service._id} service={service} />
@@ -191,7 +191,7 @@ const Search = () => {
               {/* City matches */}
               {searchTerm && filteredServices.filter(service => 
                 getMatchScore(service, searchTerm.toLowerCase().split(' ').filter(word => 
-                  !['in', 'at', 'the', 'for', 'of', 'and', 'or'].includes(word)
+                  !['in', 'at', 'the', 'for', 'of', 'and', 'or','artist',' '].includes(word)
                 )) === 1
               ).length > 0 && (
                 <div>
@@ -201,7 +201,7 @@ const Search = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filteredServices
                       .filter(service => getMatchScore(service, searchTerm.toLowerCase().split(' ').filter(word => 
-                        !['in', 'at', 'the', 'for', 'of', 'and', 'or'].includes(word)
+                        !['in', 'at', 'the', 'for', 'of', 'and', 'or','artist',' '].includes(word)
                       )) === 1)
                       .map(service => (
                         <ServiceCard key={service._id} service={service} />
