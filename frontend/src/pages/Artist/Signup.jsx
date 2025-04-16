@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from 'react-hot-toast';
 import ArtistSignup from "../../components/ArtistSignup";
 import OtpVerification from "../../components/OtpVerification";
 import ArtistType from "../../components/ArtistType";
@@ -28,6 +29,29 @@ export default function Signup() {
     const [loading, setLoading] = useState(false);
     const [verificationToken, setVerificationToken] = useState("");
 
+    const toastConfig = {
+        success: {
+            duration: 3000,
+            icon: '✅',
+            style: {
+                background: '#10B981',
+                color: 'white',
+                padding: '16px',
+                borderRadius: '10px',
+            }
+        },
+        error: {
+            duration: 4000,
+            icon: '❌',
+            style: {
+                background: '#EF4444',
+                color: 'white',
+                padding: '16px',
+                borderRadius: '10px',
+            }
+        }
+    };
+
     // Handle form input changes
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -37,7 +61,9 @@ export default function Signup() {
 
     // Handle Signup (Step 1)
     const handleSignup = async () => {
+        const loadingToast = toast.loading('Sending OTP...');
         setLoading(true);
+        
         try {
             const response = await fetch(`${config.baseUrl}/api/auth/sendotp`, {
                 method: "POST",
@@ -47,13 +73,15 @@ export default function Signup() {
 
             const data = await response.json();
             if (response.ok) {
+                toast.success('OTP sent successfully! 📧', toastConfig.success);
                 setStep(2);
             } else {
-                alert(data.message); // Show backend error in an alert
+                toast.error(data.message || 'Failed to send OTP', toastConfig.error);
             }
         } catch (error) {
-            alert("Something went wrong. Try again.");
+            toast.error('Server error. Please try again later.', toastConfig.error);
         } finally {
+            toast.dismiss(loadingToast);
             setLoading(false);
         }
     };
@@ -61,10 +89,13 @@ export default function Signup() {
     // Handle OTP Verification (Step 2)
     const handleVerifyOtp = async () => {
         if (!otp) {
-            setErrors({ otp: "OTP is required" });
+            toast.error('Please enter OTP', toastConfig.error);
             return;
         }
+
+        const loadingToast = toast.loading('Verifying OTP...');
         setLoading(true);
+        
         try {
             const response = await fetch(`${config.baseUrl}/api/auth/signup`, {
                 method: "POST",
@@ -81,20 +112,24 @@ export default function Signup() {
             const data = await response.json();
             if (response.ok) {
                 setVerificationToken(data.token);
+                toast.success('OTP verified successfully! 🎉', toastConfig.success);
                 setStep(3);
             } else {
-                alert(data.message); // Show backend error in an alert
+                toast.error(data.message || 'Verification failed', toastConfig.error);
             }
         } catch (error) {
-            alert("Verification failed. Try again.");
+            toast.error('Verification failed. Please try again.', toastConfig.error);
         } finally {
+            toast.dismiss(loadingToast);
             setLoading(false);
         }
     };
 
     // Handle Final Submission (Step 6)
     const handleFinalSubmit = async () => {
+        const loadingToast = toast.loading('Creating your artist profile...');
         setLoading(true);
+        
         try {
             const response = await fetch(`${config.baseUrl}/api/auth/createArtist`, {
                 method: "POST",
@@ -112,13 +147,15 @@ export default function Signup() {
 
             const data = await response.json();
             if (response.ok) {
+                toast.success('Welcome to ShaadiSync! 🎨', toastConfig.success);
                 navigate('/artist/login');
             } else {
-                alert(data.message); // Show backend error in an alert
+                toast.error(data.message || 'Failed to create profile', toastConfig.error);
             }
         } catch (error) {
-            alert("Signup failed. Try again.");
+            toast.error('Profile creation failed. Please try again.', toastConfig.error);
         } finally {
+            toast.dismiss(loadingToast);
             setLoading(false);
         }
     };

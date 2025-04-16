@@ -40,7 +40,7 @@ passport.use(
             profilePic: profile.photos[0].value,
             authProvider: 'google',
             isEmailVerified: true,
-            SyncCoin: 0
+            SyncCoin: 10
           });
           await user.save();
         }
@@ -349,7 +349,7 @@ const googleAuth = async (req, res) => {
         profilePic: payload.picture,
         authProvider: 'google',
         isEmailVerified: true,
-        SyncCoin: 0
+        SyncCoin: 10
       });
       await user.save();
     } else if (!user.googleId) {

@@ -63,7 +63,9 @@ const Review = () => {
                 className="p-6 border rounded-lg shadow-md bg-gray-50 hover:shadow-lg transition-shadow duration-300"
               >
                 <div className="flex justify-between items-center">
-                  <span className="text-lg font-semibold text-gray-700">{review.userId.name}</span>
+                  <span className="text-lg font-semibold text-gray-700">
+                    {review.userId?.name || 'Anonymous User'}
+                  </span>
                   <span className="text-sm text-gray-500">
                     {new Date(review.createdAt).toLocaleDateString()} {" "}
                     {new Date(review.createdAt).toLocaleTimeString()}
@@ -77,7 +79,7 @@ const Review = () => {
                     />
                   ))}
                 </div>
-                <p className="mt-2 text-gray-600">{review.reviewText}</p>
+                <p className="mt-2 text-gray-600">{review.reviewText || 'No review text provided'}</p>
               </div>
             ))}
           </div>

@@ -4,7 +4,7 @@ export default function MobileVerification({ prevStep, formData, handleChange, h
     const [error, setError] = useState(""); // Error state
 
     const validateAndSubmit = () => {
-        const mobileRegex = /^[6-9]\d{9}$/; // Validates Indian 10-digit numbers (starting with 6-9)
+        const mobileRegex = /^[1-9]\d{9}$/; // Validates Indian 10-digit numbers (starting with 6-9)
 
         if (!formData.mobile.trim()) {
             setError("Mobile number is required.");
