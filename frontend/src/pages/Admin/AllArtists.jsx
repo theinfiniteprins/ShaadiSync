@@ -117,7 +117,13 @@ export default function AllArtists() {
           message: `Artist successfully ${currentStatus ? 'unblocked' : 'blocked'}`,
           severity: 'success'
         });
-        await fetchArtists();
+
+        // Update the specific artist's isBlocked status in the state
+        setArtists((prevArtists) =>
+          prevArtists.map((artist) =>
+            artist._id === artistId ? { ...artist, isBlocked: !currentStatus } : artist
+          )
+        );
       }
     } catch (error) {
       console.error(`Error ${currentStatus ? 'unblocking' : 'blocking'} artist:`, error);
@@ -131,11 +137,7 @@ export default function AllArtists() {
 
   const handleDeleteArtist = async (artistId) => {
     try {
-      const response = await axios.delete(`${config.baseUrl}/api/artists/${artistId}`, {
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      });
+      const response = await axios.delete(`${config.baseUrl}/api/artists/${artistId}`);
       
       if (response.status === 200 || response.status === 204) {
         setSnackbar({
@@ -143,7 +145,9 @@ export default function AllArtists() {
           message: 'Artist successfully deleted',
           severity: 'success'
         });
-        await fetchArtists();
+
+        // Remove the deleted artist from the state
+        setArtists((prevArtists) => prevArtists.filter((artist) => artist._id !== artistId));
       } else {
         throw new Error('Failed to delete artist');
       }
@@ -214,6 +218,28 @@ export default function AllArtists() {
 
   const handleCloseSnackbar = () => {
     setSnackbar({ ...snackbar, open: false });
+  };
+
+  const highlightText = (text, query) => {
+    if (!query) return text;
+  
+    const parts = text.split(new RegExp(`(${query})`, 'gi'));
+    return parts.map((part, index) =>
+      part.toLowerCase() === query.toLowerCase() ? (
+        <span
+          key={index}
+          style={{
+            backgroundColor: '#ffeb3b', // Light yellow background
+            fontWeight: 'bold',
+            color: '#000', // Black text for contrast
+          }}
+        >
+          {part}
+        </span>
+      ) : (
+        part
+      )
+    );
   };
 
   if (loading) {
@@ -326,138 +352,105 @@ export default function AllArtists() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {filteredArtists
-                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((artist) => (
-                  <TableRow key={artist._id}>
-                    <TableCell>
-                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        <Avatar 
-                          src={artist.profilePic} 
-                          sx={{ 
-                            width: 50, 
-                            height: 50, 
-                            mr: 2,
-                            bgcolor: '#3498db'
-                          }}
-                        >
-                          {artist.name ? artist.name.charAt(0) : ''}
-                        </Avatar>
-                        <Box>
-                          <Typography 
-                            variant="subtitle1" 
-                            sx={{ 
-                              fontWeight: 600,
-                              padding: '2px 4px',
-                              borderRadius: '4px',
-                              backgroundColor: searchQuery && artist.name?.toLowerCase().includes(searchQuery.toLowerCase())
-                                ? '#fff3cd'
-                                : 'transparent'
-                            }}
-                          >
-                            {artist.name || 'N/A'}
-                          </Typography>
-                          <Typography 
-                            variant="body2" 
-                            color="textSecondary"
+              {filteredArtists.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} align="center" sx={{ py: 3 }}>
+                    <Typography variant="subtitle1" color="textSecondary">
+                      {searchQuery ? `No artists found matching "${searchQuery}"` : 'No artists available'}
+                    </Typography>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredArtists
+                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                  .map((artist) => (
+                    <TableRow key={artist._id}>
+                      {/* Artist Details */}
+                      <TableCell>
+                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                          <Avatar
+                            src={artist.profilePic}
                             sx={{
-                              padding: '2px 4px',
-                              borderRadius: '4px',
-                              backgroundColor: searchQuery && artist.email?.toLowerCase().includes(searchQuery.toLowerCase())
-                                ? '#fff3cd'
-                                : 'transparent'
+                              width: 50,
+                              height: 50,
+                              mr: 2,
+                              bgcolor: '#3498db',
                             }}
                           >
-                            {artist.email || 'No email'}
-                          </Typography>
+                            {artist.name?.charAt(0)}
+                          </Avatar>
+                          <Box>
+                            <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                              {highlightText(artist.name || 'N/A', searchQuery)}
+                            </Typography>
+                            <Typography variant="body2" color="textSecondary">
+                              {highlightText(artist.email || 'No email', searchQuery)}
+                            </Typography>
+                          </Box>
                         </Box>
-                      </Box>
-                    </TableCell>
+                      </TableCell>
 
-                    <TableCell>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <FaPaintBrush color="#666" />
-                        <Chip 
-                          label={artist.artistType?.type || 'No Type Assigned'}
+                      {/* Artist Type */}
+                      <TableCell>
+                        <Chip
+                          label={highlightText(artist.artistType?.type || 'No Type Assigned', searchQuery)}
                           color="primary"
-                          sx={{ 
+                          sx={{
                             backgroundColor: searchQuery && artist.artistType?.type?.toLowerCase().includes(searchQuery.toLowerCase())
                               ? '#fff3cd'
                               : '#3498db',
                             fontWeight: 500,
-                            padding: '2px 4px',
                           }}
                         />
-                      </Box>
-                    </TableCell>
+                      </TableCell>
 
-                    <TableCell>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <FaPhoneAlt color="#666" />
-                        <Typography
-                          sx={{
-                            padding: '2px 4px',
-                            borderRadius: '4px',
-                            backgroundColor: searchQuery && artist.mobileNumber?.toString().includes(searchQuery)
-                              ? '#fff3cd'
-                              : 'transparent'
-                          }}
-                        >
-                          {artist.mobileNumber || 'No number'}
-                        </Typography>
-                      </Box>
-                    </TableCell>
+                      {/* Mobile Number */}
+                      <TableCell>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <FaPhoneAlt color="#666" />
+                          <Typography>
+                            {highlightText(artist.mobileNumber?.toString() || 'No number', searchQuery)}
+                          </Typography>
+                        </Box>
+                      </TableCell>
 
-                    <TableCell>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <FaMapMarkerAlt color="#666" />
-                        <Typography
-                          sx={{
-                            padding: '2px 4px',
-                            borderRadius: '4px',
-                            backgroundColor: searchQuery && artist.address?.toLowerCase().includes(searchQuery.toLowerCase())
-                              ? '#fff3cd'
-                              : 'transparent'
-                          }}
-                        >
-                          {artist.address || 'No address provided'}
-                        </Typography>
-                      </Box>
-                    </TableCell>
+                      {/* Address */}
+                      <TableCell>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <FaMapMarkerAlt color="#666" />
+                          <Typography>
+                            {highlightText(artist.address || 'No address provided', searchQuery)}
+                          </Typography>
+                        </Box>
+                      </TableCell>
 
-                    <TableCell>
+                      {/* Block/Unblock Toggle */}
+                      <TableCell>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                           <Switch
                             checked={artist.isBlocked}
                             onChange={() => handleBlockToggle(artist._id, artist.isBlocked)}
                             color="primary"
                           />
-                          <Typography color={artist.isBlocked ? "error" : "success"}>
-                            {artist.isBlocked ? "Blocked" : "Unblocked"}
+                          <Typography sx={{ fontWeight: 600 }}>
+                            {artist.isBlocked ? 'Block' : 'Unblock'}
                           </Typography>
                         </Box>
                       </TableCell>
 
-                    <TableCell>
-                      <IconButton
-                        onClick={() => handleDeleteClick(artist._id)}
-                        color="error"
-                        size="small"
-                        title="Delete Artist"
-                      >
-                        <FaTrash />
-                      </IconButton>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              {filteredArtists.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={5} align="center" sx={{ py: 3 }}>
-                    <Typography variant="subtitle1" color="textSecondary">
-                      {searchQuery ? `No artists found matching "${searchQuery}"` : 'No artists available'}
-                    </Typography>
-                  </TableCell>
-                </TableRow>
+                      {/* Actions */}
+                      <TableCell>
+                        <IconButton
+                          onClick={() => handleDeleteClick(artist._id)}
+                          color="error"
+                          size="small"
+                          title="Delete Artist"
+                        >
+                          <FaTrash />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  ))
               )}
             </TableBody>
           </Table>
@@ -503,4 +496,4 @@ export default function AllArtists() {
       </Dialog>
     </Box>
   );
-} 
+}

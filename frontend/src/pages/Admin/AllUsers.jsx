@@ -35,6 +35,29 @@ import { FaSearch, FaUsers, FaMapMarkerAlt, FaPhoneAlt, FaTrash } from 'react-ic
 import axios from 'axios';
 import config from "../../configs/config";
 
+// Helper function to highlight search matches
+const highlightText = (text, query) => {
+  if (!query) return text;
+
+  const parts = text.split(new RegExp(`(${query})`, 'gi'));
+  return parts.map((part, index) =>
+    part.toLowerCase() === query.toLowerCase() ? (
+      <span
+        key={index}
+        style={{
+          backgroundColor: '#ffeb3b', // Light yellow background
+          fontWeight: 'bold',
+          color: '#000', // Black text for contrast
+        }}
+      >
+        {part}
+      </span>
+    ) : (
+      part
+    )
+  );
+};
+
 export default function AllUsers() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -92,7 +115,13 @@ export default function AllUsers() {
           message: `User successfully ${currentStatus ? 'unblocked' : 'blocked'}`,
           severity: 'success'
         });
-        fetchUsers(); // Refresh the list
+  
+        // Update the specific user's isBlocked status in the state
+        setUsers((prevUsers) =>
+          prevUsers.map((user) =>
+            user._id === userId ? { ...user, isBlocked: !currentStatus } : user
+          )
+        );
       }
     } catch (error) {
       console.error(`Error ${currentStatus ? 'unblocking' : 'blocking'} user:`, error);
@@ -135,7 +164,9 @@ export default function AllUsers() {
           message: 'User successfully deleted',
           severity: 'success'
         });
-        await fetchUsers(); // Refresh the list
+
+        // Remove the deleted user from the state
+        setUsers((prevUsers) => prevUsers.filter((user) => user._id !== userId));
       }
     } catch (error) {
       console.error('Error deleting user:', error);
@@ -319,10 +350,10 @@ export default function AllUsers() {
                           </Avatar>
                           <Box>
                             <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                              {user.name}
+                              {highlightText(user.name || '', searchQuery)}
                             </Typography>
                             <Typography variant="body2" color="textSecondary">
-                              {user.email}
+                              {highlightText(user.email || '', searchQuery)}
                             </Typography>
                           </Box>
                         </Box>
@@ -339,7 +370,7 @@ export default function AllUsers() {
                             padding: '2px 4px',
                             borderRadius: '4px'
                           }}>
-                            {user.mobileNumber}
+                            {highlightText(user.mobileNumber.toString(), searchQuery)}
                           </Typography>
                         </Box>
                       </TableCell>
@@ -355,7 +386,7 @@ export default function AllUsers() {
                             padding: '2px 4px',
                             borderRadius: '4px'
                           }}>
-                            {user.address || 'No address provided'}
+                            {highlightText(user.address || 'No address provided', searchQuery)}
                           </Typography>
                         </Box>
                       </TableCell>

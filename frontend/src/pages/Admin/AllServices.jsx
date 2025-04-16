@@ -28,6 +28,28 @@ import { FaSearch, FaTools } from 'react-icons/fa';
 import axios from 'axios';
 import config from '../../configs/config';
 
+const highlightText = (text, query) => {
+  if (!query) return text;
+
+  const parts = text.split(new RegExp(`(${query})`, 'gi'));
+  return parts.map((part, index) =>
+    part.toLowerCase() === query.toLowerCase() ? (
+      <span
+        key={index}
+        style={{
+          backgroundColor: '#ffeb3b', // Light yellow background
+          fontWeight: 'bold',
+          color: '#000', // Black text for contrast
+        }}
+      >
+        {part}
+      </span>
+    ) : (
+      part
+    )
+  );
+};
+
 const AllServices = () => {
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -334,27 +356,42 @@ const AllServices = () => {
                         key={service._id}
                         sx={{ '&:hover': { backgroundColor: '#f5f5f5' } }}
                       >
-                        <TableCell>{service.artistName}</TableCell>
-                        <TableCell>{service.name}</TableCell>
+                        {/* Artist Name */}
                         <TableCell>
-                          <Chip 
-                            label={service.artistType}
+                          {highlightText(service.artistName || 'N/A', searchQuery)}
+                        </TableCell>
+
+                        {/* Service Name */}
+                        <TableCell>
+                          {highlightText(service.name || 'N/A', searchQuery)}
+                        </TableCell>
+
+                        {/* Artist Type */}
+                        <TableCell>
+                          <Chip
+                            label={highlightText(service.artistType || 'N/A', searchQuery)}
                             size="small"
                             sx={{ backgroundColor: '#e1f5fe', color: '#0288d1' }}
                           />
                         </TableCell>
-                        <TableCell>₹{service.price.toLocaleString('en-IN')}</TableCell>
+
+                        {/* Price */}
+                        <TableCell>
+                          ₹{service.price.toLocaleString('en-IN')}
+                        </TableCell>
+
+                        {/* Status */}
                         <TableCell>
                           <Chip
-                            label={service.isLive ? "Live" : "Not Live"}
-                            color={service.isLive ? "success" : "error"}
+                            label={service.isLive ? 'Live' : 'Not Live'}
+                            color={service.isLive ? 'success' : 'error'}
                             size="small"
-                            sx={{ 
+                            sx={{
                               fontWeight: 500,
                               minWidth: 90,
                               '& .MuiChip-label': {
-                                color: 'white'
-                              }
+                                color: 'white',
+                              },
                             }}
                           />
                         </TableCell>
