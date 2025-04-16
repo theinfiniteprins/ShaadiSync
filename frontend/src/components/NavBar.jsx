@@ -7,6 +7,17 @@ import Dropdown1 from "./Dropdown1"; // ✅ Import reusable dropdown component
 import logo from "../assets/ShaadiSync.png";
 import config from "../configs/config";
 
+const generateAvatarUrl = (email) => {
+  if (!email) return 'https://ui-avatars.com/api/?name=U&background=0D8ABC&color=fff';
+  
+  const name = email.split('@')[0]
+    .replace(/[^a-zA-Z0-9]/g, '+')
+    .replace(/\+{2,}/g, '+')
+    .trim();
+  
+  return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0D8ABC&color=fff`;
+};
+
 const Navbar = () => {
   const { isSignin, logout, user } = useAuth();
   const [artistTypes, setArtistTypes] = useState([]);
@@ -68,8 +79,8 @@ const Navbar = () => {
             <Dropdown1
               label={
                 <img
-                  src={user?.profilePic || "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQMggZhOIH1vXmnv0bCyBu8iEuYQO-Dw1kpp7_v2mwhw_SKksetiK0e4VWUak3pm-v-Moc&usqp=CAU"}
-                  alt="User"
+                  src={user?.profilePic}
+                  alt={user?.name || 'User'}
                   className="w-10 h-10 rounded-full cursor-pointer"
                 />
               }

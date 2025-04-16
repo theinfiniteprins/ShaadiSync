@@ -24,6 +24,8 @@ const {
 const { authMiddleware } = require("../middleware/authmiddleware");
 const { isAdminMiddleware } = require("../middleware/adminmiddleware");
 
+
+
 // Public Routes
 router.post('/', createArtist); // Create artist
 router.post('/addcods', addcods); // Add CODS
@@ -34,6 +36,8 @@ router.get('/artist/:id', getArtistByArtistId); // Get artist by custom artistId
 router.use(authMiddleware);
 
 router.get('/me', getCurrentArtist); // Get current artist
+router.get('/:id', getArtistById); // Get artist by ID
+router.put('/:id', updateArtist); // Update artist
 router.put('/change-password', changePassword); // Change password
 router.post('/delete-image', deleteImage); // Delete image
 router.get('/viewbalance/balance', viewBalance); // Get artist balance
@@ -51,7 +55,7 @@ router.put('/:id/block', blockArtist); // Block artist
 router.put('/:id/unblock', unblockArtist); // Unblock artist
 
 // Dynamic Routes (Placed at the Bottom to Prevent Conflicts)
-router.get('/:id', getArtistById); // Get artist by ID
-router.put('/:id', updateArtist); // Update artist
+
+
 
 module.exports = router;

@@ -15,14 +15,27 @@ const sendOTPBody = zod.object({
 });
 
 const generateAvatarUrl = (email) => {
-    // Get first part of email (before @)
     const name = email.split('@')[0];
-    // Convert to title case and replace special chars
     const formattedName = name
         .replace(/[^a-zA-Z0-9]/g, '+')
         .replace(/\+{2,}/g, '+')
         .trim();
     return `https://ui-avatars.com/api/?name=${formattedName}&background=0D8ABC&color=fff`;
+};
+
+const getRandomCoordinates = () => {
+  // Random coordinates within India's bounds
+  const indiaCoordinates = {
+    minLat: 8.4,
+    maxLat: 37.6,
+    minLng: 68.7,
+    maxLng: 97.25,
+  };
+
+  const randomLat = Math.random() * (indiaCoordinates.maxLat - indiaCoordinates.minLat) + indiaCoordinates.minLat;
+  const randomLng = Math.random() * (indiaCoordinates.maxLng - indiaCoordinates.minLng) + indiaCoordinates.minLng;
+
+  return [randomLng, randomLat]; // GeoJSON format is [longitude, latitude]
 };
 
 const sendOTP = async (req, res) => {
@@ -247,50 +260,49 @@ const signup = async (req, res) => {
 const createArtistProfile = async (req, res) => {
     try {
         const { email, password } = req.artistData;
-        const { name, mobile, artistType, address  } = req.body;
-        console.log("hii");
+        const { name, mobile, artistType, address } = req.body;
 
-        // const existingArtist = await Artist.findOne({ email });
-        // if (existingArtist) {
-        //     return res.status(400).json({ success: false, message: "Email already registered" });
-        // }
+        // Create base artist data
+        const artistData = {
+            email,
+            password,
+            name,
+            mobileNumber: mobile,
+            artistType,
+            address,
+            profilePic: generateAvatarUrl(name),
+            description: "",
+            isBlocked: false,
+            isVerified: false,
+            balance: 0,
+            maxCharge: 0
+        };
 
-        // if (!name || !mobileNumber || !artistType || !address) {
-        //     return res.status(400).json({ success: false, message: "All required fields must be filled" });
-        // }
-        
+        // Get location coordinates or use default
         const locationData = await getCoordinatesFromNominatim(address);
+        
+        // Set coordinates - either from location data or random default
+        artistData.coordinates = {
+            type: 'Point',
+            coordinates: locationData?.coordinates || getRandomCoordinates()
+        };
 
-        if(locationData){
-            await Artist.create({
-                email,
-                password, 
-                name,
-                mobileNumber: mobile,
-                artistType,
-                address,
-                coordinates: {
-                    type: 'Point',
-                    coordinates: locationData.coordinates // [longitude, latitude]
-                },
-                profilePic: generateAvatarUrl(name)
-            });
-        }else{
-            await Artist.create({
-                email,
-                password, 
-                name,
-                mobileNumber: mobile,
-                artistType,
-                address,
-            });
-        }
-       
+        // Create artist
+        const newArtist = await Artist.create(artistData);
 
-        return res.status(200).json({ success: true, message: "Artist profile created successfully" });
+        return res.status(200).json({ 
+            success: true, 
+            message: "Artist profile created successfully",
+            artistId: newArtist._id
+        });
+
     } catch (error) {
         console.error("Error creating artist profile:", error);
-        return res.status(500).json({ success: false, message: "Internal server error" });
+        return res.status(500).json({ 
+            success: false, 
+            message: "Failed to create artist profile",
+            error: error.message 
+        });
     }
 };
 
