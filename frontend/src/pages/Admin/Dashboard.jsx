@@ -148,7 +148,7 @@ const Dashboard = () => {
     try {
       // Fetch artist types with token
       const artistTypesResponse = await axios.get(`${config.baseUrl}/api/artist-types`, axiosConfig);
-      console.log('Artist Types Response:', artistTypesResponse.data);
+      // console.log('Artist Types Response:', artistTypesResponse.data);
       
       // Create an object to store counts for each artist type
       const artistTypeCounts = {};
@@ -163,7 +163,7 @@ const Dashboard = () => {
 
       // Fetch all artists with token
       const artistsResponse = await axios.get(`${config.baseUrl}/api/artists`, axiosConfig);
-      console.log('Artists Response:', artistsResponse.data);
+      // console.log('Artists Response:', artistsResponse.data);
 
       // Count artists for each type
       artistsResponse.data.forEach(artist => {
@@ -180,7 +180,7 @@ const Dashboard = () => {
           value: type.count
         }));
 
-      console.log('Chart Data:', chartData);
+      // console.log('Chart Data:', chartData);
       setArtistTypeData(chartData);
 
     } catch (error) {

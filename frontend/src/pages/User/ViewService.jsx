@@ -56,7 +56,7 @@ export default function ViewService() {
   const [averageRating, setAverageRating] = useState(0);
   const [totalReviews, setTotalReviews] = useState(0);
   const [insufficientCoins, setInsufficientCoins] = useState(false);
-  console.log(service);
+  // console.log(service);
 
 
   useEffect(() => {
@@ -176,6 +176,9 @@ export default function ViewService() {
         id: loadingToast,
         ...toastConfig.success
       });
+
+        window.location.reload();
+
     } catch (error) {
       toast.error('Failed to unlock service', {
         id: loadingToast,

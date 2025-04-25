@@ -56,7 +56,7 @@ export default function AllArtists() {
   const fetchAllArtistTypes = async () => {
     try {
       const response = await axios.get(`${config.baseUrl}/api/artist-types`);
-      console.log('Artist Types API Response:', response.data);
+      // console.log('Artist Types API Response:', response.data);
       
       if (response.status === 200) {
         const types = response.data.reduce((acc, artistType) => ({
@@ -64,7 +64,7 @@ export default function AllArtists() {
           [artistType._id]: artistType.type
         }), {});
         
-        console.log('Processed Artist Types:', types);
+        // console.log('Processed Artist Types:', types);
         setArtistTypes(types);
       }
     } catch (error) {
@@ -76,7 +76,7 @@ export default function AllArtists() {
     try {
       setLoading(true);
       const response = await axios.get(`${config.baseUrl}/api/artists`);
-      console.log('Artists API Response:', response.data);
+      // console.log('Artists API Response:', response.data);
       
       if (response.status === 200) {
         const artistsData = response.data.data || response.data;

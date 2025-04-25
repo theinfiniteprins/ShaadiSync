@@ -13,7 +13,7 @@ const styles = `
 `;
 
 export default function CategorywiseArtist({artistTypes}) {
-  console.log(artistTypes);
+  // console.log(artistTypes);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const scrollContainerRef = useRef(null);
@@ -75,7 +75,7 @@ export default function CategorywiseArtist({artistTypes}) {
                           image: artistType.typeimg
                         }}
                         onClick={() => {
-                          console.log(`Selected artist type: ${artistType.type}`);
+                          // console.log(`Selected artist type: ${artistType.type}`);
                           navigate(`/${artistType._id}`);
                         }}
                       />

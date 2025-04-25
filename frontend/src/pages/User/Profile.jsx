@@ -54,7 +54,7 @@ export default function Profile() {
           }
         }
       );
-      console.log(response.data);
+      // console.log(response.data);
       if (!response.data) {
         throw new Error('No user data received');
       }
@@ -189,7 +189,7 @@ export default function Profile() {
       }
 
       const imageUrl = await uploadImageToCloudinary(file);
-      console.log(imageUrl);
+      // console.log(imageUrl);
       
       // Delete old image if exists
       if (user?.profilePic) {

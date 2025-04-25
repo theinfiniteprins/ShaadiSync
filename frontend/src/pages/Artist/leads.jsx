@@ -49,7 +49,7 @@ const Leads = () => {
         setLoading(false);
       }
     };
-    console.log("services");
+    // console.log("services");
 
     fetchServices();
   }, [location.pathname, navigate]);
