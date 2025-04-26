@@ -179,6 +179,7 @@ export default function AllUsers() {
   };
 
   const filteredUsers = users.filter(user => {
+    const isNotAdmin = !user.isAdmin;
     const matchesSearch = (
       (user?.name?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
       (user?.email?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
@@ -192,7 +193,7 @@ export default function AllUsers() {
       blockFilter === 'active' ? !user.isBlocked :
       true;
 
-    return matchesSearch && matchesBlockStatus;
+    return  isNotAdmin && matchesSearch && matchesBlockStatus;
   });
 
   const handleChangePage = (event, newPage) => {
@@ -326,7 +327,7 @@ export default function AllUsers() {
                   .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                   .map((user) => (
                     <TableRow 
-                      key={user._id}
+                      key={user._id || 'temp-id'}
                       sx={{ 
                         '&:hover': { 
                           backgroundColor: '#f8f9fa',
@@ -338,7 +339,7 @@ export default function AllUsers() {
                       <TableCell>
                         <Box sx={{ display: 'flex', alignItems: 'center' }}>
                           <Avatar 
-                            src={user.profilePic} 
+                            src={user.profilePic || `https://ui-avatars.com/api/?name=${user.name || 'U'}`}
                             sx={{ 
                               width: 50, 
                               height: 50, 
@@ -346,41 +347,41 @@ export default function AllUsers() {
                               bgcolor: '#3498db'
                             }}
                           >
-                            {user.name?.charAt(0)}
+                            {(user.name || 'U').charAt(0)}
                           </Avatar>
                           <Box>
                             <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                              {highlightText(user.name || '', searchQuery)}
+                              {highlightText(user.name || 'Anonymous User', searchQuery)}
                             </Typography>
                             <Typography variant="body2" color="textSecondary">
-                              {highlightText(user.email || '', searchQuery)}
+                              {highlightText(user.email || 'No email', searchQuery)}
                             </Typography>
                           </Box>
                         </Box>
                       </TableCell>
 
-                      {/* Mobile Number - Highlighted if it matches search */}
+                      {/* Mobile Number */}
                       <TableCell>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                           <FaPhoneAlt color="#666" />
                           <Typography sx={{
-                            backgroundColor: searchQuery && user.mobileNumber?.toString().includes(searchQuery) 
+                            backgroundColor: searchQuery && (user.mobileNumber || '').toString().includes(searchQuery) 
                               ? '#fff3cd' 
                               : 'transparent',
                             padding: '2px 4px',
                             borderRadius: '4px'
                           }}>
-                            {highlightText(user.mobileNumber.toString(), searchQuery)}
+                            {highlightText((user.mobileNumber || 'No phone number').toString(), searchQuery)}
                           </Typography>
                         </Box>
                       </TableCell>
 
-                      {/* Address - Highlighted if it matches search */}
+                      {/* Address */}
                       <TableCell>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                           <FaMapMarkerAlt color="#666" />
                           <Typography sx={{
-                            backgroundColor: searchQuery && user.address?.toLowerCase().includes(searchQuery.toLowerCase()) 
+                            backgroundColor: searchQuery && (user.address || '').toLowerCase().includes(searchQuery.toLowerCase()) 
                               ? '#fff3cd' 
                               : 'transparent',
                             padding: '2px 4px',
@@ -395,12 +396,12 @@ export default function AllUsers() {
                       <TableCell>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                           <Switch
-                            checked={user.isBlocked}
-                            onChange={() => handleBlockToggle(user._id, user.isBlocked)}
+                            checked={Boolean(user.isBlocked || false)}
+                            onChange={() => handleBlockToggle(user._id, user.isBlocked || false)}
                             color="primary"
                           />
-                          <Typography color={user.isBlocked ? "error" : "success"}>
-                            {user.isBlocked ? "Blocked" : "Unblocked"}
+                          <Typography color={(user.isBlocked || false) ? "error" : "success"}>
+                            {(user.isBlocked || false) ? "Blocked" : "Active"}
                           </Typography>
                         </Box>
                       </TableCell>
