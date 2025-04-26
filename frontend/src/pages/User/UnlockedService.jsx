@@ -23,7 +23,7 @@ export default function UnlockedServices() {
         );
         // Access the service data from the unlocked service objects
         const unlockedServices = response.data.map(item => item.serviceId);
-        console.log('Unlocked Services:', unlockedServices); // Debug log
+        // console.log('Unlocked Services:', unlockedServices); // Debug log
         setServices(unlockedServices);
       } catch (err) {
         console.error('Error fetching unlocked services:', err);

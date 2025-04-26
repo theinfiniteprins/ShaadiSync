@@ -22,7 +22,7 @@ const ArtistDetails = () => {
           axios.get(`${config.baseUrl}/api/artists/artist/${artistId}`),
           axios.get(`${config.baseUrl}/api/services/artist/${artistId}`)
         ]);
-        console.log(artistRes.data, servicesRes.data.services);
+        // console.log(artistRes.data, servicesRes.data.services);
         setArtist(artistRes.data);
         setServices(servicesRes.data.services);
       } catch (err) {

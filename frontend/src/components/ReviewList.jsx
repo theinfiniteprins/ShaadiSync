@@ -10,7 +10,7 @@ const ReviewList = ({ artistId }) => {
     const [error, setError] = useState(null);
     const reviewsPerPage = 5;
     const { user, token } = useAuth();
-    console.log(artistId);
+    // console.log(artistId);
     
 
     useEffect(() => {

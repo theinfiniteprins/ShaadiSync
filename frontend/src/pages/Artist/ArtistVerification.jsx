@@ -124,7 +124,7 @@ const ArtistVerification = () => {
       }));
 
       // Log the updated state to verify
-      console.log('Document uploaded:', data.secure_url);
+      // console.log('Document uploaded:', data.secure_url);
       
       setFileErrors(prev => ({ ...prev, [name]: '' }));
       toast.success('Document uploaded successfully', {
@@ -173,7 +173,7 @@ const ArtistVerification = () => {
       };
 
       // Log the data being sent
-      console.log('Submitting verification data:', verificationData);
+      // console.log('Submitting verification data:', verificationData);
   
       const response = await axios.post(
         `${config.baseUrl}/api/artists/verification/submit`,

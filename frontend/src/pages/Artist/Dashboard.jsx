@@ -23,7 +23,7 @@ const Dashboard = () => {
     const [totalReviews, setTotalReviews] = useState(0);
     const [leadsData, setLeadsData] = useState([]);
     const navigate = useNavigate();
-    console.log(artist);
+    // console.log(artist);
     
 
     const timeAgo = (timestamp) => {

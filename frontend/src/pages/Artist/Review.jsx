@@ -12,7 +12,7 @@ const Review = () => {
   // Fetch Reviews from API
   useEffect(() => {
     const token = localStorage.getItem("artistToken");
-    console.log(token);
+    // console.log(token);
 
     const fetchReviews = async () => {
       try {
@@ -21,7 +21,7 @@ const Review = () => {
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         });
         const data = await response.json();
-        console.log(data);
+        // console.log(data);
 
         setReviews(data);
         setLoading(false);
