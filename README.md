@@ -2,6 +2,8 @@
 
 **ShaadiSync** is a full-stack wedding planning platform built with the **MERN stack**. It connects users with verified artists (like photographers, decorators, etc.) and streamlines the wedding planning journey with secure payments, wallet systems, and reviews — all wrapped in a modern responsive UI.
 
+Live Project : https://shaadisync.vercel.app/
+
 ---
 
 ## ✨ Features
@@ -97,15 +99,6 @@ npm run dev
 
 > 💻 App runs at [http://localhost:5173](http://localhost:5173)
 
----
-
-## 📸 Screenshots
-
-<!-- Add your screenshots in client/public/screenshots or update links -->
-![image]()
-![image]()
-![image]()
-![image]()
 
 ---
 
