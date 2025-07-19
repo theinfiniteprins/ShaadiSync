@@ -14,6 +14,7 @@ const Admin = require("../routes/Admin.routes")
 const Payment = require("../routes/Payment.routes");
 const paymentController = require("../controllers/Payment.controller");
 const passport = require('passport');
+const chatbaseRoutes = require("../routes/chatbase");
 
 const app = express();
 const cors = require('cors');
@@ -53,6 +54,7 @@ app.use("/api/user-unlock-service", userUnlockServiceRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/admin",Admin);
 app.use("/api/payment",Payment);
+app.use("/api/chatbase", chatbaseRoutes);
 
 // Connect to the database
 connectDB();
